@@ -18,7 +18,6 @@
 namespace quick_lint_js {
 class translatable_message;
 
-void initialize_translations_from_environment();
 void initialize_translations_from_locale(const char* locale_name);
 
 class translator {

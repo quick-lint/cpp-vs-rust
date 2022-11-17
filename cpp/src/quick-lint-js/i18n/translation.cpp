@@ -21,60 +21,12 @@ namespace quick_lint_js {
 translator qljs_messages;
 
 namespace {
-std::vector<std::string> split_on(const char* s, char separator) {
-  std::vector<std::string> locales;
-  for (;;) {
-    const char* sep = std::strchr(s, separator);
-    if (sep) {
-      locales.emplace_back(s, sep);
-      s = sep + 1;
-    } else {
-      locales.emplace_back(s);
-      break;
-    }
-  }
-  return locales;
-}
-
-std::vector<std::string> get_user_locale_preferences() {
-  // This lookup order roughly mimics GNU gettext.
-
-  int category =
-#if QLJS_HAVE_LC_MESSAGES
-      LC_MESSAGES
-#else
-      LC_ALL
-#endif
-      ;
-  const char* locale = std::setlocale(category, nullptr);
-  if (locale && locale == "C"sv) {
-    return {};
-  }
-
-  const char* language_env = ::getenv("LANGUAGE");
-  if (language_env && language_env[0] != '\0') {
-    return split_on(language_env, ':');
-  }
-
-  // TODO(strager): Determine the language using macOS' and Windows' native
-  // APIs. See GNU gettext's _nl_language_preferences_default.
-
-  return {locale};
-}
-
 void initialize_locale() {
   if (!std::setlocale(LC_ALL, "")) {
     std::fprintf(stderr, "warning: failed to set locale: %s\n",
                  std::strerror(errno));
   }
 }
-}
-
-void initialize_translations_from_environment() {
-  initialize_locale();
-  if (!qljs_messages.use_messages_from_locales(get_user_locale_preferences())) {
-    qljs_messages.use_messages_from_source_code();
-  }
 }
 
 void initialize_translations_from_locale(const char* locale_name) {
