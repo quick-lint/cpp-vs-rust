@@ -10,7 +10,6 @@
 #include <quick-lint-js/port/have.h>
 #include <quick-lint-js/port/integer.h>
 #include <quick-lint-js/port/warning.h>
-#include <quick-lint-js/util/math-overflow.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string>
 #include <type_traits>

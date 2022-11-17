@@ -64,14 +64,8 @@ add_library(
   quick-lint-js/port/windows-error.h
   quick-lint-js/port/windows.h
   quick-lint-js/util/cpp.h
-  quick-lint-js/util/instance-tracker.h
-  quick-lint-js/util/math-overflow.h
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/pointer.h
-  quick-lint-js/util/try-catch-stack.h
-  quick-lint-js/util/type-traits.h
-  quick-lint-js/util/utf-16.cpp
-  quick-lint-js/util/utf-16.h
   quick-lint-js/util/utf-8.cpp
   quick-lint-js/util/utf-8.h
   quick-lint-js/version.h
