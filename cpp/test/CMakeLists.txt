@@ -18,6 +18,7 @@ add_executable(
   quick-lint-js/parse-support.h
   quick-lint-js/spy-visitor.h
   test-lex.cpp
+  test-locale.cpp
   test-translation-table-generated.cpp
   test-translation.cpp
 )
