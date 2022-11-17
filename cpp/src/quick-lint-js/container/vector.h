@@ -10,16 +10,11 @@
 #include <memory>
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/winkable.h>
-#include <quick-lint-js/feature.h>
 #include <quick-lint-js/port/attribute.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <string_view>
 #include <type_traits>
 #include <utility>
-
-#if QLJS_FEATURE_VECTOR_PROFILING
-#include <quick-lint-js/container/vector-profiler.h>
-#endif
 
 namespace quick_lint_js {
 // Wraps a vector class so it has the same interface as
@@ -297,13 +292,8 @@ class raw_bump_vector {
   BumpAllocator *allocator_;
 };
 
-#if QLJS_FEATURE_VECTOR_PROFILING
-template <class T, class BumpAllocator>
-using bump_vector = instrumented_vector<raw_bump_vector<T, BumpAllocator>>;
-#else
 template <class T, class BumpAllocator>
 using bump_vector = uninstrumented_vector<raw_bump_vector<T, BumpAllocator>>;
-#endif
 }
 
 #endif

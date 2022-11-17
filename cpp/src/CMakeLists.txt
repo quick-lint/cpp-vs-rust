@@ -31,7 +31,6 @@ add_library(
   quick-lint-js/fe/lex.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
-  quick-lint-js/feature.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h
   quick-lint-js/i18n/translation-table-generated.cpp
