@@ -6,7 +6,6 @@
 #include <memory>
 #include <optional>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/hash-map.h>
 #include <quick-lint-js/fe/buffering-diag-reporter.h>
 #include <quick-lint-js/fe/diag-reporter.h>
@@ -723,14 +722,9 @@ void parser::crash_on_unimplemented_token(const char* qljs_file_name,
       fatal_parse_error_kind::unexpected_token,
   });
 
-  std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s",
+  std::fprintf(stderr, "%s:%d: fatal: token not implemented in %s: %s\n",
                qljs_file_name, qljs_line, qljs_function_name,
                to_string(this->peek().type));
-  cli_locator locator(this->lexer_.original_input());
-  cli_source_position token_position = locator.position(this->peek().begin);
-  std::fprintf(stderr, " on line %d column %d", token_position.line_number,
-               token_position.column_number);
-  std::fprintf(stderr, "\n");
   std::fflush(stderr);
 
   QLJS_CRASH_ALLOWING_CORE_DUMP();

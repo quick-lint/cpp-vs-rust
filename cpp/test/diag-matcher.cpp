@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <gmock/gmock.h>
 #include <optional>
-#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
@@ -19,8 +18,8 @@ class offsets_matcher::span_impl
     : public testing::MatcherInterface<const source_code_span &> {
  public:
   explicit span_impl(padded_string_view code,
-                     cli_source_position::offset_type begin_offset,
-                     cli_source_position::offset_type end_offset)
+                     std::size_t begin_offset,
+                     std::size_t end_offset)
       : code_(code), begin_offset_(begin_offset), end_offset_(end_offset) {}
 
   void DescribeTo(std::ostream *out) const override {
@@ -35,9 +34,9 @@ class offsets_matcher::span_impl
 
   bool MatchAndExplain(const source_code_span &span,
                        testing::MatchResultListener *listener) const override {
-    auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
+    auto span_begin_offset = narrow_cast<std::size_t>(
         span.begin() - this->code_.data());
-    auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
+    auto span_end_offset = narrow_cast<std::size_t>(
         span.end() - this->code_.data());
     bool result = span_begin_offset == this->begin_offset_ &&
                   span_end_offset == this->end_offset_;
@@ -50,16 +49,16 @@ class offsets_matcher::span_impl
 
  private:
   padded_string_view code_;
-  cli_source_position::offset_type begin_offset_;
-  cli_source_position::offset_type end_offset_;
+  std::size_t begin_offset_;
+  std::size_t end_offset_;
 };
 
 class offsets_matcher::identifier_impl
     : public testing::MatcherInterface<const identifier &> {
  public:
   explicit identifier_impl(padded_string_view code,
-                           cli_source_position::offset_type begin_offset,
-                           cli_source_position::offset_type end_offset)
+                           std::size_t begin_offset,
+                           std::size_t end_offset)
       : impl_(code, begin_offset, end_offset) {}
 
   void DescribeTo(std::ostream *out) const override {
@@ -80,12 +79,12 @@ class offsets_matcher::identifier_impl
 };
 
 offsets_matcher::offsets_matcher(padded_string_view input,
-                                 cli_source_position::offset_type begin_offset,
-                                 cli_source_position::offset_type end_offset)
+                                 std::size_t begin_offset,
+                                 std::size_t end_offset)
     : code_(input), begin_offset_(begin_offset), end_offset_(end_offset) {}
 
 offsets_matcher::offsets_matcher(padded_string_view input,
-                                 cli_source_position::offset_type begin_offset,
+                                 std::size_t begin_offset,
                                  string8_view text)
     : code_(input),
       begin_offset_(begin_offset),
@@ -336,9 +335,9 @@ class diag_matcher::impl
                      testing::MatchResultListener *listener) const override {
     QLJS_ASSERT(this->state_.input.has_value());
     source_code_span span = f.arg.get_span(error.data());
-    auto span_begin_offset = narrow_cast<cli_source_position::offset_type>(
+    auto span_begin_offset = narrow_cast<std::size_t>(
         span.begin() - this->state_.input->data());
-    auto span_end_offset = narrow_cast<cli_source_position::offset_type>(
+    auto span_end_offset = narrow_cast<std::size_t>(
         span.end() - this->state_.input->data());
     auto expected_end_offset = f.begin_offset + f.text.size();
 

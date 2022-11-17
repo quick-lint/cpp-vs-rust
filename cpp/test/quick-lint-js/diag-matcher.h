@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <gmock/gmock.h>
 #include <optional>
-#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/fe/diagnostic-types.h>
@@ -136,8 +135,8 @@ class offsets_matcher {
   // Create an offsets_matcher which asserts that the matched source_code_span
   // begins at begin_offset and ends at end_offset.
   explicit offsets_matcher(padded_string_view input,
-                           cli_source_position::offset_type begin_offset,
-                           cli_source_position::offset_type end_offset);
+                           std::size_t begin_offset,
+                           std::size_t end_offset);
 
   // Create an offsets_matcher which asserts that the matched source_code_span
   // begins at begin_offset and ends at begin_offset+strlen(text).
@@ -145,7 +144,7 @@ class offsets_matcher {
   // TODO(strager): Also ensure the matched source_code_span's content equals
   // text.
   explicit offsets_matcher(padded_string_view input,
-                           cli_source_position::offset_type begin_offset,
+                           std::size_t begin_offset,
                            string8_view text);
 
   offsets_matcher(const offsets_matcher &) = delete;
@@ -164,8 +163,8 @@ class offsets_matcher {
   class span_impl;
 
   padded_string_view code_;
-  cli_source_position::offset_type begin_offset_;
-  cli_source_position::offset_type end_offset_;
+  std::size_t begin_offset_;
+  std::size_t end_offset_;
 };
 
 // Like source_code_span_matcher, but only check the begin pointer.
@@ -229,7 +228,7 @@ class diag_matcher {
     // Must be identifier or source_code_span.
     diag_matcher_arg arg;
 
-    cli_source_position::offset_type begin_offset;
+    std::size_t begin_offset;
     string8_view text;
   };
 

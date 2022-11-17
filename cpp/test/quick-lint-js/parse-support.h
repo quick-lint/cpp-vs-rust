@@ -9,7 +9,6 @@
 #include <gtest/gtest.h>
 #include <optional>
 #include <quick-lint-js/array.h>
-#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/linked-vector.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/diag-collector.h>
@@ -137,14 +136,14 @@ class test_parser {
   }
 
   // See offsets_matcher's constructor.
-  offsets_matcher matches_offsets(cli_source_position::offset_type begin_offset,
+  offsets_matcher matches_offsets(std::size_t begin_offset,
                                   string8_view text) {
     return offsets_matcher(&this->code_, begin_offset, text);
   }
 
   // See offsets_matcher's constructor.
-  offsets_matcher matches_offsets(cli_source_position::offset_type begin_offset,
-                                  cli_source_position::offset_type end_offset) {
+  offsets_matcher matches_offsets(std::size_t begin_offset,
+                                  std::size_t end_offset) {
     return offsets_matcher(&this->code_, begin_offset, end_offset);
   }
 

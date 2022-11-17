@@ -7,22 +7,6 @@ add_library(
   quick-lint-js-lib
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
-  quick-lint-js/cli/arg-parser.cpp
-  quick-lint-js/cli/arg-parser.h
-  quick-lint-js/cli/cli-location.cpp
-  quick-lint-js/cli/cli-location.h
-  quick-lint-js/cli/emacs-lisp-diag-reporter.cpp
-  quick-lint-js/cli/emacs-lisp-diag-reporter.h
-  quick-lint-js/cli/emacs-location.cpp
-  quick-lint-js/cli/emacs-location.h
-  quick-lint-js/cli/options.cpp
-  quick-lint-js/cli/options.h
-  quick-lint-js/cli/text-diag-reporter.cpp
-  quick-lint-js/cli/text-diag-reporter.h
-  quick-lint-js/cli/vim-location.cpp
-  quick-lint-js/cli/vim-location.h
-  quick-lint-js/cli/vim-qflist-json-diag-reporter.cpp
-  quick-lint-js/cli/vim-qflist-json-diag-reporter.h
   quick-lint-js/container/allocator.h
   quick-lint-js/container/async-byte-queue.cpp
   quick-lint-js/container/async-byte-queue.h
@@ -194,9 +178,6 @@ endif ()
 # in production code.
 add_library(
   quick-lint-js-lib-debug
-  quick-lint-js/cli/cli-location-debug.cpp
-  quick-lint-js/cli/emacs-location-debug.cpp
-  quick-lint-js/cli/vim-location-debug.cpp
   quick-lint-js/container/padded-string-debug.cpp
   quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/fe/diag-debug.cpp

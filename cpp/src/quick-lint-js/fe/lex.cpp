@@ -7,7 +7,6 @@
 #include <cstring>
 #include <iterator>
 #include <quick-lint-js/assert.h>
-#include <quick-lint-js/cli/cli-location.h>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/container/string-view.h>
 #include <quick-lint-js/container/vector.h>
@@ -1225,19 +1224,6 @@ const char8* lexer::end_of_previous_token() const noexcept {
 
 padded_string_view lexer::original_input() const noexcept {
   return this->original_input_;
-}
-
-void lexer::debug_dump_location() const {
-  this->debug_dump_location(this->input_);
-}
-
-void lexer::debug_dump_location(const char8* c) const {
-  cli_locator locator(this->original_input_);
-  cli_source_position token_position = locator.position(this->peek().begin);
-  std::fprintf(stderr, "%p: file offset %zd, line %d, column %d\n",
-               reinterpret_cast<const void*>(c),
-               c - this->original_input_.data(), token_position.line_number,
-               token_position.column_number);
 }
 
 template <class Error>
