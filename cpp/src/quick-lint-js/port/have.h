@@ -326,14 +326,6 @@
 #endif
 #endif
 
-#if !defined(QLJS_HAVE_CHAR8_T)
-#if defined(__cpp_char8_t) && __cpp_char8_t >= 201803L
-#define QLJS_HAVE_CHAR8_T 1
-#else
-#define QLJS_HAVE_CHAR8_T 0
-#endif
-#endif
-
 #if !defined(QLJS_HAVE_DEBUGBREAK)
 #if defined(_WIN32) && defined(__has_include)
 #if __has_include(<intrin.h>)

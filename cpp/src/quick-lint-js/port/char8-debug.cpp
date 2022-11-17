@@ -6,17 +6,14 @@
 #include <string_view>
 
 namespace quick_lint_js {
-#if QLJS_HAVE_CHAR8_T
 std::ostream &operator<<(std::ostream &out, streamable_string8_view sv) {
   out << std::string_view(reinterpret_cast<const char *>(sv.sv_.data()),
                           sv.sv_.size());
   return out;
 }
-#endif
 }
 
 namespace testing::internal {
-#if QLJS_HAVE_CHAR8_T
 template <>
 void PrintTo(const char8_t &c, std::ostream *out) {
   *out << static_cast<char>(c);
@@ -31,7 +28,6 @@ template <>
 void PrintTo(char8_t *const &s, std::ostream *out) {
   PrintTo(const_cast<const char8_t *>(s), out);
 }
-#endif
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

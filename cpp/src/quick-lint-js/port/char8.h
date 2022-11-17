@@ -11,17 +11,12 @@
 #include <string_view>
 
 namespace quick_lint_js {
-#if QLJS_HAVE_CHAR8_T
 using char8 = char8_t;
-#else
-using char8 = char;
-#endif
 
 // Alias std::u8string or std::string.
 using string8 = std::basic_string<char8>;
 using string8_view = std::basic_string_view<char8>;
 
-#if QLJS_HAVE_CHAR8_T
 class streamable_string8_view {
  public:
   friend std::ostream &operator<<(std::ostream &, streamable_string8_view);
@@ -35,9 +30,6 @@ class streamable_string8_view {
 };
 
 streamable_string8_view out_string8(string8_view) noexcept;
-#else
-inline string8_view out_string8(string8_view sv) noexcept { return sv; }
-#endif
 
 string8 to_string8(const std::string &);
 string8 to_string8(std::string_view);
@@ -56,21 +48,13 @@ inline constexpr string8_view operator""_sv(const char8 *string,
   return string8_view(string, length);
 }
 
-#if QLJS_HAVE_CHAR8_T
 inline string8_view operator""_s8v(const char *string,
                                    std::size_t length) noexcept {
   return string8_view(reinterpret_cast<const char8 *>(string), length);
 }
-#else
-inline string8_view operator""_s8v(const char *string,
-                                   std::size_t length) noexcept {
-  return string8_view(string, length);
-}
-#endif
 }
 
 namespace testing::internal {
-#if QLJS_HAVE_CHAR8_T
 template <class T>
 void PrintTo(const T &, std::ostream *);
 template <>
@@ -79,7 +63,6 @@ template <>
 void PrintTo(const char8_t *const &, std::ostream *);
 template <>
 void PrintTo(char8_t *const &, std::ostream *);
-#endif
 }
 
 #endif

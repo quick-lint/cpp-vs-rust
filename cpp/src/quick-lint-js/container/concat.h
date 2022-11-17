@@ -65,7 +65,6 @@ std::basic_string<Char> concat_impl(std::basic_string_view<Char> a,
   return concat_impl(a, b, c, d, e, f, g);
 }
 
-#if QLJS_HAVE_CHAR8_T
 [[gnu::always_inline]] inline string8 concat(string8_view a, string8_view b) {
   return concat_impl(a, b);
 }
@@ -98,7 +97,6 @@ std::basic_string<Char> concat_impl(std::basic_string_view<Char> a,
                                              string8_view g) {
   return concat_impl(a, b, c, d, e, f, g);
 }
-#endif
 }
 
 #endif

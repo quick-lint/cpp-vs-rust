@@ -11,14 +11,12 @@
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
 
 namespace quick_lint_js {
-#if QLJS_HAVE_CHAR8_T
 streamable_string8_view::streamable_string8_view(string8_view sv) noexcept
     : sv_(sv) {}
 
 streamable_string8_view out_string8(string8_view sv) noexcept {
   return streamable_string8_view(sv);
 }
-#endif
 
 string8 to_string8(const std::string &s) {
   return string8(reinterpret_cast<const char8 *>(s.c_str()), s.size());

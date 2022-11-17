@@ -11,7 +11,6 @@ namespace quick_lint_js {
 template <class T>
 struct numeric_limits : public std::numeric_limits<T> {};
 
-#if QLJS_HAVE_CHAR8_T
 // HACK(strager): Work around older versions of libc++ not supporting
 // std::numeric_limits<char8_t> despite the corresponding versions of Clang
 // supporting char8_t.
@@ -28,7 +27,6 @@ struct numeric_limits<char8_t> {
  private:
   using uchar_limits = numeric_limits<unsigned char>;
 };
-#endif
 }
 
 #endif

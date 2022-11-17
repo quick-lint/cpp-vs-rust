@@ -13,19 +13,16 @@ namespace testing::internal {
 template <>
 void PrintTo(const char32_t &, std::ostream *);
 
-#if QLJS_HAVE_CHAR8_T
 template <>
 void PrintTo(const std::basic_string<char8_t> &, std::ostream *);
 template <>
 void PrintTo(const std::basic_string_view<char8_t> &, std::ostream *);
-#endif
 
 template <>
 inline void PrintTo(const char32_t &c, std::ostream *out) {
   PrintTo(static_cast<std::uint_least32_t>(c), out);
 }
 
-#if QLJS_HAVE_CHAR8_T
 template <>
 inline void PrintTo(const std::basic_string<char8_t> &s, std::ostream *out) {
   PrintTo(std::basic_string_view<char8_t>(s), out);
@@ -37,7 +34,6 @@ inline void PrintTo(const std::basic_string_view<char8_t> &s,
   PrintTo(std::string_view(reinterpret_cast<const char *>(s.data()), s.size()),
           out);
 }
-#endif
 }
 
 #endif
