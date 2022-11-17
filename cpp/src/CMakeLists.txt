@@ -8,8 +8,6 @@ add_library(
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
   quick-lint-js/container/allocator.h
-  quick-lint-js/container/byte-buffer.cpp
-  quick-lint-js/container/byte-buffer.h
   quick-lint-js/container/concat.h
   quick-lint-js/container/hash-map.h
   quick-lint-js/container/hash-set.h
