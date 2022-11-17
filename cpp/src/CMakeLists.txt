@@ -20,8 +20,6 @@ add_library(
   quick-lint-js/container/vector.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
-  quick-lint-js/fe/diag-code-list.cpp
-  quick-lint-js/fe/diag-code-list.h
   quick-lint-js/fe/diag-reporter.cpp
   quick-lint-js/fe/diag-reporter.h
   quick-lint-js/fe/diagnostic-formatter.cpp
