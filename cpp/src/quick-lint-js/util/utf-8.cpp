@@ -138,46 +138,6 @@ decode_utf_8_result decode_utf_8(padded_string_view input) noexcept {
   return decode_utf_8_inline(input);
 }
 
-const char8* advance_lsp_characters_in_utf_8(string8_view utf_8,
-                                             int character_count) noexcept {
-  const char8* c = utf_8.data();
-  const char8* end = c + utf_8.size();
-  if (narrow_cast<std::size_t>(character_count) >= utf_8.size()) {
-    return end;
-  }
-
-  // TODO(strager): Avoid this copy!
-  padded_string utf_8_copy(utf_8);
-  c = utf_8_copy.data();
-  end = utf_8_copy.null_terminator();
-
-  int characters = 0;
-  while (characters < character_count && c != end) {
-    decode_utf_8_result result =
-        decode_utf_8_inline(padded_string_view(c, end));
-    if (result.ok && result.code_point >= 0x10000) {
-      // Count non-BMP characters as two characters.
-      if (characters + 1 >= character_count) {
-        // Middle of implied UTF-16 surrogate pair. Stop at the beginning of
-        // the character. We can't reasonably return the middle of the
-        // character; there is no valid middle of a UTF-8 character.
-        break;
-      }
-      c += result.size;
-      characters += 2;
-    } else if (result.ok) {
-      c += result.size;
-      characters += 1;
-    } else {
-      // Count invalid sequences as one character per byte.
-      c += 1;
-      characters += 1;
-    }
-  }
-
-  return utf_8.data() + (c - utf_8_copy.data());
-}
-
 std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view utf_8,
                                              int offset) noexcept {
   const char8* c = utf_8.data();
