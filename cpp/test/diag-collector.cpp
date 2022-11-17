@@ -38,7 +38,7 @@ const char *diag_collector::diag::error_code() const noexcept {
 }
 
 const void *diag_collector::diag::data() const noexcept {
-  return &this->variant_diag_unexpected_token_;  // Arbitrary member.
+  return &this->variant_diag_big_int_literal_contains_decimal_point_;  // Arbitrary member.
 }
 
 #define QLJS_DIAG_TYPE(name, code, severity, struct_body, format_call)   \
