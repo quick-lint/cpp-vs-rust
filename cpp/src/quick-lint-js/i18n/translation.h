@@ -8,7 +8,6 @@
 #include <quick-lint-js/i18n/locale.h>
 #include <quick-lint-js/i18n/translation-table.h>
 #include <quick-lint-js/port/char8.h>
-#include <quick-lint-js/port/consteval.h>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -45,7 +44,7 @@ class translatable_message {
       : translation_table_mapping_index_(
             translation_table::unallocated_mapping_index) {}
 
-  explicit QLJS_CONSTEVAL translatable_message(const char* raw_message,
+  explicit consteval translatable_message(const char* raw_message,
                                                int length)
       : translation_table_mapping_index_(
             translation_table::mapping_index_for_untranslated_string(
@@ -65,7 +64,7 @@ class translatable_message {
   std::uint16_t translation_table_mapping_index_;
 };
 
-inline QLJS_CONSTEVAL translatable_message
+inline consteval translatable_message
 operator""_translatable(const char* raw_message, std::size_t length) {
   return translatable_message(raw_message, static_cast<int>(length));
 }

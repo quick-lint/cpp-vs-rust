@@ -148,14 +148,6 @@
 #define QLJS_HAVE_SIZED_ALIGNED_DELETE 0
 #endif
 
-#if !defined(QLJS_HAVE_CONSTEVAL)
-#if defined(__cpp_consteval) && __cpp_consteval >= 201811L
-#define QLJS_HAVE_CONSTEVAL 1
-#else
-#define QLJS_HAVE_CONSTEVAL 0
-#endif
-#endif
-
 #if !defined(QLJS_HAVE_FILE_NAME_MACRO)
 #if defined(__clang__) && (defined(NDEBUG) && NDEBUG)
 #define QLJS_HAVE_FILE_NAME_MACRO 1

@@ -13,7 +13,6 @@
 #include <quick-lint-js/assert.h>
 #include <quick-lint-js/container/sorted-search.h>
 #include <quick-lint-js/i18n/translation-table.h>
-#include <quick-lint-js/port/consteval.h>
 #include <string_view>
 
 namespace quick_lint_js {
@@ -24,7 +23,7 @@ constexpr std::uint16_t translation_table_mapping_table_size = 53;
 constexpr std::size_t translation_table_string_table_size = 10199;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
-QLJS_CONSTEVAL std::uint16_t translation_table_const_look_up(
+consteval std::uint16_t translation_table_const_look_up(
     std::string_view untranslated) {
   // clang-format off
   constexpr std::string_view const_lookup_table[] = {

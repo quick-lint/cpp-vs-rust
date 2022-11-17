@@ -42,7 +42,6 @@ add_library(
   quick-lint-js/port/bit.h
   quick-lint-js/port/char8.cpp
   quick-lint-js/port/char8.h
-  quick-lint-js/port/consteval.h
   quick-lint-js/port/crash.h
   quick-lint-js/port/have.h
   quick-lint-js/port/in-range.h

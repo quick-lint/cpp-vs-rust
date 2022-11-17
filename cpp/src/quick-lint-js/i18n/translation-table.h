@@ -24,14 +24,14 @@ struct translation_table {
 
   static constexpr std::uint16_t unallocated_mapping_index = 0;
 
-  static QLJS_CONSTEVAL std::uint16_t mapping_index_for_untranslated_string(
+  static consteval std::uint16_t mapping_index_for_untranslated_string(
       std::string_view s) noexcept {
     return translation_table_const_look_up(s);
   }
 
   QLJS_WARNING_PUSH
   QLJS_WARNING_IGNORE_CLANG("-Wlarge-by-value-copy")
-  static QLJS_CONSTEVAL
+  static consteval
       std::array<mapping_entry, translation_table_mapping_table_size>
       absolute_mapping_table_from_relative(
           const std::array<mapping_entry, translation_table_mapping_table_size>
