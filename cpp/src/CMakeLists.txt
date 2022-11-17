@@ -34,8 +34,6 @@ add_library(
   quick-lint-js/debug/mongoose.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
-  quick-lint-js/fe/buffering-visitor.cpp
-  quick-lint-js/fe/buffering-visitor.h
   quick-lint-js/fe/diag-code-list.cpp
   quick-lint-js/fe/diag-code-list.h
   quick-lint-js/fe/diag-reporter.cpp
@@ -45,7 +43,6 @@ add_library(
   quick-lint-js/fe/diagnostic-types.h
   quick-lint-js/fe/diagnostic.cpp
   quick-lint-js/fe/diagnostic.h
-  quick-lint-js/fe/expression.h
   quick-lint-js/fe/global-declared-variable-set.cpp
   quick-lint-js/fe/global-declared-variable-set.h
   quick-lint-js/fe/global-variables-browser-generated.cpp
@@ -59,23 +56,9 @@ add_library(
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h
-  quick-lint-js/fe/linter.cpp
-  quick-lint-js/fe/linter.h
-  quick-lint-js/fe/multi-parse-visitor.h
-  quick-lint-js/fe/null-visitor.cpp
-  quick-lint-js/fe/null-visitor.h
-  quick-lint-js/fe/parse-class.cpp
-  quick-lint-js/fe/parse-expression.cpp
-  quick-lint-js/fe/parse-statement.cpp
-  quick-lint-js/fe/parse-type.cpp
-  quick-lint-js/fe/parse-visitor.h
-  quick-lint-js/fe/parse.cpp
-  quick-lint-js/fe/parse.h
   quick-lint-js/fe/reported-diag-statistics.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
-  quick-lint-js/fe/variable-analyzer.cpp
-  quick-lint-js/fe/variable-analyzer.h
   quick-lint-js/feature.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h

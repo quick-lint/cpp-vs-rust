@@ -20,6 +20,7 @@
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/port/source-location.h>
+#include <quick-lint-js/port/unreachable.h>
 #include <quick-lint-js/util/narrow-cast.h>
 #include <quick-lint-js/util/utf-8.h>
 #include <string_view>

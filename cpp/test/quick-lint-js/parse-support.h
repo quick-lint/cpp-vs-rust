@@ -15,8 +15,6 @@
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/failing-diag-reporter.h>
-#include <quick-lint-js/fe/null-visitor.h>
-#include <quick-lint-js/fe/parse.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/spy-visitor.h>
@@ -41,136 +39,8 @@ void summarize(expression*, std::string& out);
 std::string summarize(expression*);
 std::string summarize(std::optional<expression*>);
 
-inline constexpr parser_options javascript_options = [] {
-  parser_options options;
-  options.jsx = false;
-  options.typescript = false;
-  return options;
-}();
-
-inline constexpr parser_options jsx_options = [] {
-  parser_options options;
-  options.jsx = true;
-  return options;
-}();
-
-inline constexpr parser_options typescript_options = [] {
-  parser_options options;
-  options.typescript = true;
-  return options;
-}();
-
-inline constexpr parser_options typescript_jsx_options = [] {
-  parser_options options;
-  options.jsx = true;
-  options.typescript = true;
-  return options;
-}();
-
 struct capture_diags_tag {};
 constexpr capture_diags_tag capture_diags;
-
-class test_parser {
- public:
-  explicit test_parser(string8_view input, capture_diags_tag)
-      : test_parser(input, parser_options(), capture_diags) {}
-
-  explicit test_parser(string8_view input, const parser_options& options,
-                       capture_diags_tag)
-      : code_(input), parser_(&this->code_, &this->errors_, options) {}
-
-  // Fails the test if there are any diagnostics during parsing.
-  explicit test_parser(string8_view input)
-      : test_parser(input, parser_options()) {}
-
-  // Fails the test if there are any diagnostics during parsing.
-  explicit test_parser(string8_view input, const parser_options& options)
-      : code_(input),
-        parser_(&this->code_, &this->failing_reporter_, options) {}
-
-  expression* parse_expression() {
-    return this->parser_.parse_expression(this->errors_);
-  }
-
-  void parse_and_visit_expression() {
-    this->parser_.parse_and_visit_expression(this->errors_);
-  }
-
-  void parse_and_visit_statement() {
-    EXPECT_TRUE(this->parser_.parse_and_visit_statement(this->errors_));
-  }
-
-  void parse_and_visit_statement(parser::parse_statement_type statement_type) {
-    EXPECT_TRUE(
-        this->parser_.parse_and_visit_statement(this->errors_, statement_type));
-  }
-
-  void parse_and_visit_module() {
-    this->parser_.parse_and_visit_module(this->errors_);
-  }
-
-  bool parse_and_visit_module_catching_fatal_parse_errors() {
-    return this->parser_.parse_and_visit_module_catching_fatal_parse_errors(
-        this->errors_);
-  }
-
-  void parse_and_visit_typescript_type_expression() {
-    this->parser_.parse_and_visit_typescript_type_expression(this->errors_);
-  }
-
-  void parse_and_visit_typescript_generic_parameters() {
-    this->parser_.parse_and_visit_typescript_generic_parameters(this->errors_);
-  }
-
-  [[nodiscard]] quick_lint_js::parser::class_guard enter_class() {
-    return this->parser_.enter_class();
-  }
-
-  [[nodiscard]] quick_lint_js::parser::loop_guard enter_loop() {
-    return this->parser_.enter_loop();
-  }
-
-  [[nodiscard]] quick_lint_js::parser::function_guard enter_function(
-      function_attributes attributes) {
-    return this->parser_.enter_function(attributes);
-  }
-
-  // See offsets_matcher's constructor.
-  offsets_matcher matches_offsets(std::size_t begin_offset,
-                                  string8_view text) {
-    return offsets_matcher(&this->code_, begin_offset, text);
-  }
-
-  // See offsets_matcher's constructor.
-  offsets_matcher matches_offsets(std::size_t begin_offset,
-                                  std::size_t end_offset) {
-    return offsets_matcher(&this->code_, begin_offset, end_offset);
-  }
-
- private:
-  padded_string code_;
-  spy_visitor errors_;
-  failing_diag_reporter failing_reporter_;
-  quick_lint_js::parser parser_;
-
- public:
-  // Aliases for convenience.
-  std::vector<std::string_view>& visits = this->errors_.visits;
-  std::vector<string8>& enter_named_function_scopes =
-      this->errors_.enter_named_function_scopes;
-  std::vector<std::optional<string8>>& property_declarations =
-      this->errors_.property_declarations;
-  std::vector<string8>& variable_assignments =
-      this->errors_.variable_assignments;
-  std::vector<visited_variable_declaration>& variable_declarations =
-      this->errors_.variable_declarations;
-  std::vector<string8>& variable_uses = this->errors_.variable_uses;
-  std::vector<diag_collector::diag>& errors = this->errors_.errors;
-  padded_string_view code = padded_string_view(&this->code_);
-};
-
-// TODO(strager): Delete.
-class test_parse_expression : public ::testing::Test {};
 
 namespace {
 // Identifiers which are ReservedWord-s only in strict mode.
