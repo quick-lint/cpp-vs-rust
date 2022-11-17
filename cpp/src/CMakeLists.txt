@@ -17,7 +17,6 @@ add_library(
   quick-lint-js/container/optional.h
   quick-lint-js/container/padded-string.cpp
   quick-lint-js/container/padded-string.h
-  quick-lint-js/container/result.h
   quick-lint-js/container/vector.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
