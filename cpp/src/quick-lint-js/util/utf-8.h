@@ -18,7 +18,6 @@ struct decode_utf_8_result {
 };
 
 decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
 }
 
 #endif
