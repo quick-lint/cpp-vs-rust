@@ -44,7 +44,6 @@ add_library(
   quick-lint-js/port/char8.h
   quick-lint-js/port/consteval.h
   quick-lint-js/port/crash.h
-  quick-lint-js/port/function-ref.h
   quick-lint-js/port/have.h
   quick-lint-js/port/in-range.h
   quick-lint-js/port/integer.cpp
@@ -53,16 +52,11 @@ add_library(
   quick-lint-js/port/max-align.h
   quick-lint-js/port/memory-resource.cpp
   quick-lint-js/port/memory-resource.h
-  quick-lint-js/port/process.cpp
-  quick-lint-js/port/process.h
   quick-lint-js/port/simd.h
   quick-lint-js/port/source-location.h
   quick-lint-js/port/type-traits.h
   quick-lint-js/port/unreachable.h
   quick-lint-js/port/warning.h
-  quick-lint-js/port/windows-error.cpp
-  quick-lint-js/port/windows-error.h
-  quick-lint-js/port/windows.h
   quick-lint-js/util/cpp.h
   quick-lint-js/util/narrow-cast.h
   quick-lint-js/util/pointer.h

@@ -30,11 +30,6 @@ from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
                                    char32_t &value);
 from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
                                    unsigned char &value);
-
-template <class T>
-inline constexpr int integer_string_length =
-    (std::numeric_limits<T>::digits10 + 1) +
-    (std::numeric_limits<T>::is_signed ? 1 : 0);
 }
 
 #endif
