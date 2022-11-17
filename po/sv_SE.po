@@ -1,0 +1,1189 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew "strager" Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
+"PO-Revision-Date: 2021-06-16 00:13+0200\n"
+"Last-Translator: U-DESKTOP-7SNN35D\\Kim <kimlindbla@gmail.com>\n"
+"Language-Team: Swedish (Standard)\n"
+"Language: sv_SE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'do-while' loop"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'for' loop"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "'if' statement"
+msgstr "saknar stycke för 'if' påstående"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'while' loop"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "'with' statement"
+msgstr "saknar stycke för 'switch' påstående"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "labelled statement"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'do-while' loop"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'for' loop"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "an 'if' statement"
+msgstr "saknar stycke för 'if' påstående"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'while' loop"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "a 'with' statement"
+msgstr "saknar stycke för 'switch' påstående"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a labelled statement"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "BigInt literal contains decimal point"
+msgstr "BigInt heltallitterär innehåller decimaler"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "BigInt literal contains exponent"
+msgstr "BigInt heltallitterär innehåller exponent"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "character is not allowed in identifiers"
+msgstr "tecknet är inte tillåtet i indentifierare"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "escaped character is not allowed in identifiers"
+msgstr "flykttecken är inte tillåtet i indentifierare"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "code point out of range"
+msgstr "kod punkt ur span"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "escaping '-' is not allowed in tag names; write '-' instead"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "expected hexadecimal digits in Unicode escape sequence"
+msgstr "förväntade hexadecimala siffror i Unicode flyktsekvens"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "invalid hex escape sequence: {0}"
+msgstr "ogiltig kringående hex sekvens: {0}"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'{0}' is not allowed for strings; use {1} instead"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "invalid UTF-8 sequence"
+msgstr "ogiltig UTF-8 sekvens"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "keywords cannot contain escape sequences"
+msgstr "nyckelord kan inte innehålla en flyktsekvens"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "legacy octal literal may not be BigInt"
+msgstr "ärftligt octal nummerlitteral kan inte vara BigInt"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "legacy octal literals may not contain underscores"
+msgstr "ärftligt octal nummerlitteral kan inte innehålla understräck"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "number literal contains consecutive underscores"
+msgstr "numerlitterär innehåller upprepande understräck"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "number literal contains trailing underscore(s)"
+msgstr "nummerlitterär innehåller efterföljande understräck"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal literal may not have exponent"
+msgstr "oktal nummerlitteräl kan inte ha exponent"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal literal may not have decimal"
+msgstr "oktal nummerlitteräl kan inte ha decimaler"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "integer cannot be represented and will be rounded to '{1}'"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "RegExp literal flags cannot contain Unicode escapes"
+msgstr "RegExplitterär kan inte innehålla Unicode flykttecken"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed block comment"
+msgstr "oavslutad kommentationsstycke"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed identifier escape sequence"
+msgstr "oavslutad identifierare flyktsekvens"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed regexp literal"
+msgstr "oavslutad regexplitteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed string literal"
+msgstr "oavslutad stränglitteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed template"
+msgstr "oavslutad mall"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '@'"
+msgstr "oförväntad '@'"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '\\' in identifier"
+msgstr "oförväntad '\\' i identifierare"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in number literal"
+msgstr "oförväntat tecken i nummerlitteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected control character"
+msgstr "oförväntat kontrolltecken"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in binary literal"
+msgstr "oförväntat tecken i binärlitteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in octal literal"
+msgstr "oförväntat tecken i oktallitteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in hex literal"
+msgstr "oförväntat tecken i hexlitteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+#, fuzzy
+msgid "unopened block comment"
+msgstr "oavslutad kommentationsstycke"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "binary number literal has no digits"
+msgstr "binära nummerlitteraler has inga siffror"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "hex number literal has no digits"
+msgstr "hex nummerlitteral har inga siffror"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal number literal has no digits"
+msgstr "oktal nummerlitteral har inga siffror"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '#'"
+msgstr "oförväntad '#'"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"unicode byte order mark (BOM) cannot appear before #! at beginning of script"
+msgstr ""
+"unicode byte ordningsmärke (BOM) kan inte förekomma före #! i början av "
+"skript"
+
+#~ msgid "variable assigned before its declaration"
+#~ msgstr "tilldelar variabel före deklaration"
+
+#~ msgid "variable declared here"
+#~ msgstr "variabel deklarerades här"
+
+#, fuzzy
+#~ msgid "abstract fields cannot have default values"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "field marked abstract here"
+#~ msgstr "variabel deklarerades här"
+
+#, fuzzy
+#~ msgid "abstract methods cannot be marked 'async'"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "abstract methods cannot be marked as a generator"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "abstract properties are not allowed in interfaces"
+#~ msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
+
+#, fuzzy
+#~ msgid "abstract properties are only allowed in abstract classes"
+#~ msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
+
+#, fuzzy
+#~ msgid "class is not marked abstract"
+#~ msgstr "variabel deklarerades här"
+
+#, fuzzy
+#~ msgid "abstract methods cannot contain a body"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "missing parentheses around parameter"
+#~ msgstr "saknar namn eller paranteser för funktion"
+
+#, fuzzy
+#~ msgid "TypeScript type annotation requires parentheses"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#~ msgid "assignment to const global variable"
+#~ msgstr "tilldelar till global konstant variabel"
+
+#~ msgid "assignment to const variable"
+#~ msgstr "tilldelar till konstant variabel"
+
+#~ msgid "const variable declared here"
+#~ msgstr "konstant variabel deklarerad här"
+
+#, fuzzy
+#~ msgid "assignment to imported variable"
+#~ msgstr "tilldelar till konstant variabel"
+
+#, fuzzy
+#~ msgid "imported variable declared here"
+#~ msgstr "konstant variabel deklarerad här"
+
+#~ msgid "assignment to const variable before its declaration"
+#~ msgstr "tilldelar konstant variable före dens deklaration"
+
+#~ msgid "assignment to undeclared variable"
+#~ msgstr "tilldelar värde till variabel före deklaration"
+
+#~ msgid "'await' is only allowed in async functions"
+#~ msgstr "'await' är enbart tillåtet i en 'async' funktion"
+
+#, fuzzy
+#~ msgid "'function async' is not allowed; write 'async function' instead"
+#~ msgstr ""
+#~ "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#~ msgid "C-style for loop is missing its third component"
+#~ msgstr "C-stil 'for' loop saknar tredje komponentent"
+
+#~ msgid "assigning to 'async' in a for-of loop requires parentheses"
+#~ msgstr "tilldelning av 'async' i for-of loop kräver paranteser"
+
+#~ msgid "cannot declare 'await' inside async function"
+#~ msgstr "kan inte deklarera 'await' inuti async funktion"
+
+#~ msgid "classes cannot be named 'let'"
+#~ msgstr "klass kan inte benämnas 'let'"
+
+#~ msgid "let statement cannot declare variables named 'let'"
+#~ msgstr "let påstående kan inte deklareras med namnet 'let'"
+
+#~ msgid "cannot declare variable named keyword '{0}'"
+#~ msgstr "kan inte deklarera variabel med nyckelord '{0}'"
+
+#~ msgid "cannot declare 'yield' inside generator function"
+#~ msgstr "kan inte deklarera 'yield' inuti en generatorfunktion"
+
+#~ msgid "cannot declare and export variable with 'export default'"
+#~ msgstr "kan inte deklarera och exportera variabel med 'export default'"
+
+#~ msgid "cannot export variable named 'let'"
+#~ msgstr "kan inte exportera variabel vid namn 'let'"
+
+#~ msgid "cannot export variable named keyword '{0}'"
+#~ msgstr "kan inte exportera variabel med nyckelord '{0}'"
+
+#~ msgid "cannot import 'let'"
+#~ msgstr "kan inte importera 'let'"
+
+#~ msgid "cannot import variable named keyword '{0}'"
+#~ msgstr "kan inte importera variabel med namngivet nyckelord '{0}'"
+
+#, fuzzy
+#~ msgid "missing quotes around module name '{0}'"
+#~ msgstr "saknar namn eller paranteser för funktion"
+
+#~ msgid "cannot reference private variables without object; use 'this.'"
+#~ msgstr "kan inte referera en privat variabel utan ett objekt; använd 'this'"
+
+#~ msgid "cannot update variable with '{0}' while declaring it"
+#~ msgstr "kan inte uppdatera variabel med '{0} under deklaration'"
+
+#~ msgid "remove '{0}' to update an existing variable"
+#~ msgstr "ta bort '{0}' för att uppdatera en existerande variabel"
+
+#~ msgid "unexpected 'catch' without 'try'"
+#~ msgstr "oförväntad 'catch' utan någon 'try'"
+
+#~ msgid "missing body for {1:headlinese}"
+#~ msgstr "saknas stycke för {1:headlinese}"
+
+#~ msgid "a class statement is not allowed as the body of {1:singular}"
+#~ msgstr "klass sats är inte tillåtet som ett stycke av {1:singular}"
+
+#~ msgid "commas are not allowed after spread parameter"
+#~ msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#, fuzzy
+#~ msgid "leading commas are not allowed in generic parameter lists"
+#~ msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#, fuzzy
+#~ msgid "commas are not allowed between class methods"
+#~ msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#~ msgid "depth limit exceeded"
+#~ msgstr "djup begränsning överskriden"
+
+#, fuzzy
+#~ msgid "missing property name between '.' and '.'"
+#~ msgstr "saknar egenskaps namn efter '.' operatör"
+
+#~ msgid "'else' has no corresponding 'if'"
+#~ msgstr "'else' har ingen anhörig 'if'"
+
+#~ msgid "extra ',' is not allowed between function call arguments"
+#~ msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
+
+#, fuzzy
+#~ msgid "extra ',' is not allowed between enum members"
+#~ msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
+
+#~ msgid "expected 'as' between '{1}' and '{2}'"
+#~ msgstr "förväntade 'as' mellan '{1}' och '{2}'"
+
+#~ msgid "expected ',' between object literal entries"
+#~ msgstr "förväntade ',' mellan förekommande objektlitteral"
+
+#~ msgid "expected expression before newline"
+#~ msgstr "förväntade ett uttryck före nyrad"
+
+#~ msgid "expected expression after 'case'"
+#~ msgstr "förväntade ett uttryck efter 'case'"
+
+#~ msgid "expected expression before semicolon"
+#~ msgstr "förväntade ett uttryck före semikolon"
+
+#~ msgid "expected 'from \"name_of_module.mjs\"'"
+#~ msgstr "förväntade 'from \"name_of_module.mjs\"'"
+
+#~ msgid "expected 'from' before module specifier"
+#~ msgstr "förväntade 'from' före modulspecifierare"
+
+#~ msgid "expected '{{'"
+#~ msgstr "förväntade '{{'"
+
+#~ msgid "expected ')' to close function call"
+#~ msgstr "förväntade ')' för att slutföra funktionkallelse"
+
+#~ msgid "function call started here"
+#~ msgstr "funktionkallelse startar här"
+
+#~ msgid "do-while loop needs parentheses around condition"
+#~ msgstr "do-while loop behöver paranteser runt vilkor"
+
+#~ msgid "do-while loop is missing '{1}' around condition"
+#~ msgstr "do-while loop saknar '{1}' runt vilkor"
+
+#~ msgid "if statement needs parentheses around condition"
+#~ msgstr "if sats behöver paranteser runt vilkor"
+
+#~ msgid "if statement is missing '{1}' around condition"
+#~ msgstr "if sats saknar '{1}' runt vilkor"
+
+#~ msgid "switch statement needs parentheses around condition"
+#~ msgstr "switch sats behöver paranteser runt vilkor"
+
+#~ msgid "switch statement is missing '{1}' around condition"
+#~ msgstr "switch sats saknas '{1}' runt vilkoren"
+
+#~ msgid "while loop needs parentheses around condition"
+#~ msgstr "while loop behöver paranteser runt vilkoren"
+
+#~ msgid "while loop is missing '{1}' around condition"
+#~ msgstr "while loop saknar '{1}' runt vilkoren"
+
+#~ msgid "with statement needs parentheses around expression"
+#~ msgstr "with påstående saknar paranteser runt uttryck"
+
+#~ msgid "with statement is missing '{1}' around expression"
+#~ msgstr "with påstående saknar '{1}' runt uttryck"
+
+#~ msgid "expected variable name for 'catch'"
+#~ msgstr "förväntade variabel namn för 'catch'"
+
+#, fuzzy
+#~ msgid "expected variable name for 'import'-'as'"
+#~ msgstr "förväntade variabel namn för 'catch'"
+
+#~ msgid "exporting requires 'default'"
+#~ msgstr "exportering kräver 'default'"
+
+#~ msgid "exporting requires '{{' and '}'"
+#~ msgstr "exportering kräver '{{' och '}'"
+
+#~ msgid "forwarding exports are only allowed in export-from"
+#~ msgstr "framförandeexportering är enbart tillåtet i export-from"
+
+#~ msgid "unexpected 'finally' without 'try'"
+#~ msgstr "oförväntad 'finally' utan 'try'"
+
+#~ msgid "a function statement is not allowed as the body of {1:singular}"
+#~ msgstr "en funktion sats är inte tillåtet som stycke till {1:singular}"
+
+#, fuzzy
+#~ msgid "generator function '*' belongs after keyword function"
+#~ msgstr "generatorfunktion '*' tillhör före funktionens namn"
+
+#~ msgid "generator function '*' belongs before function name"
+#~ msgstr "generatorfunktion '*' tillhör före funktionens namn"
+
+#, fuzzy
+#~ msgid "only one comma is allowed between or after generic parameters"
+#~ msgstr "kommatecken är inte tillåtet efter sprid parameter"
+
+#~ msgid "'in' disallowed in C-style for loop initializer"
+#~ msgstr "'in' är otillåtet i C-stil for loop initierare"
+
+#~ msgid "indexing requires an expression"
+#~ msgstr "indexering kräver ett uttryck"
+
+#~ msgid "invalid expression left of assignment"
+#~ msgstr "ogiltigt uttryck före tilldelning"
+
+#~ msgid "invalid lone literal in object literal"
+#~ msgstr "ogiltigt låneuttryck i objektliteral"
+
+#~ msgid "invalid function parameter"
+#~ msgstr "ogiltig funktions parameter"
+
+#~ msgid ""
+#~ "'.' operator needs a key name; use + to concatenate strings; use [] to "
+#~ "access with a dynamic key"
+#~ msgstr ""
+#~ "'.' operation behöver nyckelords namn; använd + för att konkatenera "
+#~ "sträng; använd [] för att komma åt med dynamisk nyckel"
+
+#, fuzzy
+#~ msgid "React/JSX is not allowed in vanilla JavaScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "React/JSX is not allowed in TypeScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "label named 'await' not allowed in async function"
+#~ msgstr "'await' är enbart tillåtet i en 'async' funktion"
+
+#~ msgid "{0} with no bindings"
+#~ msgstr "{0} utan bindningar"
+
+#~ msgid "a lexical declaration is not allowed as the body of {1:singular}"
+#~ msgstr ""
+#~ "lexikaliskt deklaration är inte tillåtet inuti ett stycke av {1:singular}"
+
+#~ msgid "methods should not use the 'function' keyword"
+#~ msgstr "metoder bör inte använda nyckelordet 'function'"
+
+#~ msgid "missing end of array; expected ']'"
+#~ msgstr "saknar slut av lista; förväntades ']'"
+
+#~ msgid "array started here"
+#~ msgstr "lista startar här"
+
+#, fuzzy
+#~ msgid "missing arrow operator for arrow function"
+#~ msgstr "saknar parametrar före pilfunktion"
+
+#~ msgid "missing parameters for arrow function"
+#~ msgstr "saknar parametrar före pilfunktion"
+
+#~ msgid "missing body for catch clause"
+#~ msgstr "saknar stycke före catch sats"
+
+#~ msgid "missing body for class"
+#~ msgstr "saknar stycke för klass"
+
+#~ msgid "missing body for do-while loop"
+#~ msgstr "saknar stycke för do-while loop"
+
+#~ msgid "missing body for finally clause"
+#~ msgstr "saknar stycke för finally sats"
+
+#~ msgid "missing body for 'for' loop"
+#~ msgstr "saknar stycke för 'for' loop"
+
+#~ msgid "missing body for 'if' statement"
+#~ msgstr "saknar stycke för 'if' påstående"
+
+#~ msgid "missing body for 'switch' statement"
+#~ msgstr "saknar stycke för 'switch' påstående"
+
+#~ msgid "missing body for try statement"
+#~ msgstr "saknar stycke för 'try' påstående"
+
+#, fuzzy
+#~ msgid "missing body for TypeScript interface"
+#~ msgstr "saknar stycke för klass"
+
+#~ msgid "missing body for while loop"
+#~ msgstr "saknar stycke för while loop"
+
+#~ msgid "missing catch or finally clause for try statement"
+#~ msgstr "saknar catch eller finally sats för try sats"
+
+#~ msgid "try statement starts here"
+#~ msgstr "try sats startar här"
+
+#~ msgid "missing catch variable name between parentheses"
+#~ msgstr "saknar catch variabelnamn mellan paranteser"
+
+#~ msgid "missing comma between object literal entries"
+#~ msgstr "saknar comma mellan förekommande objektliteral"
+
+#, fuzzy
+#~ msgid "missing comma between generic parameters"
+#~ msgstr "saknar comma mellan förekommande objektliteral"
+
+#~ msgid "missing ',' between variable declarations"
+#~ msgstr "saknar ',' mellan variabel deklaration"
+
+#~ msgid "missing ':' in conditional expression"
+#~ msgstr "saknar ':' i vilkorsuttryck"
+
+#~ msgid "'?' creates a conditional expression"
+#~ msgstr "'?' skapar vilkorsuttryck"
+
+#~ msgid "missing condition for if statement"
+#~ msgstr "saknar vilkor i if påstående"
+
+#~ msgid "missing condition for while statement"
+#~ msgstr "saknar vilkor för while påstående"
+
+#~ msgid "missing condition for switch statement"
+#~ msgstr "saknar vilkor för switch påstående"
+
+#~ msgid "missing '=' after variable"
+#~ msgstr "saknar '=' efter variabel"
+
+#~ msgid "missing expression between parentheses"
+#~ msgstr "saknar uttryck mellan paranteser"
+
+#~ msgid "missing header and body for 'for' loop"
+#~ msgstr "saknar rubrik och stycke för 'for' loop"
+
+#~ msgid "for loop needs an iterable, or condition and update clauses"
+#~ msgstr ""
+#~ "for loop behöver en itererande eller vilkorligen uppdaterande moment"
+
+#~ msgid "use 'while' instead to loop until a condition is false"
+#~ msgstr "använd 'while' istället för att iterera till vilkoren är falskt"
+
+#~ msgid "missing function parameter list"
+#~ msgstr "saknar funktions parameter lista"
+
+#, fuzzy
+#~ msgid "missing body for function"
+#~ msgstr "saknar stycke för klass"
+
+#~ msgid "missing for loop header"
+#~ msgstr "saknar for loop rubrik"
+
+#, fuzzy
+#~ msgid "missing initializer in const declaration"
+#~ msgstr "saknar namn för funktions påstående"
+
+#~ msgid "unexpected expression; missing key for object entry"
+#~ msgstr "oförväntat uttryck; saknar nyckel för tillträdande objekt"
+
+#, fuzzy
+#~ msgid "missing name for class method"
+#~ msgstr "saknar namn för klass"
+
+#~ msgid "missing name in function statement"
+#~ msgstr "saknar namn för funktions påstående"
+
+#~ msgid "missing name of class"
+#~ msgstr "saknar namn för klass"
+
+#~ msgid "missing name of exported class"
+#~ msgstr "saknar namn för exporterad klass"
+
+#~ msgid "missing name of exported function"
+#~ msgstr "saknar namn för exporterad funktion"
+
+#~ msgid "missing name or parentheses for function"
+#~ msgstr "saknar namn eller paranteser för funktion"
+
+#~ msgid "missing operand for operator"
+#~ msgstr "saknar operand för operatör"
+
+#, fuzzy
+#~ msgid "missing ',', ';', or newline between object type entries"
+#~ msgstr "saknar comma mellan förekommande objektliteral"
+
+#~ msgid "redundant delete statement on variable"
+#~ msgstr "redundant delete påstående för variabel"
+
+#, fuzzy
+#~ msgid "missing 'if' after 'else'"
+#~ msgstr "saknar '=' efter variabel"
+
+#~ msgid "missing operator between expression and arrow function"
+#~ msgstr "saknar operatör mellan uttryck och pilfunktion"
+
+#, fuzzy
+#~ msgid "missing parentheses around operand of '{0}'"
+#~ msgstr "saknar namn eller paranteser för funktion"
+
+#, fuzzy
+#~ msgid "missing parentheses around self-invoked function"
+#~ msgstr "saknar namn eller paranteser för funktion"
+
+#, fuzzy
+#~ msgid "function starts here"
+#~ msgstr "funktionkallelse startar här"
+
+#, fuzzy
+#~ msgid "missing parentheses around left-hand side of '**'"
+#~ msgstr "saknar namn eller paranteser för funktion"
+
+#~ msgid "missing property name after '.' operator"
+#~ msgstr "saknar egenskaps namn efter '.' operatör"
+
+#, fuzzy
+#~ msgid "missing semicolon after abstract method"
+#~ msgstr "saknar semikolon efter påstående"
+
+#~ msgid "missing semicolon after statement"
+#~ msgstr "saknar semikolon efter påstående"
+
+#, fuzzy
+#~ msgid "missing semicolon after field"
+#~ msgstr "saknar semikolon efter påstående"
+
+#, fuzzy
+#~ msgid "missing semicolon after index signature"
+#~ msgstr "saknar semikolon efter påstående"
+
+#, fuzzy
+#~ msgid "missing semicolon after interface method"
+#~ msgstr "saknar semikolon efter påstående"
+
+#~ msgid "missing semicolon between condition and update parts of for loop"
+#~ msgstr "saknar semikolon mellan vilkor och updaterings delen i for loopen"
+
+#~ msgid "missing semicolon between init and condition parts of for loop"
+#~ msgstr "saknar semikolon mellan start och vilkors delen i for loopen"
+
+#~ msgid ""
+#~ "incomplete export; expected 'export default ...' or 'export {{name}' or "
+#~ "'export * from ...' or 'export class' or 'export function' or 'export let'"
+#~ msgstr ""
+#~ "ofullständig exportering; förväntades 'export default ...' eller 'export "
+#~ "{{name}' eller 'export * from ...' eller 'export class' eller 'export "
+#~ "function' eller 'export let'"
+
+#, fuzzy
+#~ msgid "missing type between '{1}' and '{0}'"
+#~ msgstr "saknar egenskaps namn efter '.' operatör"
+
+#, fuzzy
+#~ msgid "missing TypeScript type"
+#~ msgstr "saknar stycke för klass"
+
+#~ msgid "missing value for object property"
+#~ msgstr "saknar värde för objektegenskap"
+
+#~ msgid "missing variable name"
+#~ msgstr "saknar variabel namn"
+
+#~ msgid "missing 'while (condition)' for do-while statement"
+#~ msgstr "saknar 'while (vilkor)' till do-while påstående"
+
+#~ msgid "do-while statement starts here"
+#~ msgstr "do-while påstående startar här"
+
+#~ msgid ""
+#~ "newline is not allowed between 'async' and arrow function parameter list"
+#~ msgstr ""
+#~ "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#~ msgid "arrow is here"
+#~ msgstr "pilen är här"
+
+#, fuzzy
+#~ msgid "newline is not allowed between 'async' and 'function'"
+#~ msgstr ""
+#~ "nyrad är inte tillåten mellan 'async' och pilfunktions parameter lista"
+
+#, fuzzy
+#~ msgid "'function' is here"
+#~ msgstr "funktionkallelse startar här"
+
+#, fuzzy
+#~ msgid "newline is not allowed after 'abstract'"
+#~ msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
+
+#, fuzzy
+#~ msgid "newline is not allowed between field name and '!'"
+#~ msgstr "extra ',' är inte tillåtet mellan funktionkallelses argument"
+
+#, fuzzy
+#~ msgid "field declared here"
+#~ msgstr "variabel deklarerades här"
+
+#, fuzzy
+#~ msgid "use ':' instead of '=' in object literals"
+#~ msgstr "ogiltigt låneuttryck i objektliteral"
+
+#, fuzzy
+#~ msgid "TypeScript optional parameter requires parentheses"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript optional parameter with type annotation requires parentheses"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "initializer starts here"
+#~ msgstr "funktionkallelse startar här"
+
+#~ msgid "private properties are not allowed in object literals"
+#~ msgstr "privata egenskaper är inte tillåtna i objektlitteräler"
+
+#~ msgid "redeclaration of global variable"
+#~ msgstr "omdeklaration av global variabel"
+
+#~ msgid "redeclaration of variable: {0}"
+#~ msgstr "omdekleration av variabel: {0}"
+
+#~ msgid "variable already declared here"
+#~ msgstr "variabel är redan deklarerad här"
+
+#~ msgid "stray comma in let statement"
+#~ msgstr "vilset komma i let påstående"
+
+#, fuzzy
+#~ msgid "stray comma in function parameter"
+#~ msgstr "ogiltig funktions parameter"
+
+#, fuzzy
+#~ msgid "first parameter starts here"
+#~ msgstr "try sats startar här"
+
+#, fuzzy
+#~ msgid "'this' parameters are not allowed in arrow functions"
+#~ msgstr "saknar parametrar före pilfunktion"
+
+#, fuzzy
+#~ msgid "'this' parameters are not allowed in JavaScript"
+#~ msgstr "saknar parametrar före pilfunktion"
+
+#, fuzzy
+#~ msgid "'this' parameter not allowed when destructuring"
+#~ msgstr "saknar parametrar före pilfunktion"
+
+#, fuzzy
+#~ msgid "{0} classes are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "'as const' located here"
+#~ msgstr "lista startar här"
+
+#, fuzzy
+#~ msgid "TypeScript 'as' type assertions are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "use ':' instead of 'as' to type a function parameter"
+#~ msgstr "ogiltigt låneuttryck i objektliteral"
+
+#, fuzzy
+#~ msgid "assignment-asserted fields are not supported in interfaces"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript assignment-asserted fields are not supported in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "assignment-assertion fields cannot have default values"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "assignment-asserted field must have a type annotation"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "'{0}' is not allowed on methods"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript 'implements' is not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "cannot delete variables in TypeScript"
+#~ msgstr "kan inte exportera variabel vid namn 'let'"
+
+#, fuzzy
+#~ msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript import aliases are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "index signature must be a field, not a method"
+#~ msgstr "indexering kräver ett uttryck"
+
+#, fuzzy
+#~ msgid "index signatures require a value type"
+#~ msgstr "indexering kräver ett uttryck"
+
+#, fuzzy
+#~ msgid "overloaded function '{0}' declared here"
+#~ msgstr "funktion deklarerad här"
+
+#, fuzzy
+#~ msgid "expected at least one parameter in generic parameter list"
+#~ msgstr "oförväntad litteral i parameter lista; förväntade parameter namn"
+
+#, fuzzy
+#~ msgid "TypeScript generics are not allowed in JavaScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript type exports are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "interfaces cannot contain static blocks"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "missing name for element in named tuple type"
+#~ msgstr "saknar namn för klass"
+
+#, fuzzy
+#~ msgid "TypeScript namespaces are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript non-null assertions are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript optional parameters are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript optional properties are not allowed in JavaScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "prior spread element is here"
+#~ msgstr "try sats startar här"
+
+#, fuzzy
+#~ msgid "'private' is not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "'protected' is not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "'public' is not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "expected '?' to mark tuple element as optional"
+#~ msgstr "förväntade ')' för att slutföra funktionkallelse"
+
+#, fuzzy
+#~ msgid "unexpected ':' in expression; did you mean 'as'?"
+#~ msgstr "förväntade ett uttryck efter 'case'"
+
+#, fuzzy
+#~ msgid "TypeScript type annotations are not allowed in JavaScript code"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript types are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript type imports are not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "spread tuple elements cannot be optional"
+#~ msgstr "klass kan inte benämnas 'let'"
+
+#, fuzzy
+#~ msgid "spread starts here"
+#~ msgstr "lista startar här"
+
+#, fuzzy
+#~ msgid "unclosed class; expected '}' by end of file"
+#~ msgstr "oavslutad kod stycke; förväntade '}' innan slutet av filen"
+
+#~ msgid "unclosed code block; expected '}' by end of file"
+#~ msgstr "oavslutad kod stycke; förväntade '}' innan slutet av filen"
+
+#, fuzzy
+#~ msgid "unclosed interface; expected '}' by end of file"
+#~ msgstr "oavslutad kod stycke; förväntade '}' innan slutet av filen"
+
+#~ msgid "unclosed object literal; expected '}'"
+#~ msgstr "oavslutad objektlitterär; förväntade '}'"
+
+#~ msgid "object literal started here"
+#~ msgstr "objektlitteral startades här"
+
+#~ msgid "unexpected '{0}'"
+#~ msgstr "oförväntad '{0}'"
+
+#~ msgid "expected parameter for arrow function, but got an expression instead"
+#~ msgstr "förväntade paramter till pilfunktion, men fick ett uttryck istället"
+
+#~ msgid "expected parameter for arrow function, but got a literal instead"
+#~ msgstr "förväntade parameter för pilfunktion, men fick in litterär istället"
+
+#~ msgid "unexpected 'case' outside switch statement"
+#~ msgstr "oförväntad 'case' utanför switch sats"
+
+#~ msgid "unexpected 'default' outside switch statement"
+#~ msgstr "oförväntad 'default' utanför switch sats"
+
+#~ msgid "unexpected literal in parameter list; expected parameter name"
+#~ msgstr "oförväntad litteral i parameter lista; förväntade parameter namn"
+
+#, fuzzy
+#~ msgid "unexpected '?'"
+#~ msgstr "oförväntad '@'"
+
+#, fuzzy
+#~ msgid "unexpected '?' when destructuring"
+#~ msgstr "oförväntad '\\' i identifierare"
+
+#~ msgid "C-style for loops have only three semicolon-separated components"
+#~ msgstr "C-stil for loops har enbart tre semikolon separerande komponenter"
+
+#~ msgid "for-in loop expression cannot have semicolons"
+#~ msgstr "for-in loop satser kan inte ha semikolon"
+
+#~ msgid "for-of loop expression cannot have semicolons"
+#~ msgstr "for-of loop satser kan inte ha semikolon"
+
+#, fuzzy
+#~ msgid "existing variable declared here"
+#~ msgstr "konstant variabel deklarerad här"
+
+#, fuzzy
+#~ msgid "TypeScript non-null assertion is not allowed on parameters"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#~ msgid "unexpected identifier in expression; missing operator before"
+#~ msgstr "oförväntad identifierare i uttryck; saknar operatör före"
+
+#~ msgid "unexpected token"
+#~ msgstr "oförväntad token"
+
+#~ msgid ""
+#~ "unexpected token in export; expected 'export default ...' or 'export "
+#~ "{{name}' or 'export * from ...' or 'export class' or 'export function' or "
+#~ "'export let'"
+#~ msgstr ""
+#~ "oförväntad token i export; förväntade 'export default ...' eller 'export "
+#~ "{{name}' eller 'export * from ...' eller 'export class' eller 'export "
+#~ "function'  'export let'"
+
+#~ msgid "unexpected token in variable declaration; expected variable name"
+#~ msgstr "oförväntad token i variabel deklaration; förväntade variabel namn"
+
+#~ msgid "unmatched indexing bracket"
+#~ msgstr "omatchad indexerande hakparantes"
+
+#~ msgid "unmatched parenthesis"
+#~ msgstr "omatchad parantes"
+
+#~ msgid "unmatched '}'"
+#~ msgstr "omatchad '}'"
+
+#, fuzzy
+#~ msgid "use of undeclared type: {0}"
+#~ msgstr "användning av odeklarerad variabel: {0}"
+
+#~ msgid "use of undeclared variable: {0}"
+#~ msgstr "användning av odeklarerad variabel: {0}"
+
+#~ msgid "variable used before declaration: {0}"
+#~ msgstr "variabel använd före: {0}"
+
+#, fuzzy
+#~ msgid "function called before declaration in block scope: {0}"
+#~ msgstr "funktion kallad före deklaration i blockstycke: {0}"
+
+#~ msgid "function declared here"
+#~ msgstr "funktion deklarerad här"
+
+#, fuzzy
+#~ msgid "TypeScript interface fields cannot be initalized"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript interface methods cannot be marked 'async'"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript interface methods cannot be marked as a generator"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript interface methods cannot contain a body"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "interface properties cannot be marked public explicitly"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "interface properties are always public and cannot be private"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript interface properties are always public and cannot be marked "
+#~ "protected"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript interface properties cannot be 'static'"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#~ msgid "break can only be used inside of a loop or switch"
+#~ msgstr "break kan enbart vara inuti en loop eller switch"
+
+#~ msgid "continue can only be used inside of a loop"
+#~ msgstr "continue kan enbart vara inuti en loop"
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "lista startar här"
+
+#, fuzzy
+#~ msgid "classes cannot be named 'await' in async function"
+#~ msgstr "kan inte deklarera 'await' inuti async funktion"
+
+#, fuzzy
+#~ msgid "TypeScript static blocks are not supported in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "{0} is not allowed in JavaScript"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "TypeScript interfaces cannot be named 'await' in async function"
+#~ msgstr "kan inte deklarera 'await' inuti async funktion"
+
+#, fuzzy
+#~ msgid "TypeScript call signatures are only allowed in classes"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "write a name to declare a class method"
+#~ msgstr "saknar namn för klass"
+
+#~ msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
+#~ msgstr "TypeScripts 'enum' är inte ännu implementerad av quick-lint-js"
+
+#, fuzzy
+#~ msgid "number literal will lose precision"
+#~ msgstr "hex nummerlitteral har inga siffror"
+
+#~ msgid "invalid binding in let statement"
+#~ msgstr "ogiltig bindelse i let påstående"
+
+#~ msgid "unexpected identifier"
+#~ msgstr "oförväntad identifierare"

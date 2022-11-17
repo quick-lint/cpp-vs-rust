@@ -1,0 +1,1321 @@
+# Copyright (C) 2020  Matthew "strager" Glazar
+# See end of file for extended copyright information.
+msgid ""
+msgstr ""
+"Project-Id-Version: lada 1\n"
+"Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
+"PO-Revision-Date: 2022-05-20 20:44-0400\n"
+"Last-Translator: U-DESKTOP-BKS115B\\max <me>\n"
+"Language-Team: English\n"
+"Language: en_US@snarky\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'do-while' loop"
+msgstr "do-whiley do"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'for' loop"
+msgstr "'for' loop 🔃"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'if' statement"
+msgstr "when (not if) statement"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'while' loop"
+msgstr "whenever loop"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'with' statement"
+msgstr "what-the-heck-is-wrong-with statement"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "labelled statement"
+msgstr "labelled statement"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'do-while' loop"
+msgstr "a do-whiley do"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'for' loop"
+msgstr "a 'for' loop 🔃"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "an 'if' statement"
+msgstr "a when (not if) statement"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'while' loop"
+msgstr "a whenever loop"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'with' statement"
+msgstr "a what-the-heck-is-wrong-with statement"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+#, fuzzy
+msgid "a labelled statement"
+msgstr "a labelled statement"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "BigInt literal contains decimal point"
+msgstr "it's Big*Int*, not Big*Decimal*"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "BigInt literal contains exponent"
+msgstr "BigExponInt is an ES2069 feature"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "character is not allowed in identifiers"
+msgstr "hold up! ✋ no '{0}' allowed"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "escaped character is not allowed in identifiers"
+msgstr "fugitive 🦹‍♂️ is not allowed in identifiers"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "code point out of range"
+msgstr "it won't fit 🤰"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
+msgstr "U+10FFFF is the limit. what are you trying to accomplish?"
+
+# TODO(you) msgid "you don't need to escape '-' in tag names; just write '-'"
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "escaping '-' is not allowed in tag names; write '-' instead"
+msgstr "stop being so fancy; just write '-'"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "expected hexadecimal digits in Unicode escape sequence"
+msgstr ""
+"what are you trying to do? This is a Unicode escape sequence, not a Wendy's 🍔"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "invalid hex escape sequence: {0}"
+msgstr "this ain't hex"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'{0}' is not allowed for strings; use {1} instead"
+msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "invalid UTF-8 sequence"
+msgstr "quick-lint-js only works with nonbinary files"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "keywords cannot contain escape sequences"
+msgstr ""
+"that sequence should escape from this keyword cuz it's not allowed here"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "legacy octal literal may not be BigInt"
+msgstr "0Ops"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "legacy octal literals may not contain underscores"
+msgstr "legacy_octal_literals_may_not_contain_underscores"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "number literal contains consecutive underscores"
+msgstr "too__many__underscores"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "number literal contains trailing underscore(s)"
+msgstr "too_many_underscores_____"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal literal may not have exponent"
+msgstr "scientists don't use octal"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal literal may not have decimal"
+msgstr "but you said '0o'..."
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "integer cannot be represented and will be rounded to '{1}'"
+msgstr "this number's too thicc for JavaScript; '{1}' would be used instead"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "RegExp literal flags cannot contain Unicode escapes"
+msgstr "keep your RegExp flags simple, please"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed block comment"
+msgstr "you accidentally commented out your whole program"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed identifier escape sequence"
+msgstr "runaway \\u!"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed regexp literal"
+msgstr "/unclosed regexp literal"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed string literal"
+msgstr "\"unclosed string literal"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed template"
+msgstr "`unclosed template"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '@'"
+msgstr "unexp@cted"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '\\' in identifier"
+msgstr "unex\\pected"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in number literal"
+msgstr "does not compute 🤖"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected control character"
+msgstr "you lost control of your code"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in binary literal"
+msgstr "this number does not identify as binary"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in octal literal"
+msgstr "Cthulhu 🐙 is not happy"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in hex literal"
+msgstr "unexpected characters in hex literal"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
+msgstr "Facebook says '>' is not allowed; write {{'>'} or &gt; instead"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
+msgstr "Facebook says '}' is not allowed; write {{'}'} instead"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unopened block comment"
+msgstr "/*"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "binary number literal has no digits"
+msgstr "binary number lost its genitals"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "hex number literal has no digits"
+msgstr "hex number literal has no digits"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal number literal has no digits"
+msgstr "<octupus-with-no-legs> has no digits"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '#'"
+msgstr "#unexpected"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"unicode byte order mark (BOM) cannot appear before #! at beginning of script"
+msgstr "your editor BOMd 💣 your s#!t 💩"
+
+#
+#~ msgid "variable assigned before its declaration"
+#~ msgstr "why are you assignin' before you be makin'? 🤏"
+
+#~ msgid "variable declared here"
+#~ msgstr "👆 it's right here, doofus"
+
+#~ msgid "~~~ invalid string, do not use outside benchmark ~~~"
+#~ msgstr "~~~ invalid string, do not use outside benchmark ~~~"
+
+#~ msgid "another invalid string, do not use outside benchmark"
+#~ msgstr "another invalid string, do not use outside benchmark"
+
+#, fuzzy
+#~ msgid "abstract fields cannot have default values"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "field marked abstract here"
+#~ msgstr "👆 it's right here, doofus"
+
+#, fuzzy
+#~ msgid "abstract methods cannot be marked 'async'"
+#~ msgstr "interfaces are allergic to async methods"
+
+#, fuzzy
+#~ msgid "abstract methods cannot be marked as a generator"
+#~ msgstr "interfaces are allergic to generator methods"
+
+#, fuzzy
+#~ msgid "abstract properties are not allowed in interfaces"
+#~ msgstr "objects can't have privates 🤫"
+
+#, fuzzy
+#~ msgid "abstract properties are only allowed in abstract classes"
+#~ msgstr "objects can't have privates 🤫"
+
+#, fuzzy
+#~ msgid "class is not marked abstract"
+#~ msgstr "👆 it's right here, doofus"
+
+#, fuzzy
+#~ msgid "abstract methods cannot contain a body"
+#~ msgstr "you probably want a class, not an interface"
+
+#~ msgid "missing '<>' and '</>' to enclose multiple children"
+#~ msgstr "give 'em a big ol' hug 🫂 with '<>' and '</>'"
+
+#~ msgid "children end here"
+#~ msgstr "🚸🚫⛔"
+
+#, fuzzy
+#~ msgid "missing parentheses around parameter"
+#~ msgstr "JavaScript is stupid, so you need parentheses"
+
+#, fuzzy
+#~ msgid "TypeScript type annotation requires parentheses"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#~ msgid "'=' changes variables; to compare, use '===' instead"
+#~ msgstr "this isn't math class!"
+
+#~ msgid "assignment to const global variable"
+#~ msgstr "the global's CONSTant, you dweeb"
+
+#~ msgid "assignment to const variable"
+#~ msgstr "what part of CONSTant do you not understand?"
+
+#~ msgid "const variable declared here"
+#~ msgstr "see? C O N S T!"
+
+#~ msgid "assignment to imported variable"
+#~ msgstr "you said 'import', not 'extort'"
+
+#~ msgid "imported variable declared here"
+#~ msgstr "right here, buddy"
+
+#~ msgid "assignment to const variable before its declaration"
+#~ msgstr "why are you assignin' before you be makin'? 🤏"
+
+#~ msgid "assignment to undeclared variable"
+#~ msgstr "you're putting that where exactly?"
+
+#~ msgid "'await' is only allowed in async functions"
+#~ msgstr "this is sync country. get yer await outta here."
+
+#~ msgid "'await' cannot be followed by an arrow function; use 'async' instead"
+#~ msgstr "psst. 'async'."
+
+# this is actually better than the OG one
+#~ msgid "'async static' is not allowed; write 'static async' instead"
+#~ msgstr "are you dyslexic or something?"
+
+# this is actually better than the OG one
+#, fuzzy
+#~ msgid "'async export' is not allowed; write 'export async' instead"
+#~ msgstr "are you dyslexic or something?"
+
+# this is actually better than the OG one
+#, fuzzy
+#~ msgid "'function async' is not allowed; write 'async function' instead"
+#~ msgstr "are you dyslexic or something?"
+
+#~ msgid "C-style for loop is missing its third component"
+#~ msgstr "you forgot ;i++"
+
+#~ msgid "cannot assign to loop variable in for of/in loop"
+#~ msgstr "what in tarnation is this assignment?"
+
+#~ msgid "cannot access private identifier outside class"
+#~ msgstr "stop peeking at my privates!"
+
+# # dont name things keywords
+#~ msgid "assigning to 'async' in a for-of loop requires parentheses"
+#~ msgstr "just stop using variables called 'async'. There. Problem solved"
+
+#~ msgid "cannot declare 'await' inside async function"
+#~ msgstr ""
+#~ "you really think calling a variable 'await' in an async function is a "
+#~ "good idea?"
+
+#~ msgid "classes cannot be named 'let'"
+#~ msgstr "why would you call a class 'let'?"
+
+#~ msgid "let statement cannot declare variables named 'let'"
+#~ msgstr "st-stop st-stuttering"
+
+#~ msgid "cannot declare variable named keyword '{0}'"
+#~ msgstr "'{0}' is a keyword, silly"
+
+#~ msgid "cannot declare 'yield' inside generator function"
+#~ msgstr "'yield' is a terrible variable name'"
+
+#~ msgid "cannot declare and export variable with 'export default'"
+#~ msgstr "variables don't belong here"
+
+#~ msgid "cannot export variable named 'let'"
+#~ msgstr "you should be ashamed of 'var let'"
+
+#~ msgid "cannot export variable named keyword '{0}'"
+#~ msgstr "exporting '{0}'? really?"
+
+# TODO(me): suggest import aliasing
+#~ msgid "cannot import 'let'"
+#~ msgstr "it's not even your fault. blame TC39"
+
+#~ msgid "cannot import variable named keyword '{0}'"
+#~ msgstr "whoever wrote this module should feel back for exporting a keyword"
+
+#, fuzzy
+#~ msgid "missing quotes around module name '{0}'"
+#~ msgstr "missing parentheses around operand of '{0}'"
+
+#~ msgid "cannot reference private variables without object; use 'this.'"
+#~ msgstr "you're missing 'self.'; or 'this.'; I forget"
+
+#~ msgid "cannot update variable with '{0}' while declaring it"
+#~ msgstr "'{0}' makes no sense; try '='?"
+
+#~ msgid "remove '{0}' to update an existing variable"
+#~ msgstr "or yeet '{0}'"
+
+#~ msgid "unexpected 'catch' without 'try'"
+#~ msgstr "you'll never catch anything without trying"
+
+#~ msgid "missing body for {1:headlinese}"
+#~ msgstr "what's the point of {1:singular} with no body?"
+
+#~ msgid "a class statement is not allowed as the body of {1:singular}"
+#~ msgstr "you can't put a class here!"
+
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
+#~ msgid "commas are not allowed after spread parameter"
+#~ msgstr "a comma makes sense, but TC39 says no ⛔"
+
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
+#, fuzzy
+#~ msgid "leading commas are not allowed in generic parameter lists"
+#~ msgstr "a comma makes sense, but TC39 says no ⛔"
+
+#~ msgid "commas are not allowed between class methods"
+#~ msgstr "get this comma out of my sight"
+
+# TODO(you): feature idea: lint string literal JSON
+#~ msgid "JSON syntax error"
+#~ msgstr "yeah, JSON sucks; try quick-lint-json"
+
+#~ msgid "\"global-groups\" entries must be strings"
+#~ msgstr "\"global-groups\" contains strings, not whatever you just said"
+
+#~ msgid "\"global-groups\" must be a boolean or an array"
+#~ msgstr ""
+#~ "\"global-groups\" must be a boolean or an array, not whatever you just "
+#~ "said"
+
+#~ msgid "\"globals\" descriptor must be a boolean or an object"
+#~ msgstr ""
+#~ "\"globals\" descriptor must be a boolean or an object, not whatever you "
+#~ "just said"
+
+#~ msgid "\"globals\" descriptor \"shadowable\" property must be a boolean"
+#~ msgstr ""
+#~ "\"globals\" descriptor \"shadowable\" property must be a boolean, not "
+#~ "whatever you just said"
+
+#~ msgid "\"globals\" descriptor \"writable\" property must be a boolean"
+#~ msgstr ""
+#~ "\"globals\" descriptor \"writable\" property must be a boolean, not "
+#~ "whatever you just said"
+
+#~ msgid "\"globals\" must be an object"
+#~ msgstr "\"globals\" must be an object, not whatever you just said"
+
+#~ msgid "depth limit exceeded"
+#~ msgstr "ow! my cervix! 🤰"
+
+#, fuzzy
+#~ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+#~ msgstr "smart quotes 🧠 require the SmartyPantsJS DLC"
+
+#~ msgid "missing property name between '.' and '.'"
+#~ msgstr "._."
+
+#~ msgid "'else' has no corresponding 'if'"
+#~ msgstr "you're violating the laws of causality"
+
+#~ msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
+#~ msgstr "'{1}' and '{0}' don't tango"
+
+#~ msgid "'{0}' found here"
+#~ msgstr "here's the '{0}'"
+
+#~ msgid "extra ',' is not allowed between function call arguments"
+#~ msgstr "that's way too many commas 🚮"
+
+#, fuzzy
+#~ msgid "extra ',' is not allowed between enum members"
+#~ msgstr "that's way too many commas 🚮"
+
+#~ msgid "expected 'as' between '{1}' and '{2}'"
+#~ msgstr "you forgot 'as' between '{1}' and '{2}'"
+
+#~ msgid "expected ',' between object literal entries"
+#~ msgstr "you dropped this: ,"
+
+#~ msgid "expected expression before newline"
+#~ msgstr "premature newline"
+
+#~ msgid "expected expression after 'case'"
+#~ msgstr "this 'case' is awful lonely"
+
+#~ msgid "expected expression before semicolon"
+#~ msgstr "I need something before that semicolon"
+
+#~ msgid "expected 'from \"name_of_module.mjs\"'"
+#~ msgstr "where are we importing from?"
+
+#~ msgid "expected 'from' before module specifier"
+#~ msgstr "be polite and say 'from'"
+
+#~ msgid "expected '{{'"
+#~ msgstr "I was hoping for a '{{'"
+
+#~ msgid "expected ')' to close function call"
+#~ msgstr "where's my ')' at?"
+
+#~ msgid "function call started here"
+#~ msgstr "lookie here 👇"
+
+#~ msgid "do-while loop needs parentheses around condition"
+#~ msgstr "just write a regular loop"
+
+#~ msgid "do-while loop is missing '{1}' around condition"
+#~ msgstr "okay mister \"I'm very smart because I use do-while loops\""
+
+#~ msgid "if statement needs parentheses around condition"
+#~ msgstr "sorry. I wish I was programming in Go right now too"
+
+#~ msgid "if statement is missing '{1}' around condition"
+#~ msgstr "you dropped this: '{1}'"
+
+#~ msgid "switch statement needs parentheses around condition"
+#~ msgstr "give the condition a hug"
+
+#~ msgid "switch statement is missing '{1}' around condition"
+#~ msgstr "give the condition a hug"
+
+#~ msgid "while loop needs parentheses around condition"
+#~ msgstr "surround the condition so it can't run away"
+
+#~ msgid "while loop is missing '{1}' around condition"
+#~ msgstr "surround the condition so it can't run away"
+
+#~ msgid "with statement needs parentheses around expression"
+#~ msgstr "with statement needs you to stop programming right now"
+
+#~ msgid "with statement is missing '{1}' around expression"
+#~ msgstr "with statement needs you to stop programming right now"
+
+#~ msgid "expected variable name for 'catch'"
+#~ msgstr "name your variable, please"
+
+#~ msgid "expected variable name for 'import'-'as'"
+#~ msgstr "you said 'as', so give me a variable name"
+
+#~ msgid "exporting requires 'default'"
+#~ msgstr "exporting with no name? c'mon"
+
+#~ msgid "exporting requires '{{' and '}'"
+#~ msgstr "can I get a side of curly fries please? 🍟"
+
+#~ msgid "forwarding exports are only allowed in export-from"
+#~ msgstr "forwarding exports are only allowed in export-from"
+
+#~ msgid "unexpected 'finally' without 'try'"
+#~ msgstr "you're not even gonna 'try'?"
+
+#~ msgid "a function statement is not allowed as the body of {1:singular}"
+#~ msgstr "{1:singular} isn't the right place for a function"
+
+#~ msgid "generator function '*' belongs after keyword function"
+#~ msgstr "slide this '*' to the right"
+
+#~ msgid "generator function '*' belongs before function name"
+#~ msgstr "slide this '*' to the left"
+
+# TODO(you) add another diagnostic that's more explicit about not allowing parameters
+#, fuzzy
+#~ msgid "only one comma is allowed between or after generic parameters"
+#~ msgstr "a comma makes sense, but TC39 says no ⛔"
+
+#~ msgid "'in' disallowed in C-style for loop initializer"
+#~ msgstr "is this a for-in loop or what?"
+
+#~ msgid "indexing requires an expression"
+#~ msgstr "put something in the box 📦"
+
+#~ msgid "invalid expression left of assignment"
+#~ msgstr "what the heck are you trying to assign to?"
+
+#~ msgid "invalid lone literal in object literal"
+#~ msgstr "what's this literal supposed to mean in an object?"
+
+#~ msgid "invalid function parameter"
+#~ msgstr "that's not what a parameter looks like"
+
+#~ msgid ""
+#~ "'.' operator needs a key name; use + to concatenate strings; use [] to "
+#~ "access with a dynamic key"
+#~ msgstr "this isn't PHP"
+
+#~ msgid "attribute has wrong capitalization; write '{1}' instead"
+#~ msgstr "did you leave CAPSLOCK on? it's '{1}'"
+
+#~ msgid "misspelled React attribute; write '{1}' instead"
+#~ msgstr "it's spelled '{1}', silly"
+
+#~ msgid "event attributes must be camelCase: '{1}'"
+#~ msgstr "event attributes must be 🐪Case: '{1}'"
+
+#, fuzzy
+#~ msgid "React/JSX is not allowed in vanilla JavaScript code"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "React/JSX is not allowed in TypeScript code"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+# TODO(me) move to section I labelled above with ##
+#~ msgid "label named 'await' not allowed in async function"
+#~ msgstr "'goto await;' isn't a thing"
+
+#~ msgid "{0} with no bindings"
+#~ msgstr "naked {0} 😊"
+
+# If you steal *anything* from this file, I'll stalk your social media,
+# find your address, come to your house when you're not home, hack into your
+# refigerator, and leave the following note:
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+#~ msgid "a lexical declaration is not allowed as the body of {1:singular}"
+#~ msgstr "how do you propose we use this variable?"
+
+#~ msgid "functions/methods should not have '=>'"
+#~ msgstr "no arrows allowed"
+
+#~ msgid "methods should not use the 'function' keyword"
+#~ msgstr "'function' is boomer"
+
+#~ msgid "mismatched JSX tags; expected '</{1}>'"
+#~ msgstr "can't you count? I wanted a '</{1}>'! 🤐"
+
+#~ msgid "opening '<{1}>' tag here"
+#~ msgstr "😱 '<{1}>'"
+
+#~ msgid "missing end of array; expected ']'"
+#~ msgstr "you forgot to close Pandora's Box"
+
+#~ msgid "array started here"
+#~ msgstr "you opened Pandora's Box here"
+
+#~ msgid "missing arrow operator for arrow function"
+#~ msgstr "➡"
+
+#~ msgid "missing parameters for arrow function"
+#~ msgstr "you forgot the parameters"
+
+#~ msgid "missing body for catch clause"
+#~ msgstr "did you dispose of the body?"
+
+#~ msgid "missing body for class"
+#~ msgstr "this class has been decapitated! 🧟‍♀️"
+
+#~ msgid "missing body for do-while loop"
+#~ msgstr "I should decapitate you for using a do-while loop"
+
+#~ msgid "missing body for finally clause"
+#~ msgstr "what do you wanna do at the end?"
+
+#~ msgid "missing body for 'for' loop"
+#~ msgstr "missing body 4 4 loop"
+
+#~ msgid "missing body for 'if' statement"
+#~ msgstr "then what?"
+
+#~ msgid "missing body for 'switch' statement"
+#~ msgstr "no switch cases? not even one?"
+
+#~ msgid "missing body for try statement"
+#~ msgstr "you're trying too hard"
+
+#, fuzzy
+#~ msgid "missing body for TypeScript interface"
+#~ msgstr "missing body for function"
+
+#~ msgid "missing body for while loop"
+#~ msgstr "why don't you write some code?"
+
+#~ msgid "missing catch or finally clause for try statement"
+#~ msgstr ""
+#~ "finally, you've got to try to catch it <mit> or you're gonna have a bad "
+#~ "time"
+
+#~ msgid "try statement starts here"
+#~ msgstr "at least you tried"
+
+#~ msgid "missing catch variable name between parentheses"
+#~ msgstr "who's on second? ⚾"
+
+#~ msgid "missing comma between object literal entries"
+#~ msgstr "separate these fellas with a comma"
+
+#, fuzzy
+#~ msgid "missing comma between generic parameters"
+#~ msgstr "separate these fellas with a comma"
+
+#~ msgid "missing ',' between variable declarations"
+#~ msgstr ","
+
+#~ msgid "missing ':' in conditional expression"
+#~ msgstr "how did the grammar Nazi die? colon cancer."
+
+#~ msgid "'?' creates a conditional expression"
+#~ msgstr ""
+#~ "do you know what a conditional expression even is ? liar 🤥 : Kagi it 🔍"
+
+#~ msgid "missing condition for if statement"
+#~ msgstr "if WHAT?!"
+
+#~ msgid "missing condition for while statement"
+#~ msgstr "while WHAT?!"
+
+#~ msgid "missing condition for switch statement"
+#~ msgstr "switch WHAT?!"
+
+#~ msgid "missing '...' in JSX attribute spread"
+#~ msgstr "the solution is …"
+
+#~ msgid "missing '=' after variable"
+#~ msgstr "= should be used like: 'let you = dumb'"
+
+#~ msgid "missing expression between parentheses"
+#~ msgstr "(😶)"
+
+#~ msgid "missing header and body for 'for' loop"
+#~ msgstr "for WHAT?!"
+
+#~ msgid "for loop needs an iterable, or condition and update clauses"
+#~ msgstr "finish writing your for loop"
+
+# TODO(you) add this warning to `for(;cond;)`
+#~ msgid "use 'while' instead to loop until a condition is false"
+#~ msgstr "or use 'while', you silly Gopher"
+
+#~ msgid "missing function parameter list"
+#~ msgstr "how are you gonna call this function without a parameter list?"
+
+#~ msgid "missing body for function"
+#~ msgstr "what's this function supposed to do?"
+
+#~ msgid "missing for loop header"
+#~ msgstr "for WHAT?!"
+
+#~ msgid "missing initializer in const declaration"
+#~ msgstr ""
+#~ "think about it this way. If you cannot reassign it, then const '{0}' "
+#~ "would always be undefined."
+
+#~ msgid "unexpected expression; missing key for object entry"
+#~ msgstr "you forgot the key 🗝"
+
+#, fuzzy
+#~ msgid "missing name for class method"
+#~ msgstr "missing name of class"
+
+#~ msgid "missing name in function statement"
+#~ msgstr "what's this function called?"
+
+#~ msgid "missing name of class"
+#~ msgstr "what's this class called?"
+
+#~ msgid "missing name of exported class"
+#~ msgstr "what's this class called? and why is it exported?"
+
+#~ msgid "missing name of exported function"
+#~ msgstr "what's this function called? and why is it exported?"
+
+#~ msgid "missing name or parentheses for function"
+#~ msgstr "IIFEs are uglier. try again."
+
+#~ msgid "missing operand for operator"
+#~ msgstr "who taught you math? a gym teacher? 👩‍🏫"
+
+#, fuzzy
+#~ msgid "missing ',', ';', or newline between object type entries"
+#~ msgstr "separate these fellas with a comma"
+
+#~ msgid "redundant delete statement on variable"
+#~ msgstr "you really hate variables, huh? too bad; this doesn't work"
+
+#~ msgid "missing 'if' after 'else'"
+#~ msgstr "it's 'else if', silly"
+
+#~ msgid "missing operator between expression and arrow function"
+#~ msgstr "did you forget something here?"
+
+#~ msgid "missing parentheses around operand of '{0}'"
+#~ msgstr "JavaScript is stupid, so you need parentheses"
+
+#~ msgid "'{0}' operator cannot be used before '**' without parentheses"
+#~ msgstr "'{0}' and '**' don't mix"
+
+#~ msgid "missing parentheses around self-invoked function"
+#~ msgstr "IIFEs are uglier. try again."
+
+#~ msgid "function starts here"
+#~ msgstr "IIFE started here"
+
+#~ msgid "missing parentheses around left-hand side of '**'"
+#~ msgstr "JavaScript is stupid, so you need parentheses"
+
+#~ msgid "'**' operator cannot be used after unary '{1}' without parentheses"
+#~ msgstr "'**' and '{1}' don't mix"
+
+#~ msgid "missing property name after '.' operator"
+#~ msgstr "dot WHAT?!"
+
+#, fuzzy
+#~ msgid "missing semicolon after abstract method"
+#~ msgstr "I know you hate semicolons, but you need one here"
+
+#~ msgid "missing semicolon after statement"
+#~ msgstr "I know you hate semicolons, but you need one here"
+
+#, fuzzy
+#~ msgid "missing semicolon after field"
+#~ msgstr "missing semicolon after statement"
+
+#, fuzzy
+#~ msgid "missing semicolon after index signature"
+#~ msgstr "missing semicolon after statement"
+
+#, fuzzy
+#~ msgid "missing semicolon after interface method"
+#~ msgstr "I know you hate semicolons, but you need one here"
+
+#~ msgid "missing semicolon between condition and update parts of for loop"
+#~ msgstr "automatic semicolon insertion doesn't work here, buddy"
+
+#~ msgid "missing semicolon between init and condition parts of for loop"
+#~ msgstr "automatic semicolon insertion doesn't work here, buddy"
+
+#~ msgid ""
+#~ "incomplete export; expected 'export default ...' or 'export {{name}' or "
+#~ "'export * from ...' or 'export class' or 'export function' or 'export let'"
+#~ msgstr "export WHAT!?"
+
+#, fuzzy
+#~ msgid "missing type between '{1}' and '{0}'"
+#~ msgstr "._."
+
+#, fuzzy
+#~ msgid "missing TypeScript type"
+#~ msgstr "missing body for function"
+
+#~ msgid "missing value for object property"
+#~ msgstr "follow this up with a value or something"
+
+#~ msgid "missing variable name"
+#~ msgstr "you forgot the variable name"
+
+#~ msgid "missing 'while (condition)' for do-while statement"
+#~ msgstr "you left your 'do' hanging"
+
+#~ msgid "do-while statement starts here"
+#~ msgstr "lonely 'do' is here"
+
+#~ msgid ""
+#~ "newline is not allowed between 'async' and arrow function parameter list"
+#~ msgstr "put this on a single line, please"
+
+#~ msgid "arrow is here"
+#~ msgstr "move this up"
+
+#, fuzzy
+#~ msgid "newline is not allowed between 'async' and 'function'"
+#~ msgstr "put this on a single line, please"
+
+#, fuzzy
+#~ msgid "'function' is here"
+#~ msgstr "IIFE started here"
+
+#, fuzzy
+#~ msgid "newline is not allowed after 'abstract'"
+#~ msgstr "that's way too many commas 🚮"
+
+#, fuzzy
+#~ msgid "newline is not allowed between field name and '!'"
+#~ msgstr "that's way too many commas 🚮"
+
+#, fuzzy
+#~ msgid "field declared here"
+#~ msgstr "👆 it's right here, doofus"
+
+#, fuzzy
+#~ msgid "use ':' instead of '=' in object literals"
+#~ msgstr "what's this literal supposed to mean in an object?"
+
+#, fuzzy
+#~ msgid "TypeScript optional parameter requires parentheses"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript optional parameter with type annotation requires parentheses"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "initializer starts here"
+#~ msgstr "IIFE started here"
+
+#~ msgid "private properties are not allowed in object literals"
+#~ msgstr "objects can't have privates 🤫"
+
+#, fuzzy
+#~ msgid "'readonly static' is not allowed; write 'static readonly' instead"
+#~ msgstr "'async static' is not allowed; write 'static async' instead"
+
+#~ msgid "redeclaration of global variable"
+#~ msgstr "you already have this global"
+
+#~ msgid "redeclaration of variable: {0}"
+#~ msgstr "you couldn't get enough of {0}, so you had to make two, huh?"
+
+#~ msgid "variable already declared here"
+#~ msgstr "here's your first attempt"
+
+#~ msgid "return statement returns nothing (undefined)"
+#~ msgstr "you forgot to return something"
+
+#~ msgid ""
+#~ "unexpected statement before first switch case, expected 'case' or "
+#~ "'default'"
+#~ msgstr "you got too excited and forgot 'case'"
+
+#~ msgid "stray comma in let statement"
+#~ msgstr "throw that comma in the bin 🚮"
+
+#~ msgid "stray comma in function parameter"
+#~ msgstr "take that stray comma out back and have it meet its maker 🔫"
+
+#, fuzzy
+#~ msgid "first parameter starts here"
+#~ msgstr "at least you tried"
+
+#, fuzzy
+#~ msgid "'this' parameters are not allowed in arrow functions"
+#~ msgstr "you forgot the parameters"
+
+#, fuzzy
+#~ msgid "'this' parameters are not allowed in JavaScript"
+#~ msgstr "you forgot the parameters"
+
+#, fuzzy
+#~ msgid "'this' parameter not allowed when destructuring"
+#~ msgstr "you forgot the parameters"
+
+#, fuzzy
+#~ msgid "{0} classes are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "'as const' located here"
+#~ msgstr "you opened Pandora's Box here"
+
+#, fuzzy
+#~ msgid "TypeScript 'as' type assertions are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "use ':' instead of 'as' to type a function parameter"
+#~ msgstr "what's this literal supposed to mean in an object?"
+
+#, fuzzy
+#~ msgid "assignment-asserted fields are not supported in interfaces"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript assignment-asserted fields are not supported in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "assignment-assertion fields cannot have default values"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "assignment-asserted field must have a type annotation"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "'{0}' is not allowed on methods"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript 'implements' is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "cannot delete variables in TypeScript"
+#~ msgstr "you should be ashamed of 'var let'"
+
+#, fuzzy
+#~ msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript import aliases are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "index signature must be a field, not a method"
+#~ msgstr "indexing requires an expression"
+
+#, fuzzy
+#~ msgid "index signatures require a value type"
+#~ msgstr "indexing requires an expression"
+
+#, fuzzy
+#~ msgid "overloaded function '{0}' declared here"
+#~ msgstr "Safari hates this"
+
+#, fuzzy
+#~ msgid "expected at least one parameter in generic parameter list"
+#~ msgstr "you literally forgot to name your parameter"
+
+#, fuzzy
+#~ msgid "TypeScript generics are not allowed in JavaScript code"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript type exports are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "interfaces cannot contain static blocks"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#~ msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
+#~ msgstr "this isn't TypeScript"
+
+#, fuzzy
+#~ msgid "missing name for element in named tuple type"
+#~ msgstr "missing name of class"
+
+#, fuzzy
+#~ msgid "'?' goes here"
+#~ msgstr "here's the '{0}'"
+
+#, fuzzy
+#~ msgid "'...' goes here"
+#~ msgstr "here's the '{0}'"
+
+#, fuzzy
+#~ msgid "TypeScript namespaces are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript non-null assertions are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript optional parameters are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript optional properties are not allowed in JavaScript code"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "prior spread element is here"
+#~ msgstr "at least you tried"
+
+#, fuzzy
+#~ msgid "'private' is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "'protected' is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "'public' is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "expected '?' to mark tuple element as optional"
+#~ msgstr "where's my ')' at?"
+
+#, fuzzy
+#~ msgid "unexpected ':' in expression; did you mean 'as'?"
+#~ msgstr "this 'case' is awful lonely"
+
+#, fuzzy
+#~ msgid "TypeScript type annotations are not allowed in JavaScript code"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript types are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "TypeScript type imports are not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "spread tuple elements cannot be optional"
+#~ msgstr "classes cannot be named 'let'"
+
+#, fuzzy
+#~ msgid "spread starts here"
+#~ msgstr "you opened Pandora's Box here"
+
+#~ msgid ""
+#~ "const fields within classes are only allowed in TypeScript, not JavaScript"
+#~ msgstr "this field is a bit CONSTipated 🤢 "
+
+#~ msgid "unclosed class; expected '}' by end of file"
+#~ msgstr "forgetting to close your class is unclassy"
+
+#~ msgid "unclosed code block; expected '}' by end of file"
+#~ msgstr "c'mon, you forgot '}'"
+
+#~ msgid "unclosed interface; expected '}' by end of file"
+#~ msgstr "c'mon, you forgot '}'"
+
+#~ msgid "unclosed object literal; expected '}'"
+#~ msgstr "you objectively didn't close your object literal"
+
+#~ msgid "object literal started here"
+#~ msgstr "runaway object literal started here"
+
+#~ msgid "unexpected '{0}'"
+#~ msgstr "what the heck is '{0}'?"
+
+#~ msgid "expected parameter for arrow function, but got an expression instead"
+#~ msgstr "express your feelings, not your arrow function parameters"
+
+#~ msgid "expected parameter for arrow function, but got a literal instead"
+#~ msgstr ""
+#~ "you stupid bastard, you can't have a literal as an arrow function "
+#~ "parameter"
+
+#~ msgid "unexpected 'case' outside switch statement"
+#~ msgstr "your 'case' fell out of your switch statement"
+
+#~ msgid "unexpected 'default' outside switch statement"
+#~ msgstr "your 'default' fell out of your switch statement"
+
+#~ msgid "unexpected literal in parameter list; expected parameter name"
+#~ msgstr "you literally forgot to name your parameter"
+
+#, fuzzy
+#~ msgid "unexpected '?'"
+#~ msgstr "unexp@cted"
+
+#, fuzzy
+#~ msgid "unexpected '?' when destructuring"
+#~ msgstr "unex\\pected"
+
+# that's so Meta xD
+#~ msgid "C-style for loops have only three semicolon-separated components"
+#~ msgstr "you went overboard with the semicolons"
+
+#~ msgid "for-in loop expression cannot have semicolons"
+#~ msgstr "you are forin a rude awakening if you think that's allowed"
+
+#~ msgid "for-of loop expression cannot have semicolons"
+#~ msgstr "forof syntax inforof loop"
+
+#~ msgid "new variable shadows existing variable"
+#~ msgstr "I think you meant to assign..."
+
+#~ msgid "existing variable declared here"
+#~ msgstr "to this variable here"
+
+#, fuzzy
+#~ msgid "TypeScript non-null assertion is not allowed on parameters"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#~ msgid "unexpected identifier in expression; missing operator before"
+#~ msgstr "you're need to take me out to dinner before you show me this"
+
+#~ msgid "unexpected token"
+#~ msgstr "I don't know what to do with this"
+
+#~ msgid ""
+#~ "unexpected token in export; expected 'export default ...' or 'export "
+#~ "{{name}' or 'export * from ...' or 'export class' or 'export function' or "
+#~ "'export let'"
+#~ msgstr "I don't know what you're trying to export"
+
+#~ msgid "unexpected token in variable declaration; expected variable name"
+#~ msgstr "just name your variable like a normal person"
+
+#~ msgid "unmatched indexing bracket"
+#~ msgstr "unmatched indexing[bracket"
+
+#~ msgid "unmatched parenthesis"
+#~ msgstr "I have some extra: ) ) ) ) ) ) ) ) ) ) )"
+
+#~ msgid "unmatched '}'"
+#~ msgstr "what are you trying to close here?"
+
+#~ msgid "use of undeclared type: {0}"
+#~ msgstr "I don't know what this type is"
+
+#~ msgid "use of undeclared variable: {0}"
+#~ msgstr "did you fail spelling class?"
+
+#~ msgid "variable used before declaration: {0}"
+#~ msgstr "why are you usin' before you be makin'? 🤏"
+
+#~ msgid "function called before declaration in block scope: {0}"
+#~ msgstr "this code freaks Safari out"
+
+#~ msgid "function declared here"
+#~ msgstr "Safari hates this"
+
+#~ msgid "TypeScript interface fields cannot be initalized"
+#~ msgstr "why are you trying to initialize this field? it's an interface!"
+
+#~ msgid "TypeScript interface methods cannot be marked 'async'"
+#~ msgstr "interfaces are allergic to async methods"
+
+#~ msgid "TypeScript interface methods cannot be marked as a generator"
+#~ msgstr "interfaces are allergic to generator methods"
+
+#~ msgid "TypeScript interface methods cannot contain a body"
+#~ msgstr "you probably want a class, not an interface"
+
+#, fuzzy
+#~ msgid "interface properties cannot be marked public explicitly"
+#~ msgstr "interface properties deserve no privacy"
+
+#, fuzzy
+#~ msgid "interface properties are always public and cannot be private"
+#~ msgstr "interface properties deserve no privacy"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript interface properties are always public and cannot be marked "
+#~ "protected"
+#~ msgstr "interface properties deserve no privacy"
+
+#~ msgid "TypeScript interface properties cannot be 'static'"
+#~ msgstr "static makes no sense in interfaces"
+
+#~ msgid "break can only be used inside of a loop or switch"
+#~ msgstr "I'm going to break the loop, but I'm not in a loop"
+
+#~ msgid "continue can only be used inside of a loop"
+#~ msgstr "Just stop."
+
+#~ msgid "lower case letters compared with toUpperCase"
+#~ msgstr "You sure you're getting what toUpperCase does?"
+
+#~ msgid "upper case letters compared with toLowerCase"
+#~ msgstr "You sure you're getting what toLowerCase does?"
+
+#~ msgid "something happened"
+#~ msgstr "I wish you never happened"
+
+#~ msgid "see here"
+#~ msgstr "see here"
+
+#~ msgid "this {0} looks fishy"
+#~ msgstr "this {0} looks fishy"
+
+#~ msgid "this {1} looks fishy"
+#~ msgstr "this {1} looks fishy"
+
+#~ msgid "free {1} and {0} {1} {2}"
+#~ msgstr "free {1} and {0} {1} {2}"
+
+#~ msgid "what is this '{1}' nonsense?"
+#~ msgstr "what is this '{1}' nonsense?"
+
+#~ msgid "a {{0} b }} c"
+#~ msgstr "a {{0} b }} c"
+
+#~ msgid "expected {1:headlinese}"
+#~ msgstr "expected {1:headlinese}"
+
+#~ msgid "expected {1:singular}"
+#~ msgstr "expected {1:singular}"
+
+#~ msgid "here"
+#~ msgstr "there 👈"
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "you opened Pandora's Box here"
+
+#~ msgid "React/JSX is not yet implemented"
+#~ msgstr "if you see this message, I fucked up"
+
+#~ msgid "classes cannot be named 'await' in async function"
+#~ msgstr ""
+#~ "pro-tip: never name anything a keyword. it'll save you a lot of trouble"
+
+#, fuzzy
+#~ msgid "TypeScript static blocks are not supported in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "{0} is not allowed in JavaScript"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#~ msgid "TypeScript interfaces cannot be named 'await' in async function"
+#~ msgstr "I await your swift demise"
+
+#, fuzzy
+#~ msgid "TypeScript call signatures are only allowed in classes"
+#~ msgstr "TypeScript's 'interface' feature is not allowed in JavaScript code"
+
+#, fuzzy
+#~ msgid "write a name to declare a class method"
+#~ msgstr "missing name of class"
+
+#~ msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
+#~ msgstr ""
+#~ "TypeScript's 'enum' feature is not yet implemented by quick-ligmaballs-js"

@@ -18,6 +18,8 @@ add_executable(
   quick-lint-js/parse-support.h
   quick-lint-js/spy-visitor.h
   test-lex.cpp
+  test-translation-table-generated.cpp
+  test-translation.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(

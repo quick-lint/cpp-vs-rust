@@ -1,0 +1,1461 @@
+# quick-lint-js finds bugs in JavaScript programs.
+# Copyright (C) 2020  Matthew "strager" Glazar
+#
+# This file is part of quick-lint-js.
+#
+# quick-lint-js is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# quick-lint-js is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: strager.nds@gmail.com\n"
+"PO-Revision-Date: 2021-11-18 03:48+0100\n"
+"Last-Translator: Nico Sonack <nsonack@outlook.com>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'do-while' loop"
+msgstr "do-while-Schleife"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'for' loop"
+msgstr "for-Schleife"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'if' statement"
+msgstr "if-Anweisung"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'while' loop"
+msgstr "while-Schleife"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "'with' statement"
+msgstr "with-Anweisung"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "labelled statement"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'do-while' loop"
+msgstr "eine do-While-Schleife"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'for' loop"
+msgstr "eine for-Schleife"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "an 'if' statement"
+msgstr "eine if-Anweisung"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'while' loop"
+msgstr "eine while-Schleife"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a 'with' statement"
+msgstr "eine with-Anweisung"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp
+msgid "a labelled statement"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "BigInt literal contains decimal point"
+msgstr "BigInt-Literal mit Dezimalpunkt"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "BigInt literal contains exponent"
+msgstr "BigInt-Literal mit Exponenten"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "character is not allowed in identifiers"
+msgstr "Ungültiges Zeichen in Bezeichner"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "escaped character is not allowed in identifiers"
+msgstr "Escape-Zeichen darf nicht nicht in Bezeichnern verwendet werden"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "code point out of range"
+msgstr "Codepunkt außerhalb des zulässigen Bereichs"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "code point in Unicode escape sequence must not be greater than U+10FFFF"
+msgstr ""
+"Codepunkt innerhalb der Unicode-Escapesequenz darf nicht größer als U+10FFFF "
+"sein"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "escaping '-' is not allowed in tag names; write '-' instead"
+msgstr ""
+"Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "expected hexadecimal digits in Unicode escape sequence"
+msgstr "Hexadezimale Ziffern in Unicode-Escapesequenz erwartet"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "invalid hex escape sequence: {0}"
+msgstr "Ungültige Hex-Escapesequenz: {0}"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'{0}' is not allowed for strings; use {1} instead"
+msgstr "'{0}' ist für Strings nicht erlaubt. '{1}' anstattdessen verwenden."
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "invalid UTF-8 sequence"
+msgstr "Ungültige UTF-8 Sequenz"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "keywords cannot contain escape sequences"
+msgstr "Schlüsselworte dürfen keine Escapesequenzen beinhalten"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "legacy octal literal may not be BigInt"
+msgstr "Veraltete Oktalliterale sind in BigInts nicht erlaubt"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "legacy octal literals may not contain underscores"
+msgstr "Veraltete Oktalliterale dürfen keine Unterstriche enthalten"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "number literal contains consecutive underscores"
+msgstr "Zahlenliteral darf keine aufeinanderfolgenden Unterstriche enthalten"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "number literal contains trailing underscore(s)"
+msgstr "Zahlenliteral endet mit Unterstrich(en)"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal literal may not have exponent"
+msgstr "Oktalliterale mit Exponenten sind nicht erlaubt"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal literal may not have decimal"
+msgstr "Oktalliterale mit Dezimalpunkt sind nicht erlaubt"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "integer cannot be represented and will be rounded to '{1}'"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "RegExp literal flags cannot contain Unicode escapes"
+msgstr "RegExp-Literale dürfen keine Unicode Escapes enthalten"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed block comment"
+msgstr "Blockkommentar ohne Ende"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed identifier escape sequence"
+msgstr "Unbeendete Bezeichner-Escapesequenz"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed regexp literal"
+msgstr "Unbeendetes RegExp-Literal"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed string literal"
+msgstr "Zeichenkette ohne Ende"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unclosed template"
+msgstr "Template ohne Ende"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '@'"
+msgstr "Unerwartetes '@'"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '\\' in identifier"
+msgstr "Unerwartetes '\\' in Bezeichner"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in number literal"
+msgstr "Unerwartete Zeichen in Zahlenliteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected control character"
+msgstr "Unerwartetes Steuerzeichen"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in binary literal"
+msgstr "Unerwartete Zeichen in binärem Zahlenliteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in octal literal"
+msgstr "Unerwartete Zeichen in oktalem Zahlenliteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected characters in hex literal"
+msgstr "Unerwartete Zeichen in hexadezimalem Zahlenliteral"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"
+msgstr ""
+"'>' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'>} oder "
+"&gt; schreiben."
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "'}' is not allowed directly in JSX text; write {{'}'} instead"
+msgstr ""
+"'}' darf nicht direkt in JSX-Text verwendet werden. Anstattdessen {{'}'} "
+"schreiben"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unopened block comment"
+msgstr "Blockkommentar ohne Beginn"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "binary number literal has no digits"
+msgstr "Binäres Zahlenliteral ohne Ziffern"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "hex number literal has no digits"
+msgstr "Hexadezimales Zahlenliteral ohne Ziffern"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "octal number literal has no digits"
+msgstr "Oktales Zahlenliteral ohne Ziffern"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "unexpected '#'"
+msgstr "Unerwartete '#'"
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid ""
+"unicode byte order mark (BOM) cannot appear before #! at beginning of script"
+msgstr ""
+"Die Unicode Bytereihenfolge-Markierung (BOM) darf nicht vor #! zu Beginn "
+"eines Skripts erscheinen"
+
+#~ msgid "variable assigned before its declaration"
+#~ msgstr "Zuweisung an Variable vor Deklaration"
+
+#~ msgid "variable declared here"
+#~ msgstr "Variablendeklaration ist hier"
+
+#, fuzzy
+#~ msgid "abstract fields cannot have default values"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "field marked abstract here"
+#~ msgstr "Variablendeklaration ist hier"
+
+#, fuzzy
+#~ msgid "abstract methods cannot be marked 'async'"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "abstract methods cannot be marked as a generator"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "abstract properties are not allowed in interfaces"
+#~ msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#, fuzzy
+#~ msgid "abstract properties are only allowed in abstract classes"
+#~ msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#, fuzzy
+#~ msgid "class is not marked abstract"
+#~ msgstr "Variablendeklaration ist hier"
+
+#, fuzzy
+#~ msgid "abstract methods cannot contain a body"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#~ msgid "missing '<>' and '</>' to enclose multiple children"
+#~ msgstr "'<>' und '</>' fehlt, um mehrere Children einzuschließen"
+
+#~ msgid "children end here"
+#~ msgstr "Children enden hier"
+
+#, fuzzy
+#~ msgid "missing parentheses around parameter"
+#~ msgstr "Klammern fehlen um den Operanden von '{0}'"
+
+#, fuzzy
+#~ msgid "TypeScript type annotation requires parentheses"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#~ msgid "'=' changes variables; to compare, use '===' instead"
+#~ msgstr "'=' verändert Variable. Für Vergleich '===' anstattdessen verwenden"
+
+#~ msgid "assignment to const global variable"
+#~ msgstr "Zuweisung an globale konstante Variable"
+
+#~ msgid "assignment to const variable"
+#~ msgstr "Zuweisung an konstante Variable"
+
+#~ msgid "const variable declared here"
+#~ msgstr "Konstante Variable wurde hier deklariert"
+
+#~ msgid "assignment to imported variable"
+#~ msgstr "Zuweisung an importierte Variable"
+
+#~ msgid "imported variable declared here"
+#~ msgstr "Importierte Variable wurde hier deklariert"
+
+#~ msgid "assignment to const variable before its declaration"
+#~ msgstr "Zuweisung an konstante Variable vor Deklaration"
+
+#~ msgid "assignment to undeclared variable"
+#~ msgstr "Zuweisung an nicht deklarierte Variable"
+
+#~ msgid "'await' is only allowed in async functions"
+#~ msgstr ""
+#~ "'await' darf nur in mit 'asysc' markierten Funktionen verwendet werden"
+
+#~ msgid "'await' cannot be followed by an arrow function; use 'async' instead"
+#~ msgstr ""
+#~ "'await' kann nicht von einer Arrow-Funktion gefolgt werden. 'async' "
+#~ "anstattdessen verwenden."
+
+#~ msgid "'async static' is not allowed; write 'static async' instead"
+#~ msgstr ""
+#~ "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
+
+#, fuzzy
+#~ msgid "'async export' is not allowed; write 'export async' instead"
+#~ msgstr ""
+#~ "'async export' ist ungültig. 'export async' anstattdessen verwenden."
+
+#, fuzzy
+#~ msgid "'function async' is not allowed; write 'async function' instead"
+#~ msgstr ""
+#~ "'function async' ist ungültig. 'async function' anstattdessen verwenden."
+
+#~ msgid "C-style for loop is missing its third component"
+#~ msgstr "C-ähnliche for-Schleife fehlt drittes Argument"
+
+#~ msgid "cannot assign to loop variable in for of/in loop"
+#~ msgstr "Ungültige Zuweisung an Iterationsvariable der for-in/of-Schleife"
+
+#~ msgid "cannot access private identifier outside class"
+#~ msgstr "Zugriff auf privaten Bezeichner außerhalb der Klasse"
+
+#~ msgid "assigning to 'async' in a for-of loop requires parentheses"
+#~ msgstr ""
+#~ "Zuweisung an 'async' in einer for-of-Schleife erfordert Verwendung von "
+#~ "Klammern"
+
+#~ msgid "cannot declare 'await' inside async function"
+#~ msgstr "Kann 'await' nicht innerhalb einer async-Funktion deklarieren"
+
+#~ msgid "classes cannot be named 'let'"
+#~ msgstr "Klassen dürfen nicht mit 'let' benannt werden"
+
+#~ msgid "let statement cannot declare variables named 'let'"
+#~ msgstr "let darf keine Variablen namens 'let' deklarieren"
+
+#~ msgid "cannot declare variable named keyword '{0}'"
+#~ msgstr "Kann keine Variable namens 'let' exportieren"
+
+#~ msgid "cannot declare 'yield' inside generator function"
+#~ msgstr "Kann 'yield' nicht innerhalb einer Generatorfunktion deklarieren"
+
+#~ msgid "cannot declare and export variable with 'export default'"
+#~ msgstr "Kann keine Variable namens 'let' deklarieren und exportieren"
+
+#~ msgid "cannot export variable named 'let'"
+#~ msgstr "Kann keine Variable namens 'let' exportieren"
+
+#~ msgid "cannot export variable named keyword '{0}'"
+#~ msgstr ""
+#~ "Ungültiger Export einer Variablen mit dem Namen des Schlüsselwortes '{0}'"
+
+#~ msgid "cannot import 'let'"
+#~ msgstr "'let' kann nicht importiert werden"
+
+#~ msgid "cannot import variable named keyword '{0}'"
+#~ msgstr "Kann keine Variable namens 'let' exportieren"
+
+#, fuzzy
+#~ msgid "missing quotes around module name '{0}'"
+#~ msgstr "Klammern fehlen um den Operanden von '{0}'"
+
+#~ msgid "cannot reference private variables without object; use 'this.'"
+#~ msgstr ""
+#~ "Private Felder des Objekts können nicht ohne 'this.' referenziert werden"
+
+#~ msgid "cannot update variable with '{0}' while declaring it"
+#~ msgstr ""
+#~ "An Variable '{0}' kann nicht während der Deklaration zugewiesen werden"
+
+#~ msgid "remove '{0}' to update an existing variable"
+#~ msgstr "Entferne '{0}' um die vorhandene Variable zu updaten"
+
+#~ msgid "unexpected 'catch' without 'try'"
+#~ msgstr "Unerwartetes 'catch' ohne zugehöriges 'try'"
+
+#~ msgid "missing body for {1:headlinese}"
+#~ msgstr "Körper für {1:headlinese} fehlt"
+
+#~ msgid "a class statement is not allowed as the body of {1:singular}"
+#~ msgstr "Ein Klassen-Statement darf nicht der Körper von {1:singular} sein"
+
+#~ msgid "commas are not allowed after spread parameter"
+#~ msgstr "Ungültiges Komma nach Spread-Parameter"
+
+#, fuzzy
+#~ msgid "leading commas are not allowed in generic parameter lists"
+#~ msgstr "Ungültiges Komma nach Spread-Parameter"
+
+#~ msgid "commas are not allowed between class methods"
+#~ msgstr "Kommata sind nicht erlaubt zwischen Methoden einer Klasse"
+
+#~ msgid "JSON syntax error"
+#~ msgstr "Syntaxfehler in JSON"
+
+#~ msgid "\"global-groups\" entries must be strings"
+#~ msgstr "Einträge in \"global-groups\" müssen Strings sein"
+
+#~ msgid "\"global-groups\" must be a boolean or an array"
+#~ msgstr "\"global-groups\" muss entweder ein Boolean oder ein Array sein"
+
+#~ msgid "\"globals\" descriptor must be a boolean or an object"
+#~ msgstr ""
+#~ "Der \"globals\"-Deskriptor muss entweder ein Boolean oder ein Array sein"
+
+#~ msgid "\"globals\" descriptor \"shadowable\" property must be a boolean"
+#~ msgstr ""
+#~ "Die \"shadowable\"-Eigenschaft des \"globals\"-Deskriptor muss ein "
+#~ "Boolean sein"
+
+#~ msgid "\"globals\" descriptor \"writable\" property must be a boolean"
+#~ msgstr ""
+#~ "Die \"writable\"-Eigenschaft des \"globals\"-Deskriptor muss ein Boolean "
+#~ "sein"
+
+#~ msgid "\"globals\" must be an object"
+#~ msgstr "\"globles\" muss ein Objekt sein"
+
+#~ msgid "depth limit exceeded"
+#~ msgstr "Maximale Verschachtelungstiefe überschritten"
+
+#, fuzzy
+#~ msgid "'.' is not allowed after generic arguments; write [\"{1}\"] instead"
+#~ msgstr "'{0}' ist für Strings nicht erlaubt. '{1}' anstattdessen verwenden."
+
+#~ msgid "missing property name between '.' and '.'"
+#~ msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
+
+#~ msgid "'else' has no corresponding 'if'"
+#~ msgstr "'else' ohne zugehöriges 'if'"
+
+#~ msgid "missing comparison; '{1}' does not extend to the right side of '{0}'"
+#~ msgstr ""
+#~ "Vergleich fehlt. '{1}' wird nicht auf der rechten Seite von '{0}' "
+#~ "angewandt"
+
+#~ msgid "'{0}' found here"
+#~ msgstr "'{0}' ist hier"
+
+#~ msgid "extra ',' is not allowed between function call arguments"
+#~ msgstr ""
+#~ "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind "
+#~ "ungültig"
+
+#, fuzzy
+#~ msgid "extra ',' is not allowed between enum members"
+#~ msgstr ""
+#~ "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind "
+#~ "ungültig"
+
+#~ msgid "expected 'as' between '{1}' and '{2}'"
+#~ msgstr "'as' zwischen '{1}' und '{2}' erwartet"
+
+#~ msgid "expected ',' between object literal entries"
+#~ msgstr "Komma fehlt zwischen Feldern des Objekt-Literals"
+
+#~ msgid "expected expression before newline"
+#~ msgstr "Ausdruck vor Zeilenumbruch erwartet"
+
+#~ msgid "expected expression after 'case'"
+#~ msgstr "Ausdruck nach 'case' erwartet"
+
+#~ msgid "expected expression before semicolon"
+#~ msgstr "Ausdruck vor Semikolon erwartet"
+
+#~ msgid "expected 'from \"name_of_module.mjs\"'"
+#~ msgstr "'from \"name_of_module.mjs\"' erwartet"
+
+#~ msgid "expected 'from' before module specifier"
+#~ msgstr "'from' vor Modulspezifikation erwartet"
+
+#~ msgid "expected '{{'"
+#~ msgstr "'{{' erwartet"
+
+#~ msgid "expected ')' to close function call"
+#~ msgstr "')' für Funktionsaufruf fehlt"
+
+#~ msgid "function call started here"
+#~ msgstr "Funktionsaufruf beginnt hier"
+
+#~ msgid "do-while loop needs parentheses around condition"
+#~ msgstr "Klammern um Bedingung der do-while-Schleife fehlen"
+
+#~ msgid "do-while loop is missing '{1}' around condition"
+#~ msgstr "'{1}' fehlt um Bedingung der do-while-Schleife"
+
+#~ msgid "if statement needs parentheses around condition"
+#~ msgstr "Klammern fehlen um Bedingung der if-Anweisung"
+
+#~ msgid "if statement is missing '{1}' around condition"
+#~ msgstr "'{1}' fehlt um Bedingung der if-Anweisung"
+
+#~ msgid "switch statement needs parentheses around condition"
+#~ msgstr "Klammern fehlen um Bedingung der switch-Anweisung"
+
+#~ msgid "switch statement is missing '{1}' around condition"
+#~ msgstr "'{1}' fehlt um Bedingung der switch-Anweisung"
+
+#~ msgid "while loop needs parentheses around condition"
+#~ msgstr "Klammern fehlen um Bedingung der while-Schleife"
+
+#~ msgid "while loop is missing '{1}' around condition"
+#~ msgstr "'{1}' fehlt um Bedingung der while-Schleife"
+
+#~ msgid "with statement needs parentheses around expression"
+#~ msgstr "Klammern fehlen um Ausdruck der with-Anweisung"
+
+#~ msgid "with statement is missing '{1}' around expression"
+#~ msgstr "'{1}' fehlt um Ausdruck der with-Anweisung"
+
+#~ msgid "expected variable name for 'catch'"
+#~ msgstr "Variablenname für 'catch' fehlt"
+
+#~ msgid "expected variable name for 'import'-'as'"
+#~ msgstr "Variablenname für 'import'-'as' fehlt"
+
+#~ msgid "exporting requires 'default'"
+#~ msgstr "Exportieren erfordert 'default'"
+
+#~ msgid "exporting requires '{{' and '}'"
+#~ msgstr "Exportieren erfordert '{{' und '}'"
+
+#~ msgid "forwarding exports are only allowed in export-from"
+#~ msgstr "Forwarding-Exporte sind nur in export-from zulässig"
+
+#~ msgid "unexpected 'finally' without 'try'"
+#~ msgstr "'finally' ohne zugehöriges 'try'"
+
+#~ msgid "a function statement is not allowed as the body of {1:singular}"
+#~ msgstr "Ein Funktionsstatement ist ungültig als Körper von {1:singular}"
+
+#~ msgid "generator function '*' belongs after keyword function"
+#~ msgstr ""
+#~ "'*'-Zeichen für Generatorfunktionen wird nach dem function-Schlüsselwort "
+#~ "erwartet"
+
+#~ msgid "generator function '*' belongs before function name"
+#~ msgstr ""
+#~ "'*'-Zeichen für Generatorfunktionen wird vor Funktionsnamen erwartet"
+
+#, fuzzy
+#~ msgid "only one comma is allowed between or after generic parameters"
+#~ msgstr "Ungültiges Komma nach Spread-Parameter"
+
+#~ msgid "'in' disallowed in C-style for loop initializer"
+#~ msgstr ""
+#~ "Ungültiges 'in' innerhalb Initialisierung der C-ähnlichen for-Schleife"
+
+#~ msgid "indexing requires an expression"
+#~ msgstr "Indizierung erfordert einen Ausdruck"
+
+#~ msgid "invalid expression left of assignment"
+#~ msgstr "Ungültiger Ausdruck linkerseits der Zuweisung"
+
+#~ msgid "invalid lone literal in object literal"
+#~ msgstr "Vereinzeltes Literal in Objekt-Literal"
+
+#~ msgid "invalid function parameter"
+#~ msgstr "Ungültiger Funktionsparameter"
+
+#~ msgid ""
+#~ "'.' operator needs a key name; use + to concatenate strings; use [] to "
+#~ "access with a dynamic key"
+#~ msgstr ""
+#~ "Der '.'-Operator erfordert einen Schlüsselnamen; + verwenden, um Strings "
+#~ "zu verketten; [] verwenden, um auf dynamische Schlüssel zuzugreifen"
+
+#~ msgid "attribute has wrong capitalization; write '{1}' instead"
+#~ msgstr ""
+#~ "Attribut mit falscher Groß- und Kleinschreibung; '{1}' anstattdessen "
+#~ "schreiben"
+
+#~ msgid "misspelled React attribute; write '{1}' instead"
+#~ msgstr ""
+#~ "React-Attribut ist falsch geschrieben; '{1}' anstattdessen schreiben"
+
+#~ msgid "event attributes must be camelCase: '{1}'"
+#~ msgstr "Event-Attribute müssen im camelCase geschrieben werden: '{1}'"
+
+#, fuzzy
+#~ msgid "React/JSX is not allowed in vanilla JavaScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "React/JSX is not allowed in TypeScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#~ msgid "label named 'await' not allowed in async function"
+#~ msgstr "Labels namens 'await' sind innerhalb async-Functionen verboten"
+
+#~ msgid "{0} with no bindings"
+#~ msgstr "{0} ohne Binding"
+
+#~ msgid "a lexical declaration is not allowed as the body of {1:singular}"
+#~ msgstr ""
+#~ "Eine lexikalische Deklaration ist nicht als Körper von {1:singular} "
+#~ "erlaubt"
+
+#~ msgid "functions/methods should not have '=>'"
+#~ msgstr "Funktionen/Methoden sollten kein '=>' haben"
+
+#~ msgid "methods should not use the 'function' keyword"
+#~ msgstr "Methoden sollten nicht mehr das 'function'-Schlüsselwort verwenden"
+
+#~ msgid "mismatched JSX tags; expected '</{1}>'"
+#~ msgstr "Unpassender JSX-Tag; '</{1}>' wurde anstattdessen erwartet"
+
+#~ msgid "opening '<{1}>' tag here"
+#~ msgstr "Öffnender '<{1}>' Tag ist hier"
+
+#~ msgid "missing end of array; expected ']'"
+#~ msgstr "Ende des Arrays fehlt. ']' erwartet"
+
+#~ msgid "array started here"
+#~ msgstr "Array beginnt hier"
+
+#~ msgid "missing arrow operator for arrow function"
+#~ msgstr "Arrow-Operator der Arrow-Funktion fehlt"
+
+#~ msgid "missing parameters for arrow function"
+#~ msgstr "Parameter fehlen für Arrow-Funktion"
+
+#~ msgid "missing body for catch clause"
+#~ msgstr "Körper des 'catch'-Blocks fehlt"
+
+#~ msgid "missing body for class"
+#~ msgstr "Klassenkörper fehlt"
+
+#~ msgid "missing body for do-while loop"
+#~ msgstr "Körper der do-while-Schleife fehlt"
+
+#~ msgid "missing body for finally clause"
+#~ msgstr "Körper des 'finally'-Blocks fehlt"
+
+#~ msgid "missing body for 'for' loop"
+#~ msgstr "Körper der for-Schleife fehlt"
+
+#~ msgid "missing body for 'if' statement"
+#~ msgstr "Körper der if-Anweisung fehlt"
+
+#~ msgid "missing body for 'switch' statement"
+#~ msgstr "Körper des switch-Statements fehlt"
+
+#~ msgid "missing body for try statement"
+#~ msgstr "Körper des try-Statements fehlt"
+
+#, fuzzy
+#~ msgid "missing body for TypeScript interface"
+#~ msgstr "Körper der Funktion fehlt"
+
+#~ msgid "missing body for while loop"
+#~ msgstr "Körper der while-Schleife fehlt"
+
+#~ msgid "missing catch or finally clause for try statement"
+#~ msgstr "catch- oder finally-Klausel des try-Statements fehlt"
+
+#~ msgid "try statement starts here"
+#~ msgstr "try-Statement beginnt hier"
+
+#~ msgid "missing catch variable name between parentheses"
+#~ msgstr "catch-Variablenname fehlt zwischen Klammern"
+
+#~ msgid "missing comma between object literal entries"
+#~ msgstr "Komma fehlt zwischen Feldern des Objekt-Literals"
+
+#, fuzzy
+#~ msgid "missing comma between generic parameters"
+#~ msgstr "Komma fehlt zwischen Feldern des Objekt-Literals"
+
+#~ msgid "missing ',' between variable declarations"
+#~ msgstr "Komma fehlt zwischen Variablendeklarationen"
+
+#~ msgid "missing ':' in conditional expression"
+#~ msgstr "':' des ternären Operators fehlt"
+
+#~ msgid "'?' creates a conditional expression"
+#~ msgstr "'?' erzeugt einen Ausdruck mit ternärem Operator"
+
+#~ msgid "missing condition for if statement"
+#~ msgstr "Bedingung der if-Anweisung fehlt"
+
+#~ msgid "missing condition for while statement"
+#~ msgstr "Bedingung der while-Schleife fehlt"
+
+#~ msgid "missing condition for switch statement"
+#~ msgstr "Bedingung des switch-Statements fehlt"
+
+#~ msgid "missing '...' in JSX attribute spread"
+#~ msgstr "'...' fehlt in JSX-Attribut-Spread"
+
+#~ msgid "missing '=' after variable"
+#~ msgstr "'=' fehlt nach Variablenname"
+
+#~ msgid "missing expression between parentheses"
+#~ msgstr "Ausdruck fehlt zwischen Klammern"
+
+#~ msgid "missing header and body for 'for' loop"
+#~ msgstr "Kopf und Körper der for-Schleife fehlen"
+
+#~ msgid "for loop needs an iterable, or condition and update clauses"
+#~ msgstr ""
+#~ "for-Schleife erfordert entweder ein Iterable oder eine Bedingung und "
+#~ "Updateanweisung"
+
+#~ msgid "use 'while' instead to loop until a condition is false"
+#~ msgstr "'while' benutzen, um zu iterieren, bis die Bedingung false wird"
+
+#~ msgid "missing function parameter list"
+#~ msgstr "Parameterliste der Funktion fehlt"
+
+#~ msgid "missing body for function"
+#~ msgstr "Körper der Funktion fehlt"
+
+#~ msgid "missing for loop header"
+#~ msgstr "Kopf der Schleife fehlt"
+
+#~ msgid "missing initializer in const declaration"
+#~ msgstr "Initialisierung der const-Deklaration fehlt"
+
+#~ msgid "unexpected expression; missing key for object entry"
+#~ msgstr "Ausdruck vor Zeilenumbruch erwartet"
+
+#, fuzzy
+#~ msgid "missing name for class method"
+#~ msgstr "Klassenname fehlt"
+
+#~ msgid "missing name in function statement"
+#~ msgstr "Name fehlt innerhalb function-Statement"
+
+#~ msgid "missing name of class"
+#~ msgstr "Klassenname fehlt"
+
+#~ msgid "missing name of exported class"
+#~ msgstr "Name der exportierten Klasse fehlt"
+
+#~ msgid "missing name of exported function"
+#~ msgstr "Name der exportierten Funktion fehlt"
+
+#~ msgid "missing name or parentheses for function"
+#~ msgstr "Name oder Klammern fehlen für die Funktion"
+
+#~ msgid "missing operand for operator"
+#~ msgstr "Operand des Operators fehlt"
+
+#, fuzzy
+#~ msgid "missing ',', ';', or newline between object type entries"
+#~ msgstr "Komma fehlt zwischen Feldern des Objekt-Literals"
+
+#~ msgid "redundant delete statement on variable"
+#~ msgstr "Unnötiges delete-Statement für Variable"
+
+#, fuzzy
+#~ msgid "missing 'if' after 'else'"
+#~ msgstr "'if' fehlt nach 'else'"
+
+#~ msgid "missing operator between expression and arrow function"
+#~ msgstr "Operator fehlt zwischen Ausdruck und Arrow-Funktion"
+
+#~ msgid "missing parentheses around operand of '{0}'"
+#~ msgstr "Klammern fehlen um den Operanden von '{0}'"
+
+#~ msgid "'{0}' operator cannot be used before '**' without parentheses"
+#~ msgstr "Der Operator '{0}' kann nicht vor '**' ohne Klammern benutzt werden"
+
+#~ msgid "missing parentheses around self-invoked function"
+#~ msgstr "Klammern um selbstaufgerufene Funktion fehlen"
+
+#~ msgid "function starts here"
+#~ msgstr "Funktionsaufruf beginnt hier"
+
+#~ msgid "missing parentheses around left-hand side of '**'"
+#~ msgstr "Klammern um linke Seite von '**' fehlen"
+
+#~ msgid "'**' operator cannot be used after unary '{1}' without parentheses"
+#~ msgstr ""
+#~ "Ohne Klammern kann der Operator '**' nicht nach unärem '{1}' verwendet "
+#~ "werden"
+
+#~ msgid "missing property name after '.' operator"
+#~ msgstr "Eigenschaftsname fehlt nach dem '.'-Operator"
+
+#, fuzzy
+#~ msgid "missing semicolon after abstract method"
+#~ msgstr "Semikolon fehlt nach Anweisung"
+
+#~ msgid "missing semicolon after statement"
+#~ msgstr "Semikolon fehlt nach Anweisung"
+
+#, fuzzy
+#~ msgid "missing semicolon after field"
+#~ msgstr "Semikolon fehlt nach Anweisung"
+
+#, fuzzy
+#~ msgid "missing semicolon after index signature"
+#~ msgstr "Semikolon fehlt nach Anweisung"
+
+#, fuzzy
+#~ msgid "missing semicolon after interface method"
+#~ msgstr "Semikolon fehlt nach Anweisung"
+
+#~ msgid "missing semicolon between condition and update parts of for loop"
+#~ msgstr ""
+#~ "Semikolon fehlt zwischen Bedingung und Update-Anweisung der for-Schleife"
+
+#~ msgid "missing semicolon between init and condition parts of for loop"
+#~ msgstr ""
+#~ "Semikolon fehlt zwischen Initialisierung und Bedingung der for-Schleife"
+
+#~ msgid ""
+#~ "incomplete export; expected 'export default ...' or 'export {{name}' or "
+#~ "'export * from ...' or 'export class' or 'export function' or 'export let'"
+#~ msgstr ""
+#~ "Unvollständiger Export. Möglichkeiten sind: 'export default ...' oder "
+#~ "'export {{name}' oder 'export * from ...' oder 'export class' oder "
+#~ "'export function' oder 'export let'"
+
+#, fuzzy
+#~ msgid "missing type between '{1}' and '{0}'"
+#~ msgstr "Eigenschaftsname fehlt zwischen '.' und '.'"
+
+#, fuzzy
+#~ msgid "missing TypeScript type"
+#~ msgstr "Körper der Funktion fehlt"
+
+#~ msgid "missing value for object property"
+#~ msgstr "Wert der Objekteigenschaft fehlt"
+
+#~ msgid "missing variable name"
+#~ msgstr "Variablenname fehlt"
+
+#~ msgid "missing 'while (condition)' for do-while statement"
+#~ msgstr "'while (condition)' der do-while-Schleife fehlt"
+
+#~ msgid "do-while statement starts here"
+#~ msgstr "do-while-Schleife beginnt hier"
+
+#~ msgid ""
+#~ "newline is not allowed between 'async' and arrow function parameter list"
+#~ msgstr "Zeilenumbruch ist zwischen 'async' und Arrow-Funktion verboten"
+
+#~ msgid "arrow is here"
+#~ msgstr "Arrow ist hier"
+
+#, fuzzy
+#~ msgid "newline is not allowed between 'async' and 'function'"
+#~ msgstr "Zeilenumbruch ist zwischen 'async' und Arrow-Funktion verboten"
+
+#, fuzzy
+#~ msgid "'function' is here"
+#~ msgstr "Funktionsaufruf beginnt hier"
+
+#, fuzzy
+#~ msgid "newline is not allowed after 'abstract'"
+#~ msgstr ""
+#~ "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind "
+#~ "ungültig"
+
+#, fuzzy
+#~ msgid "newline is not allowed between field name and '!'"
+#~ msgstr ""
+#~ "Mehrere Kommata zwischen den Argumenten eines Funktionsaufruf sind "
+#~ "ungültig"
+
+#, fuzzy
+#~ msgid "field declared here"
+#~ msgstr "Variablendeklaration ist hier"
+
+#, fuzzy
+#~ msgid "use ':' instead of '=' in object literals"
+#~ msgstr "Vereinzeltes Literal in Objekt-Literal"
+
+#, fuzzy
+#~ msgid "TypeScript optional parameter requires parentheses"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript optional parameter with type annotation requires parentheses"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "initializer starts here"
+#~ msgstr "Funktionsaufruf beginnt hier"
+
+#~ msgid "private properties are not allowed in object literals"
+#~ msgstr "Innerhalb von Objektliteralen sind private Eigenschaften verboten"
+
+#, fuzzy
+#~ msgid "'readonly static' is not allowed; write 'static readonly' instead"
+#~ msgstr ""
+#~ "'async static' ist ungültig. 'static asysc' anstattdessen verwenden."
+
+#~ msgid "redeclaration of global variable"
+#~ msgstr "Globale Variable wird erneut deklariert"
+
+#~ msgid "redeclaration of variable: {0}"
+#~ msgstr "Variable '{0}' wird erneut deklariert"
+
+#~ msgid "variable already declared here"
+#~ msgstr "Variable wurde zuvor hier deklariert"
+
+#~ msgid "return statement returns nothing (undefined)"
+#~ msgstr "Return-Statement gibt nichts (undefined) zurück"
+
+#~ msgid ""
+#~ "unexpected statement before first switch case, expected 'case' or "
+#~ "'default'"
+#~ msgstr ""
+#~ "Unerwartetes Statment vor dem ersten Switch-Case. Entweder 'case' oder "
+#~ "'default' erwartet."
+
+#~ msgid "stray comma in let statement"
+#~ msgstr "Vereinzeltes Komma in let-Statement"
+
+#~ msgid "stray comma in function parameter"
+#~ msgstr "Vereinzeltes Komme in Funktionsparameter"
+
+#, fuzzy
+#~ msgid "first parameter starts here"
+#~ msgstr "try-Statement beginnt hier"
+
+#, fuzzy
+#~ msgid "'this' parameters are not allowed in arrow functions"
+#~ msgstr "Parameter fehlen für Arrow-Funktion"
+
+#, fuzzy
+#~ msgid "'this' parameters are not allowed in JavaScript"
+#~ msgstr "Parameter fehlen für Arrow-Funktion"
+
+#, fuzzy
+#~ msgid "'this' parameter not allowed when destructuring"
+#~ msgstr "Parameter fehlen für Arrow-Funktion"
+
+#, fuzzy
+#~ msgid "{0} classes are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript <Type> type assertions are not allowed in JSX mode"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "'as const' located here"
+#~ msgstr "Array beginnt hier"
+
+#, fuzzy
+#~ msgid "TypeScript 'as' type assertions are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "use ':' instead of 'as' to type a function parameter"
+#~ msgstr "Vereinzeltes Literal in Objekt-Literal"
+
+#, fuzzy
+#~ msgid "assignment-asserted fields are not supported in interfaces"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript assignment-asserted fields are not supported in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "assignment-assertion fields cannot have default values"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "assignment-asserted field must have a type annotation"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "'{0}' is not allowed on methods"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript 'implements' is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "cannot delete variables in TypeScript"
+#~ msgstr "Kann keine Variable namens 'let' exportieren"
+
+#, fuzzy
+#~ msgid "TypeScript's 'enum' feature is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript import aliases are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "index signature must be a field, not a method"
+#~ msgstr "Indizierung erfordert einen Ausdruck"
+
+#, fuzzy
+#~ msgid "index signatures require a value type"
+#~ msgstr "Indizierung erfordert einen Ausdruck"
+
+#, fuzzy
+#~ msgid "overloaded function '{0}' declared here"
+#~ msgstr "Funktion wird hier deklariert"
+
+#, fuzzy
+#~ msgid "expected at least one parameter in generic parameter list"
+#~ msgstr "Unerwartetes Literal in Parameterliste. Parametername erwartet"
+
+#, fuzzy
+#~ msgid "TypeScript generics are not allowed in JavaScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript type exports are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "interfaces cannot contain static blocks"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript's 'interface' feature is not allowed in JavaScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "missing name for element in named tuple type"
+#~ msgstr "Klassenname fehlt"
+
+#, fuzzy
+#~ msgid "'?' goes here"
+#~ msgstr "'{0}' ist hier"
+
+#, fuzzy
+#~ msgid "'...' goes here"
+#~ msgstr "'{0}' ist hier"
+
+#, fuzzy
+#~ msgid "TypeScript namespaces are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript non-null assertions are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript optional parameters are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript optional properties are not allowed in JavaScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "prior spread element is here"
+#~ msgstr "try-Statement beginnt hier"
+
+#, fuzzy
+#~ msgid "'private' is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "'protected' is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "'public' is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript's 'readonly' feature is not allowed in JavaScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "expected '?' to mark tuple element as optional"
+#~ msgstr "')' für Funktionsaufruf fehlt"
+
+#, fuzzy
+#~ msgid "unexpected ':' in expression; did you mean 'as'?"
+#~ msgstr "Ausdruck nach 'case' erwartet"
+
+#, fuzzy
+#~ msgid "TypeScript type annotations are not allowed in JavaScript code"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript types are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript type imports are not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "spread tuple elements cannot be optional"
+#~ msgstr "Klassen dürfen nicht mit 'let' benannt werden"
+
+#, fuzzy
+#~ msgid "spread starts here"
+#~ msgstr "Array beginnt hier"
+
+#~ msgid ""
+#~ "const fields within classes are only allowed in TypeScript, not JavaScript"
+#~ msgstr ""
+#~ "Innerhalb Klassen sind const-Felder nur in TypeScript gültig, nicht "
+#~ "jedoch in JavaScript"
+
+#~ msgid "unclosed class; expected '}' by end of file"
+#~ msgstr "Klasse ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
+
+#~ msgid "unclosed code block; expected '}' by end of file"
+#~ msgstr ""
+#~ "Code-Block ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
+
+#, fuzzy
+#~ msgid "unclosed interface; expected '}' by end of file"
+#~ msgstr "Klasse ohne Ende. '}' bis spätestens zum Ende der Datei erwartet"
+
+#~ msgid "unclosed object literal; expected '}'"
+#~ msgstr "Unbeendetes Objekt-Literal. '}' erwartet"
+
+#~ msgid "object literal started here"
+#~ msgstr "Objektliteral beginnt hier"
+
+#~ msgid "unexpected '{0}'"
+#~ msgstr "Unerwartetes '{0}'"
+
+#~ msgid "expected parameter for arrow function, but got an expression instead"
+#~ msgstr "Unerwarter Ausdruck anstelle des Parameters der Arrow-Funktion"
+
+#~ msgid "expected parameter for arrow function, but got a literal instead"
+#~ msgstr "Unerwartetes Literal anstelle des Parameters der Arrow-Funktion"
+
+#~ msgid "unexpected 'case' outside switch statement"
+#~ msgstr "Unerwartetes 'case' außerhalb des switch-Statements"
+
+#~ msgid "unexpected 'default' outside switch statement"
+#~ msgstr "Unerwartetes 'default' außerhalb des switch-Statements"
+
+#~ msgid "unexpected literal in parameter list; expected parameter name"
+#~ msgstr "Unerwartetes Literal in Parameterliste. Parametername erwartet"
+
+#, fuzzy
+#~ msgid "unexpected '?'"
+#~ msgstr "Unerwartetes '@'"
+
+#, fuzzy
+#~ msgid "unexpected '?' when destructuring"
+#~ msgstr "Unerwartetes '\\' in Bezeichner"
+
+#~ msgid "C-style for loops have only three semicolon-separated components"
+#~ msgstr ""
+#~ "C-ähnliche for-Schleifen haben nur drei durch Semikolon getrennte "
+#~ "Komponenten"
+
+#~ msgid "for-in loop expression cannot have semicolons"
+#~ msgstr "Ausdruck der for-in-Schleife darf keine Semikolon beinhalten"
+
+#~ msgid "for-of loop expression cannot have semicolons"
+#~ msgstr "Ausdruck der for-in-Schleife darf keine Semikolon beinhalten"
+
+#~ msgid "new variable shadows existing variable"
+#~ msgstr "Neue Variable macht bereits existierende unsichtbar"
+
+#~ msgid "existing variable declared here"
+#~ msgstr "Bereits existierende Variable wurde hier deklariert"
+
+#, fuzzy
+#~ msgid "TypeScript non-null assertion is not allowed on parameters"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#~ msgid "unexpected identifier in expression; missing operator before"
+#~ msgstr "Unerwarteter Bezeichner in Ausdruck. Operator fehlt davor."
+
+#~ msgid "unexpected token"
+#~ msgstr "Unerwartetes Token"
+
+#~ msgid ""
+#~ "unexpected token in export; expected 'export default ...' or 'export "
+#~ "{{name}' or 'export * from ...' or 'export class' or 'export function' or "
+#~ "'export let'"
+#~ msgstr ""
+#~ "Unerwartetes Token in Export. Möglichkeiten sind: 'export default ...' "
+#~ "oder 'export {{name}' oder 'export * from ...' oder 'export class' oder "
+#~ "'export function' oder 'export let'"
+
+#~ msgid "unexpected token in variable declaration; expected variable name"
+#~ msgstr ""
+#~ "Unerwartetes Token innerhalb der Variablendeklaration. Variablenname "
+#~ "anstattdessen erwartet"
+
+#~ msgid "unmatched indexing bracket"
+#~ msgstr "Zugehörige Indizierungsklammer fehlt"
+
+#~ msgid "unmatched parenthesis"
+#~ msgstr "Zugehörige Klammer fehlt"
+
+#~ msgid "unmatched '}'"
+#~ msgstr "Zugehörige geschweifte Klammer fehlt"
+
+#, fuzzy
+#~ msgid "use of undeclared type: {0}"
+#~ msgstr "Variable {0} wird verwendet, ist jedoch nicht deklariert"
+
+#~ msgid "use of undeclared variable: {0}"
+#~ msgstr "Variable {0} wird verwendet, ist jedoch nicht deklariert"
+
+#~ msgid "variable used before declaration: {0}"
+#~ msgstr "Variable '{0}' wird ihrer Deklaration verwendet"
+
+#~ msgid "function called before declaration in block scope: {0}"
+#~ msgstr "Funktion '{0}' wird im Block-Scope vor ihrer Deklaration aufgerufen"
+
+#~ msgid "function declared here"
+#~ msgstr "Funktion wird hier deklariert"
+
+#, fuzzy
+#~ msgid "TypeScript interface fields cannot be initalized"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript interface methods cannot be marked 'async'"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript interface methods cannot be marked as a generator"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript interface methods cannot contain a body"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "interface properties cannot be marked public explicitly"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "interface properties are always public and cannot be private"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid ""
+#~ "TypeScript interface properties are always public and cannot be marked "
+#~ "protected"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript interface properties cannot be 'static'"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#~ msgid "break can only be used inside of a loop or switch"
+#~ msgstr ""
+#~ "'break' ist nur innerhalb von Schleifen und dem switch-Statement gültig"
+
+#~ msgid "continue can only be used inside of a loop"
+#~ msgstr "continue ist nur innerhalb von Schleifen gültig"
+
+#~ msgid "lower case letters compared with toUpperCase"
+#~ msgstr "Kleinbuchstaben werden mit toUpperCase verglichen"
+
+#~ msgid "upper case letters compared with toLowerCase"
+#~ msgstr "Großbuchstaben werden mit toLowerCase verglichen"
+
+#~ msgid "something happened"
+#~ msgstr "etwas geschah"
+
+#~ msgid "see here"
+#~ msgstr "siehe hier"
+
+#~ msgid "this {0} looks fishy"
+#~ msgstr "dieses {0} sieht merkwürdig aus"
+
+#~ msgid "this {1} looks fishy"
+#~ msgstr "dieses {1} sieht merkwürdig aus"
+
+#~ msgid "free {1} and {0} {1} {2}"
+#~ msgstr "freies {1} und {0} {1} {2}"
+
+#~ msgid "what is this '{1}' nonsense?"
+#~ msgstr "Was soll dieser '{1}' Humbug?"
+
+#~ msgid "a {{0} b }} c"
+#~ msgstr "a {{0} b }} c"
+
+#~ msgid "expected {1:headlinese}"
+#~ msgstr "{1:headlinese} erwartet"
+
+#~ msgid "expected {1:singular}"
+#~ msgstr "{1:singular} erwartet"
+
+#~ msgid "here"
+#~ msgstr "hier"
+
+#, fuzzy
+#~ msgid "already spread here"
+#~ msgstr "Array beginnt hier"
+
+#~ msgid "React/JSX is not yet implemented"
+#~ msgstr "React/JSX ist noch nicht implementiert"
+
+#, fuzzy
+#~ msgid "classes cannot be named 'await' in async function"
+#~ msgstr "Kann 'await' nicht innerhalb einer async-Funktion deklarieren"
+
+#, fuzzy
+#~ msgid "TypeScript static blocks are not supported in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "{0} is not allowed in JavaScript"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "TypeScript interfaces cannot be named 'await' in async function"
+#~ msgstr "Kann 'await' nicht innerhalb einer async-Funktion deklarieren"
+
+#, fuzzy
+#~ msgid "TypeScript call signatures are only allowed in classes"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "write a name to declare a class method"
+#~ msgstr "Klassenname fehlt"
+
+#~ msgid "TypeScript's 'enum' feature is not yet implemented by quick-lint-js"
+#~ msgstr ""
+#~ "Das 'enum' Feature aus TypeScript ist noch nicht in quick-lint-js "
+#~ "implementiert"
+
+#, fuzzy
+#~ msgid "number literal will lose precision"
+#~ msgstr "Hexadezimales Zahlenliteral ohne Ziffern"
+
+#~ msgid "invalid binding in let statement"
+#~ msgstr "Ungültiges Binding in let-Statement"
