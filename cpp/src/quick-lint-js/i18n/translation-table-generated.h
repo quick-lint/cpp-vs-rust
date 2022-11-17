@@ -19,8 +19,8 @@ namespace quick_lint_js {
 using namespace std::literals::string_view_literals;
 
 constexpr std::uint32_t translation_table_locale_count = 5;
-constexpr std::uint16_t translation_table_mapping_table_size = 53;
-constexpr std::size_t translation_table_string_table_size = 10199;
+constexpr std::uint16_t translation_table_mapping_table_size = 64;
+constexpr std::size_t translation_table_string_table_size = 10950;
 constexpr std::size_t translation_table_locale_table_size = 35;
 
 consteval std::uint16_t translation_table_const_look_up(
@@ -43,6 +43,7 @@ consteval std::uint16_t translation_table_const_look_up(
           "a 'while' loop"sv,
           "a 'with' statement"sv,
           "a labelled statement"sv,
+          "a {{0} b }} c"sv,
           "an 'if' statement"sv,
           "binary number literal has no digits"sv,
           "character is not allowed in identifiers"sv,
@@ -51,6 +52,9 @@ consteval std::uint16_t translation_table_const_look_up(
           "escaped character is not allowed in identifiers"sv,
           "escaping '-' is not allowed in tag names; write '-' instead"sv,
           "expected hexadecimal digits in Unicode escape sequence"sv,
+          "expected {1:headlinese}"sv,
+          "expected {1:singular}"sv,
+          "free {1} and {0} {1} {2}"sv,
           "hex number literal has no digits"sv,
           "integer cannot be represented and will be rounded to '{1}'"sv,
           "invalid UTF-8 sequence"sv,
@@ -64,6 +68,12 @@ consteval std::uint16_t translation_table_const_look_up(
           "octal literal may not have decimal"sv,
           "octal literal may not have exponent"sv,
           "octal number literal has no digits"sv,
+          "second message here"sv,
+          "see here"sv,
+          "something happened"sv,
+          "test for multiple messages"sv,
+          "this {0} looks fishy"sv,
+          "this {1} looks fishy"sv,
           "unclosed block comment"sv,
           "unclosed identifier escape sequence"sv,
           "unclosed regexp literal"sv,
@@ -79,6 +89,7 @@ consteval std::uint16_t translation_table_const_look_up(
           "unexpected control character"sv,
           "unicode byte order mark (BOM) cannot appear before #! at beginning of script"sv,
           "unopened block comment"sv,
+          "what is this '{1}' nonsense?"sv,
   };
   // clang-format on
 

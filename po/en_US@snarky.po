@@ -227,6 +227,50 @@ msgid ""
 "unicode byte order mark (BOM) cannot appear before #! at beginning of script"
 msgstr "your editor BOMd 💣 your s#!t 💩"
 
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "test for multiple messages"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "second message here"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "something happened"
+msgstr "I wish you never happened"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "see here"
+msgstr "see here"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "this {0} looks fishy"
+msgstr "this {0} looks fishy"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "this {1} looks fishy"
+msgstr "this {1} looks fishy"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "free {1} and {0} {1} {2}"
+msgstr "free {1} and {0} {1} {2}"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "what is this '{1}' nonsense?"
+msgstr "what is this '{1}' nonsense?"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "a {{0} b }} c"
+msgstr "a {{0} b }} c"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "expected {1:headlinese}"
+msgstr "expected {1:headlinese}"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "expected {1:singular}"
+msgstr "expected {1:singular}"
+
 #
 #~ msgid "variable assigned before its declaration"
 #~ msgstr "why are you assignin' before you be makin'? 🤏"
@@ -1255,33 +1299,6 @@ msgstr "your editor BOMd 💣 your s#!t 💩"
 
 #~ msgid "upper case letters compared with toLowerCase"
 #~ msgstr "You sure you're getting what toLowerCase does?"
-
-#~ msgid "something happened"
-#~ msgstr "I wish you never happened"
-
-#~ msgid "see here"
-#~ msgstr "see here"
-
-#~ msgid "this {0} looks fishy"
-#~ msgstr "this {0} looks fishy"
-
-#~ msgid "this {1} looks fishy"
-#~ msgstr "this {1} looks fishy"
-
-#~ msgid "free {1} and {0} {1} {2}"
-#~ msgstr "free {1} and {0} {1} {2}"
-
-#~ msgid "what is this '{1}' nonsense?"
-#~ msgstr "what is this '{1}' nonsense?"
-
-#~ msgid "a {{0} b }} c"
-#~ msgstr "a {{0} b }} c"
-
-#~ msgid "expected {1:headlinese}"
-#~ msgstr "expected {1:headlinese}"
-
-#~ msgid "expected {1:singular}"
-#~ msgstr "expected {1:singular}"
 
 #~ msgid "here"
 #~ msgstr "there 👈"

@@ -241,6 +241,50 @@ msgstr ""
 "unicode byte order mark (BOM) não pode aparecer antes do #! no começo do "
 "script"
 
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "test for multiple messages"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "second message here"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "something happened"
+msgstr "algo aconteceu"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "see here"
+msgstr "veja aqui"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "this {0} looks fishy"
+msgstr "isso {0} parece suspeito"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "this {1} looks fishy"
+msgstr "isso {1} parece suspeito"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "free {1} and {0} {1} {2}"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "what is this '{1}' nonsense?"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "a {{0} b }} c"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "expected {1:headlinese}"
+msgstr "esperado {1:headlinese}"
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "expected {1:singular}"
+msgstr "esperado {1:singular}"
+
 #~ msgid "variable assigned before its declaration"
 #~ msgstr "variável atribuída antes de ser declarada"
 
@@ -1308,24 +1352,6 @@ msgstr ""
 #~ msgid ""
 #~ "using '{0}' against a regular expression literal always returns '{1}'"
 #~ msgstr "usar '{0}' com uma expressão regular sempre retorna '{1}'"
-
-#~ msgid "something happened"
-#~ msgstr "algo aconteceu"
-
-#~ msgid "see here"
-#~ msgstr "veja aqui"
-
-#~ msgid "this {0} looks fishy"
-#~ msgstr "isso {0} parece suspeito"
-
-#~ msgid "this {1} looks fishy"
-#~ msgstr "isso {1} parece suspeito"
-
-#~ msgid "expected {1:headlinese}"
-#~ msgstr "esperado {1:headlinese}"
-
-#~ msgid "expected {1:singular}"
-#~ msgstr "esperado {1:singular}"
 
 #~ msgid "here"
 #~ msgstr "aqui"

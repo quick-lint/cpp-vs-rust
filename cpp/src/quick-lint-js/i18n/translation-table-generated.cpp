@@ -11,7 +11,7 @@ namespace quick_lint_js {
 const translation_table translation_data = {
     .mapping_table = translation_table::absolute_mapping_table_from_relative({{
         {0, 0, 0, 0, 0, 0},            //
-        {1, 1969, 0, 5228, 0, 8416},   //
+        {1, 2177, 0, 5627, 0, 8936},   //
         {93, 63, 0, 70, 0, 70},        //
         {18, 13, 0, 16, 0, 16},        //
         {13, 16, 0, 11, 0, 11},        //
@@ -19,7 +19,7 @@ const translation_table translation_data = {
         {15, 14, 0, 13, 0, 13},        //
         {15, 38, 0, 19, 0, 17},        //
         {69, 48, 0, 46, 0, 50},        //
-        {83, 55, 3550, 62, 7174, 62},  //
+        {83, 55, 3949, 62, 7694, 62},  //
         {32, 32, 57, 34, 45, 38},      //
         {30, 33, 40, 30, 0, 33},       //
         {56, 38, 0, 64, 0, 52},        //
@@ -27,7 +27,8 @@ const translation_table translation_data = {
         {18, 18, 0, 14, 0, 13},        //
         {20, 16, 0, 16, 0, 15},        //
         {0, 0, 0, 23, 0, 19},          //
-        {20, 40, 0, 26, 0, 21},        //
+        {20, 40, 0, 0, 0, 21},         //
+        {14, 14, 0, 26, 0, 14},        //
         {18, 26, 63, 21, 44, 18},      //
         {36, 32, 52, 35, 42, 36},      //
         {34, 30, 47, 46, 0, 40},       //
@@ -35,7 +36,10 @@ const translation_table translation_data = {
         {46, 18, 26, 39, 18, 24},      //
         {64, 53, 0, 54, 0, 48},        //
         {74, 36, 54, 56, 48, 60},      //
-        {55, 81, 72, 73, 57, 55},      //
+        {55, 81, 0, 73, 0, 55},        //
+        {24, 24, 0, 24, 0, 24},        //
+        {22, 22, 0, 0, 0, 22},         //
+        {27, 25, 72, 22, 57, 25},      //
         {0, 33, 0, 38, 0, 33},         //
         {41, 68, 48, 68, 36, 59},      //
         {25, 46, 25, 27, 22, 23},      //
@@ -48,7 +52,13 @@ const translation_table translation_data = {
         {40, 26, 61, 39, 56, 47},      //
         {50, 21, 53, 41, 44, 35},      //
         {48, 27, 44, 37, 43, 36},      //
-        {35, 37, 50, 32, 38, 35},      //
+        {0, 0, 0, 0, 0, 35},           //
+        {35, 37, 0, 32, 0, 20},        //
+        {11, 9, 0, 10, 0, 9},          //
+        {0, 0, 0, 0, 0, 19},           //
+        {14, 26, 0, 15, 0, 27},        //
+        {33, 21, 0, 25, 0, 21},        //
+        {33, 21, 50, 25, 38, 21},      //
         {25, 50, 31, 36, 30, 23},      //
         {36, 12, 51, 38, 37, 36},      //
         {27, 25, 28, 22, 25, 24},      //
@@ -63,6 +73,7 @@ const translation_table translation_data = {
         {45, 26, 47, 43, 36, 39},      //
         {27, 30, 34, 31, 28, 29},      //
         {98, 37, 86, 82, 0, 77},       //
+        {27, 3, 0, 0, 0, 23},          //
     }}),
 
     // clang-format off
@@ -83,6 +94,7 @@ const translation_table translation_data = {
         u8"eine for-Schleife\0"
         u8"eine while-Schleife\0"
         u8"eine with-Anweisung\0"
+        u8"a {{0} b }} c\0"
         u8"eine if-Anweisung\0"
         u8"Bin\u00e4res Zahlenliteral ohne Ziffern\0"
         u8"Ung\u00fcltiges Zeichen in Bezeichner\0"
@@ -91,6 +103,9 @@ const translation_table translation_data = {
         u8"Escape-Zeichen darf nicht nicht in Bezeichnern verwendet werden\0"
         u8"Escape von '-' ist in Tagnamen nicht erlaubt. '-' anstattdessen schreiben\0"
         u8"Hexadezimale Ziffern in Unicode-Escapesequenz erwartet\0"
+        u8"{1:headlinese} erwartet\0"
+        u8"{1:singular} erwartet\0"
+        u8"freies {1} und {0} {1} {2}\0"
         u8"Hexadezimales Zahlenliteral ohne Ziffern\0"
         u8"Ung\u00fcltige UTF-8 Sequenz\0"
         u8"Ung\u00fcltige Hex-Escapesequenz: {0}\0"
@@ -102,6 +117,10 @@ const translation_table translation_data = {
         u8"Oktalliterale mit Dezimalpunkt sind nicht erlaubt\0"
         u8"Oktalliterale mit Exponenten sind nicht erlaubt\0"
         u8"Oktales Zahlenliteral ohne Ziffern\0"
+        u8"siehe hier\0"
+        u8"etwas geschah\0"
+        u8"dieses {0} sieht merkw\u00fcrdig aus\0"
+        u8"dieses {1} sieht merkw\u00fcrdig aus\0"
         u8"Blockkommentar ohne Ende\0"
         u8"Unbeendete Bezeichner-Escapesequenz\0"
         u8"Unbeendetes RegExp-Literal\0"
@@ -117,6 +136,7 @@ const translation_table translation_data = {
         u8"Unerwartetes Steuerzeichen\0"
         u8"Die Unicode Bytereihenfolge-Markierung (BOM) darf nicht vor #! zu Beginn eines Skripts erscheinen\0"
         u8"Blockkommentar ohne Beginn\0"
+        u8"Was soll dieser '{1}' Humbug?\0"
         u8"Facebook says '>' is not allowed; write {{'>'} or &gt; instead\0"
         u8"do-whiley do\0"
         u8"'for' loop \U0001f503\0"
@@ -132,6 +152,7 @@ const translation_table translation_data = {
         u8"a 'for' loop \U0001f503\0"
         u8"a whenever loop\0"
         u8"a what-the-heck-is-wrong-with statement\0"
+        u8"a {{0} b }} c\0"
         u8"a when (not if) statement\0"
         u8"binary number lost its genitals\0"
         u8"hold up! \u270b no '{0}' allowed\0"
@@ -140,6 +161,9 @@ const translation_table translation_data = {
         u8"fugitive \U0001f9b9\u200d\u2642\ufe0f is not allowed in identifiers\0"
         u8"stop being so fancy; just write '-'\0"
         u8"what are you trying to do? This is a Unicode escape sequence, not a Wendy's \U0001f354\0"
+        u8"expected {1:headlinese}\0"
+        u8"expected {1:singular}\0"
+        u8"free {1} and {0} {1} {2}\0"
         u8"hex number literal has no digits\0"
         u8"this number's too thicc for JavaScript; '{1}' would be used instead\0"
         u8"quick-lint-js only works with nonbinary files\0"
@@ -152,6 +176,10 @@ const translation_table translation_data = {
         u8"but you said '0o'...\0"
         u8"scientists don't use octal\0"
         u8"<octupus-with-no-legs> has no digits\0"
+        u8"see here\0"
+        u8"I wish you never happened\0"
+        u8"this {0} looks fishy\0"
+        u8"this {1} looks fishy\0"
         u8"you accidentally commented out your whole program\0"
         u8"runaway \\u!\0"
         u8"/unclosed regexp literal\0"
@@ -167,6 +195,7 @@ const translation_table translation_data = {
         u8"you lost control of your code\0"
         u8"your editor BOMd \U0001f4a3 your s#!t \U0001f4a9\0"
         u8"/*\0"
+        u8"what is this '{1}' nonsense?\0"
         u8"le lit\u00e9ral BigInt contient un s\u00e9parateur de d\u00e9cimales\0"
         u8"le lit\u00e9ral BigInt contient un exposant\0"
         u8"un litt\u00e9ral RegExp ne peut contenir des \u00e9chappements Unicode\0"
@@ -226,6 +255,8 @@ const translation_table translation_data = {
         u8"caracter escapado n\u00e3o \u00e9 permiido em identificadores\0"
         u8"escapar '-' n\u00e3o \u00e9 permitido em nomes de tags; use '-'\0"
         u8"d\u00edgitos hexadecimais s\u00e3o esperados em uma sequ\u00eancia de escape Unicode\0"
+        u8"esperado {1:headlinese}\0"
+        u8"esperado {1:singular}\0"
         u8"n\u00famero hexadecimal n\u00e3o tem d\u00edgitos\0"
         u8"inteiro n\u00e3o pode ser representado e vai ser arredondado para '{1}'\0"
         u8"sequ\u00eancia UTF-8 inv\u00e1lida\0"
@@ -239,6 +270,10 @@ const translation_table translation_data = {
         u8"n\u00famero octal n\u00e3o pode ter casa decimal\0"
         u8"n\u00famero octal n\u00e3o pode ter expoente\0"
         u8"n\u00famero octal n\u00e3o tem d\u00edgitos\0"
+        u8"veja aqui\0"
+        u8"algo aconteceu\0"
+        u8"isso {0} parece suspeito\0"
+        u8"isso {1} parece suspeito\0"
         u8"bloco de coment\u00e1rio n\u00e3o encerrado\0"
         u8"sequ\u00eancia de escape n\u00e3o foi fechada\0"
         u8"regexp n\u00e3o encerrado\0"
@@ -302,6 +337,7 @@ const translation_table translation_data = {
         u8"a 'while' loop\0"
         u8"a 'with' statement\0"
         u8"a labelled statement\0"
+        u8"a {{0} b }} c\0"
         u8"an 'if' statement\0"
         u8"binary number literal has no digits\0"
         u8"character is not allowed in identifiers\0"
@@ -310,6 +346,9 @@ const translation_table translation_data = {
         u8"escaped character is not allowed in identifiers\0"
         u8"escaping '-' is not allowed in tag names; write '-' instead\0"
         u8"expected hexadecimal digits in Unicode escape sequence\0"
+        u8"expected {1:headlinese}\0"
+        u8"expected {1:singular}\0"
+        u8"free {1} and {0} {1} {2}\0"
         u8"hex number literal has no digits\0"
         u8"integer cannot be represented and will be rounded to '{1}'\0"
         u8"invalid UTF-8 sequence\0"
@@ -323,6 +362,12 @@ const translation_table translation_data = {
         u8"octal literal may not have decimal\0"
         u8"octal literal may not have exponent\0"
         u8"octal number literal has no digits\0"
+        u8"second message here\0"
+        u8"see here\0"
+        u8"something happened\0"
+        u8"test for multiple messages\0"
+        u8"this {0} looks fishy\0"
+        u8"this {1} looks fishy\0"
         u8"unclosed block comment\0"
         u8"unclosed identifier escape sequence\0"
         u8"unclosed regexp literal\0"
@@ -337,7 +382,8 @@ const translation_table translation_data = {
         u8"unexpected characters in octal literal\0"
         u8"unexpected control character\0"
         u8"unicode byte order mark (BOM) cannot appear before #! at beginning of script\0"
-        u8"unopened block comment",
+        u8"unopened block comment\0"
+        u8"what is this '{1}' nonsense?",
     // clang-format on
 
     .locale_table =

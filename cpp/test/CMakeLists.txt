@@ -17,10 +17,22 @@ add_executable(
   quick-lint-js/gtest.h
   quick-lint-js/parse-support.h
   quick-lint-js/spy-visitor.h
+  test-buffering-diag-reporter.cpp
+  test-diagnostic-formatter.cpp
+  test-diagnostic.cpp
+  test-integer-hexadecimal.cpp
   test-lex.cpp
+  test-linked-bump-allocator.cpp
+  test-linked-vector.cpp
   test-locale.cpp
+  test-narrow-cast.cpp
+  test-padded-string.cpp
+  test-simd.cpp
+  test-sorted-search.cpp
   test-translation-table-generated.cpp
   test-translation.cpp
+  test-utf-8.cpp
+  test-vector.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(

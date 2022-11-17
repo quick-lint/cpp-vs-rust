@@ -246,6 +246,50 @@ msgstr ""
 "unicode byte ordningsmärke (BOM) kan inte förekomma före #! i början av "
 "skript"
 
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "test for multiple messages"
+msgstr ""
+
+#: cpp/src/quick-lint-js/fe/diagnostic-types.h
+msgid "second message here"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "something happened"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "see here"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "this {0} looks fishy"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "this {1} looks fishy"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "free {1} and {0} {1} {2}"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "what is this '{1}' nonsense?"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "a {{0} b }} c"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "expected {1:headlinese}"
+msgstr ""
+
+#: cpp/test/test-diagnostic-formatter.cpp
+msgid "expected {1:singular}"
+msgstr ""
+
 #~ msgid "variable assigned before its declaration"
 #~ msgstr "tilldelar variabel före deklaration"
 

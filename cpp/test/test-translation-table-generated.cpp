@@ -187,6 +187,17 @@ const translated_string test_translation_table[] = {
         },
     },
     {
+        "a {{0} b }} c"_translatable,
+        {
+            u8"a {{0} b }} c",
+            u8"a {{0} b }} c",
+            u8"a {{0} b }} c",
+            u8"a {{0} b }} c",
+            u8"a {{0} b }} c",
+            u8"a {{0} b }} c",
+        },
+    },
+    {
         "an 'if' statement"_translatable,
         {
             u8"an 'if' statement",
@@ -272,6 +283,39 @@ const translated_string test_translation_table[] = {
             u8"nombres hexadecimaux attendus dans une s\u00e9quence d'\u00e9chappement Unicode",
             u8"d\u00edgitos hexadecimais s\u00e3o esperados em uma sequ\u00eancia de escape Unicode",
             u8"f\u00f6rv\u00e4ntade hexadecimala siffror i Unicode flyktsekvens",
+        },
+    },
+    {
+        "expected {1:headlinese}"_translatable,
+        {
+            u8"expected {1:headlinese}",
+            u8"{1:headlinese} erwartet",
+            u8"expected {1:headlinese}",
+            u8"expected {1:headlinese}",
+            u8"esperado {1:headlinese}",
+            u8"expected {1:headlinese}",
+        },
+    },
+    {
+        "expected {1:singular}"_translatable,
+        {
+            u8"expected {1:singular}",
+            u8"{1:singular} erwartet",
+            u8"expected {1:singular}",
+            u8"expected {1:singular}",
+            u8"esperado {1:singular}",
+            u8"expected {1:singular}",
+        },
+    },
+    {
+        "free {1} and {0} {1} {2}"_translatable,
+        {
+            u8"free {1} and {0} {1} {2}",
+            u8"freies {1} und {0} {1} {2}",
+            u8"free {1} and {0} {1} {2}",
+            u8"free {1} and {0} {1} {2}",
+            u8"free {1} and {0} {1} {2}",
+            u8"free {1} and {0} {1} {2}",
         },
     },
     {
@@ -415,6 +459,72 @@ const translated_string test_translation_table[] = {
             u8"le litt\u00e9ral num\u00e9rique octal n'a pas de chiffres",
             u8"n\u00famero octal n\u00e3o tem d\u00edgitos",
             u8"oktal nummerlitteral har inga siffror",
+        },
+    },
+    {
+        "second message here"_translatable,
+        {
+            u8"second message here",
+            u8"second message here",
+            u8"second message here",
+            u8"second message here",
+            u8"second message here",
+            u8"second message here",
+        },
+    },
+    {
+        "see here"_translatable,
+        {
+            u8"see here",
+            u8"siehe hier",
+            u8"see here",
+            u8"see here",
+            u8"veja aqui",
+            u8"see here",
+        },
+    },
+    {
+        "something happened"_translatable,
+        {
+            u8"something happened",
+            u8"etwas geschah",
+            u8"I wish you never happened",
+            u8"something happened",
+            u8"algo aconteceu",
+            u8"something happened",
+        },
+    },
+    {
+        "test for multiple messages"_translatable,
+        {
+            u8"test for multiple messages",
+            u8"test for multiple messages",
+            u8"test for multiple messages",
+            u8"test for multiple messages",
+            u8"test for multiple messages",
+            u8"test for multiple messages",
+        },
+    },
+    {
+        "this {0} looks fishy"_translatable,
+        {
+            u8"this {0} looks fishy",
+            u8"dieses {0} sieht merkw\u00fcrdig aus",
+            u8"this {0} looks fishy",
+            u8"this {0} looks fishy",
+            u8"isso {0} parece suspeito",
+            u8"this {0} looks fishy",
+        },
+    },
+    {
+        "this {1} looks fishy"_translatable,
+        {
+            u8"this {1} looks fishy",
+            u8"dieses {1} sieht merkw\u00fcrdig aus",
+            u8"this {1} looks fishy",
+            u8"this {1} looks fishy",
+            u8"isso {1} parece suspeito",
+            u8"this {1} looks fishy",
         },
     },
     {
@@ -580,6 +690,17 @@ const translated_string test_translation_table[] = {
             u8"commentaire de bloc non ouvert",
             u8"bloco de coment\u00e1rio n\u00e3o foi aberto",
             u8"unopened block comment",
+        },
+    },
+    {
+        "what is this '{1}' nonsense?"_translatable,
+        {
+            u8"what is this '{1}' nonsense?",
+            u8"Was soll dieser '{1}' Humbug?",
+            u8"what is this '{1}' nonsense?",
+            u8"what is this '{1}' nonsense?",
+            u8"what is this '{1}' nonsense?",
+            u8"what is this '{1}' nonsense?",
         },
     },
 };

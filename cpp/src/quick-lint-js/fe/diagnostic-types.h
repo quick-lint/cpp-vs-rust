@@ -296,6 +296,14 @@
                   "unicode byte order mark (BOM) cannot appear before #! "      \
                   "at beginning of script"),                                    \
               bom))                                                             \
+              \
+  QLJS_DIAG_TYPE(                                                               \
+      diag_multiple_message_test, "E6969", diagnostic_severity::error,  \
+      { source_code_span a; source_code_span b; },                                                \
+      MESSAGE(QLJS_TRANSLATABLE(                                                \
+                  "test for multiple messages"      \
+),                                    \
+              a) MESSAGE(QLJS_TRANSLATABLE("second message here"), b))                                                             \
   /* END */
 
 namespace quick_lint_js {
