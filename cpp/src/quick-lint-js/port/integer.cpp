@@ -143,17 +143,6 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
 }
 #endif
 
-from_char8s_result from_char8s(const char8 *begin, const char8 *end,
-                               std::size_t &value) {
-  from_chars_result result =
-      from_chars(reinterpret_cast<const char *>(begin),
-                 reinterpret_cast<const char *>(end), value);
-  return from_char8s_result{
-      .ptr = reinterpret_cast<const char8 *>(result.ptr),
-      .ec = result.ec,
-  };
-}
-
 from_char8s_result from_char8s_hex(const char8 *begin, const char8 *end,
                                    char32_t &value) {
   from_chars_result result =

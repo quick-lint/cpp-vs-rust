@@ -32,9 +32,6 @@ extern template from_chars_result from_chars<unsigned long>(
 extern template from_chars_result from_chars<unsigned long long>(
     const char *begin, const char *end, unsigned long long &value);
 
-from_char8s_result from_char8s(const char8 *begin, const char8 *end,
-                               std::size_t &value);
-
 from_chars_result from_chars_hex(const char *begin, const char *end,
                                  char32_t &value);
 from_chars_result from_chars_hex(const char *begin, const char *end,
