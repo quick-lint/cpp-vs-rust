@@ -8,7 +8,6 @@ add_library(
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
   quick-lint-js/container/allocator.h
-  quick-lint-js/container/heap-function.h
   quick-lint-js/container/linked-bump-allocator.h
   quick-lint-js/container/linked-vector.h
   quick-lint-js/container/optional.h
