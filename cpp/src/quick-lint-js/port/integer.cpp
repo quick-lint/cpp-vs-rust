@@ -48,15 +48,6 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
       std::from_chars(begin, end, value, /*base=*/16);
   return from_chars_result{.ptr = result.ptr, .ec = result.ec};
 }
-
-template <class T>
-char8 *write_integer(T value, char8 *out) {
-  char *buffer = reinterpret_cast<char *>(out);
-  std::to_chars_result result =
-      std::to_chars(buffer, &buffer[integer_string_length<T>], value);
-  QLJS_ASSERT(result.ec == std::errc{});
-  return out + (result.ptr - buffer);
-}
 #else
 namespace {
 bool is_decimal_digit(char c) noexcept { return '0' <= c && c <= '9'; }
@@ -150,40 +141,6 @@ from_chars_result from_chars_hex(const char *begin, const char *end,
   value = static_cast<std::uint8_t>(long_value);
   return result;
 }
-
-template <class T>
-char8 *write_integer(T value, char8 *out) {
-  char *buffer = reinterpret_cast<char *>(out);
-  constexpr std::size_t buffer_size = integer_string_length<T>;
-  constexpr const char *format =
-      std::is_same_v<T, int>
-          ? "%d"
-          : std::is_same_v<T, long>
-                ? "%ld"
-                : std::is_same_v<T, long long>
-                      ? "%lld"
-                      : std::is_same_v<T, unsigned>
-                            ? "%u"
-                            : std::is_same_v<T, unsigned long>
-                                  ? "%lu"
-                                  : std::is_same_v<T, unsigned long long>
-                                        ? "%llu"
-                                        : "";
-  static_assert(*format != '\0', "Unsupported integer type");
-
-  int rc = std::snprintf(buffer, buffer_size, format, value);
-  QLJS_ASSERT(rc >= 0);
-  if (rc == buffer_size) {
-    int digit;
-    if constexpr (std::is_unsigned_v<T>) {
-      digit = value % 10;
-    } else {
-      digit = std::abs(narrow_cast<int>(value % 10));
-    }
-    buffer[buffer_size - 1] = narrow_cast<char>(u8'0' + digit);
-  }
-  return out + rc;
-}
 #endif
 
 from_char8s_result from_char8s(const char8 *begin, const char8 *end,
@@ -229,14 +186,6 @@ template from_chars_result from_chars<unsigned long>(const char *begin,
                                                      unsigned long &value);
 template from_chars_result from_chars<unsigned long long>(
     const char *begin, const char *end, unsigned long long &value);
-
-template char8 *write_integer<int>(int, char8 *out);
-template char8 *write_integer<long>(long, char8 *out);
-template char8 *write_integer<long long>(long long, char8 *out);
-template char8 *write_integer<unsigned>(unsigned, char8 *out);
-template char8 *write_integer<unsigned long>(unsigned long, char8 *out);
-template char8 *write_integer<unsigned long long>(unsigned long long,
-                                                  char8 *out);
 }
 
 // quick-lint-js finds bugs in JavaScript programs.
