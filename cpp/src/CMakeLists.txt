@@ -86,8 +86,6 @@ add_library(
   quick-lint-js/util/utf-8.cpp
   quick-lint-js/util/utf-8.h
   quick-lint-js/version.h
-  quick-lint-js/web-demo-location.cpp
-  quick-lint-js/web-demo-location.h
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
