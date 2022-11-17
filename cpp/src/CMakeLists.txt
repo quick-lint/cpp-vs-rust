@@ -8,8 +8,6 @@ add_library(
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
   quick-lint-js/container/allocator.h
-  quick-lint-js/container/async-byte-queue.cpp
-  quick-lint-js/container/async-byte-queue.h
   quick-lint-js/container/byte-buffer.cpp
   quick-lint-js/container/byte-buffer.h
   quick-lint-js/container/concat.h
@@ -43,20 +41,12 @@ add_library(
   quick-lint-js/fe/diagnostic-types.h
   quick-lint-js/fe/diagnostic.cpp
   quick-lint-js/fe/diagnostic.h
-  quick-lint-js/fe/global-declared-variable-set.cpp
-  quick-lint-js/fe/global-declared-variable-set.h
-  quick-lint-js/fe/global-variables-browser-generated.cpp
-  quick-lint-js/fe/global-variables.cpp
-  quick-lint-js/fe/global-variables.h
   quick-lint-js/fe/identifier.h
-  quick-lint-js/fe/jsx.cpp
-  quick-lint-js/fe/jsx.h
   quick-lint-js/fe/language.h
   quick-lint-js/fe/lex-keyword-generated.cpp
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h
-  quick-lint-js/fe/reported-diag-statistics.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
   quick-lint-js/feature.h
@@ -67,36 +57,6 @@ add_library(
   quick-lint-js/i18n/translation-table.h
   quick-lint-js/i18n/translation.cpp
   quick-lint-js/i18n/translation.h
-  quick-lint-js/io/event-loop.h
-  quick-lint-js/io/file-canonical.cpp
-  quick-lint-js/io/file-canonical.h
-  quick-lint-js/io/file-handle.cpp
-  quick-lint-js/io/file-handle.h
-  quick-lint-js/io/file-path.cpp
-  quick-lint-js/io/file-path.h
-  quick-lint-js/io/file.cpp
-  quick-lint-js/io/file.h
-  quick-lint-js/io/output-stream.cpp
-  quick-lint-js/io/output-stream.h
-  quick-lint-js/io/pipe-writer.cpp
-  quick-lint-js/io/pipe-writer.h
-  quick-lint-js/io/pipe.cpp
-  quick-lint-js/io/pipe.h
-  quick-lint-js/io/temporary-directory.cpp
-  quick-lint-js/io/temporary-directory.h
-  quick-lint-js/json.cpp
-  quick-lint-js/json.h
-  quick-lint-js/logging/log.h
-  quick-lint-js/logging/logger.cpp
-  quick-lint-js/logging/logger.h
-  quick-lint-js/logging/trace-flusher-directory-backend.cpp
-  quick-lint-js/logging/trace-flusher.cpp
-  quick-lint-js/logging/trace-flusher.h
-  quick-lint-js/logging/trace-metadata.cpp
-  quick-lint-js/logging/trace-metadata.h
-  quick-lint-js/logging/trace-stream-reader.cpp
-  quick-lint-js/logging/trace-writer.cpp
-  quick-lint-js/logging/trace-writer.h
   quick-lint-js/port/attribute.h
   quick-lint-js/port/bit.h
   quick-lint-js/port/char8.cpp
@@ -116,8 +76,6 @@ add_library(
   quick-lint-js/port/process.h
   quick-lint-js/port/simd.h
   quick-lint-js/port/source-location.h
-  quick-lint-js/port/thread.cpp
-  quick-lint-js/port/thread.h
   quick-lint-js/port/type-traits.h
   quick-lint-js/port/unreachable.h
   quick-lint-js/port/warning.h
@@ -162,7 +120,6 @@ endif ()
 add_library(
   quick-lint-js-lib-debug
   quick-lint-js/container/padded-string-debug.cpp
-  quick-lint-js/container/vector-profiler-debug.cpp
   quick-lint-js/fe/diag-debug.cpp
   quick-lint-js/fe/language-debug.cpp
   quick-lint-js/fe/lex-debug.cpp

@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
-#include <quick-lint-js/io/file-handle.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/windows-error.h>
 #include <quick-lint-js/util/narrow-cast.h>
