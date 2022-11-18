@@ -138,6 +138,10 @@ impl PaddedString {
             std::slice::from_raw_parts(self.data, narrow_cast(self.size_excluding_padding_bytes))
         }
     }
+
+    pub fn view<'a>(&'a self) -> PaddedStringView<'a> {
+        PaddedStringView::from(self)
+    }
 }
 
 impl Drop for PaddedString {
@@ -156,8 +160,73 @@ fn layout_for_padded_size(padded_size: PaddedStringSizeType) -> std::alloc::Layo
 
 impl std::fmt::Debug for PaddedString {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        String::from_utf8_lossy(self.slice()).fmt(formatter)
+        self.view().fmt(formatter)
     }
 }
 
-// TODO(port): padded_string_view.
+pub struct PaddedStringView<'a> {
+    data: *const u8,
+    length: PaddedStringSizeType,
+
+    phantom: std::marker::PhantomData<&'a u8>,
+}
+
+impl<'a> PaddedStringView<'a> {
+    pub fn from(s: &'a PaddedString) -> PaddedStringView<'a> {
+        let result = PaddedStringView {
+            data: s.c_str(),
+            length: s.size(),
+            phantom: std::marker::PhantomData,
+        };
+        assert!(unsafe { *result.null_terminator() } == 0);
+        result
+    }
+
+    pub fn from_slice(s: &'a [u8]) -> PaddedStringView<'a> {
+        PaddedStringView {
+            data: s.as_ptr(),
+            length: narrow_cast(s.len()),
+            phantom: std::marker::PhantomData,
+        }
+    }
+
+    pub fn data_ptr(&self) -> *const u8 {
+        self.data
+    }
+
+    pub fn size(&self) -> PaddedStringSizeType {
+        self.length
+    }
+
+    pub fn padded_size(&self) -> PaddedStringSizeType {
+        self.size() + PADDED_STRING_PADDING_SIZE
+    }
+
+    pub fn null_terminator(&self) -> *const u8 {
+        unsafe { self.data.offset(self.length as isize) }
+    }
+
+    pub fn slice(&self) -> &'a [u8] {
+        unsafe { std::slice::from_raw_parts(self.data, narrow_cast(self.length)) }
+    }
+
+    pub fn substr(&self, offset: PaddedStringSizeType) -> PaddedStringView<'a> {
+        PaddedStringView::from_slice(&self.slice()[offset as usize..])
+    }
+}
+
+impl<'a> std::ops::Index<PaddedStringSizeType> for PaddedStringView<'a> {
+    type Output = u8;
+
+    fn index(&self, index: PaddedStringSizeType) -> &u8 {
+        assert!(index >= 0);
+        assert!(index <= self.size());
+        unsafe { &*self.data.offset(index as isize) }
+    }
+}
+
+impl<'a> std::fmt::Debug for PaddedStringView<'a> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        String::from_utf8_lossy(self.slice()).fmt(formatter)
+    }
+}
