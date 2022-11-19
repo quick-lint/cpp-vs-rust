@@ -1,6 +1,6 @@
 use crate::util::narrow_cast;
 
-type PaddedStringSizeType = i32;
+pub type PaddedStringSizeType = i32;
 
 pub const PADDED_STRING_PADDING_SIZE: PaddedStringSizeType = 64;
 
@@ -28,19 +28,14 @@ impl PaddedString {
         }
     }
 
-    pub fn from_str(s: &str) -> PaddedString {
-        let s_bytes = s.as_bytes();
-        let size_excluding_padding_bytes: PaddedStringSizeType = narrow_cast(s_bytes.len());
+    pub fn from_slice(s: &[u8]) -> PaddedString {
+        let size_excluding_padding_bytes: PaddedStringSizeType = narrow_cast(s.len());
         let size_including_padding_bytes =
             size_excluding_padding_bytes + PADDED_STRING_PADDING_SIZE;
         unsafe {
             let data: *mut u8 =
                 std::alloc::alloc(layout_for_padded_size(size_including_padding_bytes));
-            std::ptr::copy_nonoverlapping(
-                s_bytes.as_ptr(),
-                data,
-                size_excluding_padding_bytes as usize,
-            );
+            std::ptr::copy_nonoverlapping(s.as_ptr(), data, size_excluding_padding_bytes as usize);
             std::ptr::write_bytes(
                 data.offset(size_excluding_padding_bytes as isize),
                 0,
@@ -51,6 +46,10 @@ impl PaddedString {
                 size_excluding_padding_bytes: size_excluding_padding_bytes,
             }
         }
+    }
+
+    pub fn from_str(s: &str) -> PaddedString {
+        PaddedString::from_slice(s.as_bytes())
     }
 
     pub fn from_string(s: String) -> PaddedString {
@@ -208,6 +207,15 @@ impl<'a> PaddedStringView<'a> {
 
     pub fn slice(&self) -> &'a [u8] {
         unsafe { std::slice::from_raw_parts(self.data, narrow_cast(self.length)) }
+    }
+
+    pub fn slice_with_padding(&self) -> &'a [u8] {
+        unsafe {
+            std::slice::from_raw_parts(
+                self.data,
+                narrow_cast(self.length + PADDED_STRING_PADDING_SIZE),
+            )
+        }
     }
 
     pub fn substr(&self, offset: PaddedStringSizeType) -> PaddedStringView<'a> {

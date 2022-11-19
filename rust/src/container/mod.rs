@@ -1,4 +1,4 @@
-mod padded_string;
+pub mod padded_string;
 pub use padded_string::*;
 
 mod sorted_search;
