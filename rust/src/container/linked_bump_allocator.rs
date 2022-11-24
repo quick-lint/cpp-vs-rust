@@ -7,6 +7,10 @@ const fn default_chunk_size<const ALIGNMENT: usize>() -> usize {
 }
 
 pub struct LinkedBumpAllocator<const ALIGNMENT: usize> {
+    state: std::cell::UnsafeCell<LinkedBumpAllocatorState<ALIGNMENT>>,
+}
+
+struct LinkedBumpAllocatorState<const ALIGNMENT: usize> {
     chunk: *mut ChunkHeader<ALIGNMENT>,
     next_allocation: *mut u8,
     chunk_end: *mut u8,
@@ -23,15 +27,113 @@ pub struct LinkedBumpAllocatorRewindState {
 impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
     pub fn new(debug_owner: &'static str) -> LinkedBumpAllocator<ALIGNMENT> {
         LinkedBumpAllocator {
-            chunk: std::ptr::null_mut(),
-            next_allocation: std::ptr::null_mut(),
-            chunk_end: std::ptr::null_mut(),
-            #[cfg(feature = "qljs_debug")]
-            disabled_count: 0,
+            state: std::cell::UnsafeCell::new(LinkedBumpAllocatorState {
+                chunk: std::ptr::null_mut(),
+                next_allocation: std::ptr::null_mut(),
+                chunk_end: std::ptr::null_mut(),
+                #[cfg(feature = "qljs_debug")]
+                disabled_count: 0,
+            }),
         }
     }
 
-    pub fn release(&mut self) {
+    pub unsafe fn release(&self) {
+        unsafe { &mut *self.state.get() }.release();
+    }
+
+    pub fn prepare_for_rewind(&self) -> LinkedBumpAllocatorRewindState {
+        unsafe { &mut *self.state.get() }.prepare_for_rewind()
+    }
+
+    pub unsafe fn rewind(&self, r: LinkedBumpAllocatorRewindState) {
+        (&mut *self.state.get()).rewind(r);
+    }
+
+    // TODO(port): make_rewind_guard
+
+    pub fn new_object<T: Sized>(&self, value: T) -> *mut T {
+        /* TODO(port)
+        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
+                      "T is not allowed by this allocator; this allocator's "
+                      "alignment is insufficient for T");
+        */
+        let byte_size: usize = Self::align_up(std::mem::size_of::<T>());
+        unsafe {
+            let result_raw: *mut T = self.allocate_bytes(byte_size) as *mut T;
+            std::ptr::write(result_raw, value);
+            result_raw
+        }
+    }
+
+    pub fn allocate_uninitialized_array<'b, T>(
+        &self,
+        len: usize,
+    ) -> &'b mut [std::mem::MaybeUninit<T>] {
+        /* TODO(port)
+        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
+                      "T is not allowed by this allocator; this allocator's "
+                      "alignment is insufficient for T");
+        */
+        let byte_size: usize = Self::align_up(len * std::mem::size_of::<T>());
+        let data = self.allocate_bytes(byte_size) as *mut std::mem::MaybeUninit<T>;
+        unsafe { std::slice::from_raw_parts_mut(data, len) }
+    }
+
+    // TODO(port): Should this accept MaybeUninit?
+    // TODO(port): Should this return MaybeUninit?
+    pub fn try_grow_array_in_place<'b, T>(
+        &self,
+        array: &'b mut [T],
+        new_len: usize,
+    ) -> Option<&'b mut [T]> {
+        unsafe { &mut *self.state.get() }.try_grow_array_in_place(array, new_len)
+    }
+
+    pub fn remaining_bytes_in_current_chunk(&self) -> usize {
+        unsafe { &*self.state.get() }.remaining_bytes_in_current_chunk()
+    }
+
+    fn align_up(size: usize) -> usize {
+        (size + ALIGNMENT - 1) & !(ALIGNMENT - 1)
+    }
+
+    /// After calling disable, be sure to call enable before allocating more memory.
+    #[cfg(feature = "qljs_debug")]
+    pub fn disable(&self) {
+        unsafe { &mut *self.state.get() }.disabled_count += 1;
+    }
+
+    /// Call only after calling disable.
+    #[cfg(feature = "qljs_debug")]
+    pub fn enable(&self) {
+        unsafe { &mut *self.state.get() }.disabled_count -= 1;
+    }
+
+    fn allocate_bytes(&self, size: usize) -> *mut u8 {
+        unsafe { &mut *self.state.get() }.allocate_bytes(size)
+    }
+
+    unsafe fn deallocate_bytes(&mut self, p: *mut u8, size: usize) {
+        // TODO(strager): Mark memory as unallocated for Valgrind and ASAN.
+    }
+
+    fn append_chunk(&self, len: usize) {
+        unsafe { &mut *self.state.get() }.append_chunk(len)
+    }
+
+    pub fn allocate(&self, bytes: usize, align: usize) -> *mut u8 {
+        assert!(align <= ALIGNMENT);
+        self.allocate_bytes(Self::align_up(bytes))
+    }
+
+    pub unsafe fn do_deallocate(&mut self, p: *mut u8, bytes: usize, align: usize) {
+        assert!(align <= ALIGNMENT);
+        self.deallocate_bytes(p, bytes);
+    }
+}
+
+impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
+    fn release(&mut self) {
         let mut c = self.chunk;
         while !c.is_null() {
             unsafe {
@@ -45,7 +147,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         self.chunk_end = std::ptr::null_mut();
     }
 
-    pub fn prepare_for_rewind(&mut self) -> LinkedBumpAllocatorRewindState {
+    fn prepare_for_rewind(&mut self) -> LinkedBumpAllocatorRewindState {
         LinkedBumpAllocatorRewindState {
             chunk: self.chunk as *mut u8,
             next_allocation: self.next_allocation,
@@ -53,7 +155,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         }
     }
 
-    pub unsafe fn rewind(&mut self, r: LinkedBumpAllocatorRewindState) {
+    unsafe fn rewind(&mut self, r: LinkedBumpAllocatorRewindState) {
         let r_chunk: *mut ChunkHeader<ALIGNMENT> = r.chunk as *mut ChunkHeader<ALIGNMENT>;
         let allocated_new_chunk = self.chunk != r_chunk;
         if allocated_new_chunk {
@@ -87,39 +189,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         );
     }
 
-    // TODO(port): make_rewind_guard
-
-    pub fn new_object<T: Sized>(&mut self, value: T) -> *mut T {
-        /* TODO(port)
-        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
-                      "T is not allowed by this allocator; this allocator's "
-                      "alignment is insufficient for T");
-        */
-        let byte_size: usize = Self::align_up(std::mem::size_of::<T>());
-        unsafe {
-            let result_raw: *mut T = self.allocate_bytes(byte_size) as *mut T;
-            std::ptr::write(result_raw, value);
-            result_raw
-        }
-    }
-
-    pub unsafe fn allocate_uninitialized_array<'b, T>(
-        &mut self,
-        len: usize,
-    ) -> &'b mut [std::mem::MaybeUninit<T>] {
-        /* TODO(port)
-        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
-                      "T is not allowed by this allocator; this allocator's "
-                      "alignment is insufficient for T");
-        */
-        let byte_size: usize = Self::align_up(len * std::mem::size_of::<T>());
-        let data = self.allocate_bytes(byte_size) as *mut std::mem::MaybeUninit<T>;
-        std::slice::from_raw_parts_mut(data, len)
-    }
-
-    // TODO(port): Should this accept MaybeUninit?
-    // TODO(port): Should this return MaybeUninit?
-    pub fn try_grow_array_in_place<'b, T>(
+    fn try_grow_array_in_place<'b, T>(
         &mut self,
         array: &'b mut [T],
         new_len: usize,
@@ -150,37 +220,19 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         unsafe { narrow_cast(self.chunk_end.offset_from(self.next_allocation)) }
     }
 
-    fn align_up(size: usize) -> usize {
-        (size + ALIGNMENT - 1) & !(ALIGNMENT - 1)
-    }
-
-    /// After calling disable, be sure to call enable before allocating more memory.
-    #[cfg(feature = "qljs_debug")]
-    pub fn disable(&mut self) {
-        self.disabled_count += 1;
-    }
-
-    /// Call only after calling disable.
-    #[cfg(feature = "qljs_debug")]
-    pub fn enable(&mut self) {
-        self.disabled_count -= 1;
-    }
-
-    unsafe fn allocate_bytes(&mut self, size: usize) -> *mut u8 {
-        self.assert_not_disabled();
-        qljs_slow_assert!(size % ALIGNMENT == 0);
-        if self.remaining_bytes_in_current_chunk() < size {
-            self.append_chunk(std::cmp::max(size, default_chunk_size::<ALIGNMENT>()));
-            assert!(self.remaining_bytes_in_current_chunk() >= size);
+    fn allocate_bytes(&mut self, size: usize) -> *mut u8 {
+        unsafe {
+            self.assert_not_disabled();
+            qljs_slow_assert!(size % ALIGNMENT == 0);
+            if self.remaining_bytes_in_current_chunk() < size {
+                self.append_chunk(std::cmp::max(size, default_chunk_size::<ALIGNMENT>()));
+                assert!(self.remaining_bytes_in_current_chunk() >= size);
+            }
+            let result = self.next_allocation;
+            self.next_allocation = self.next_allocation.offset(size as isize);
+            self.did_allocate_bytes(result, size);
+            result
         }
-        let result = self.next_allocation;
-        self.next_allocation = self.next_allocation.offset(size as isize);
-        self.did_allocate_bytes(result, size);
-        result
-    }
-
-    unsafe fn deallocate_bytes(&mut self, p: *mut u8, size: usize) {
-        // TODO(strager): Mark memory as unallocated for Valgrind and ASAN.
     }
 
     fn did_allocate_bytes(&self, p: *mut u8, size: usize) {
@@ -210,16 +262,8 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         self.disabled_count > 0
     }
 
-    pub unsafe fn allocate(&mut self, bytes: usize, align: usize) -> *mut u8 {
-        assert!(align <= ALIGNMENT);
-        unsafe { self.allocate_bytes(Self::align_up(bytes)) }
-    }
-
-    pub unsafe fn do_deallocate(&mut self, p: *mut u8, bytes: usize, align: usize) {
-        assert!(align <= ALIGNMENT);
-        unsafe {
-            self.deallocate_bytes(p, bytes);
-        }
+    fn align_up(size: usize) -> usize {
+        LinkedBumpAllocator::<ALIGNMENT>::align_up(size)
     }
 }
 
@@ -273,6 +317,8 @@ impl<const ALIGNMENT: usize> ChunkHeader<ALIGNMENT> {
 
 impl<const ALIGNMENT: usize> Drop for LinkedBumpAllocator<ALIGNMENT> {
     fn drop(&mut self) {
-        self.release();
+        unsafe {
+            self.release();
+        }
     }
 }
