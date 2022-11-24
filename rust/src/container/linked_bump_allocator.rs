@@ -2,6 +2,19 @@ use crate::qljs_always_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 
+pub trait BumpAllocatorLike {
+    fn allocate_uninitialized_array<'b, T>(&self, len: usize)
+        -> &'b mut [std::mem::MaybeUninit<T>];
+
+    fn try_grow_array_in_place<'b, T>(
+        &self,
+        array: &'b mut [T],
+        new_len: usize,
+    ) -> Option<&'b mut [T]>;
+
+    unsafe fn deallocate(&self, p: *mut u8, bytes: usize, align: usize);
+}
+
 const fn default_chunk_size<const ALIGNMENT: usize>() -> usize {
     4096 - std::mem::size_of::<ChunkHeader<ALIGNMENT>>()
 }
@@ -65,30 +78,6 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         }
     }
 
-    pub fn allocate_uninitialized_array<'b, T>(
-        &self,
-        len: usize,
-    ) -> &'b mut [std::mem::MaybeUninit<T>] {
-        /* TODO(port)
-        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
-                      "T is not allowed by this allocator; this allocator's "
-                      "alignment is insufficient for T");
-        */
-        let byte_size: usize = Self::align_up(len * std::mem::size_of::<T>());
-        let data = self.allocate_bytes(byte_size) as *mut std::mem::MaybeUninit<T>;
-        unsafe { std::slice::from_raw_parts_mut(data, len) }
-    }
-
-    // TODO(port): Should this accept MaybeUninit?
-    // TODO(port): Should this return MaybeUninit?
-    pub fn try_grow_array_in_place<'b, T>(
-        &self,
-        array: &'b mut [T],
-        new_len: usize,
-    ) -> Option<&'b mut [T]> {
-        unsafe { &mut *self.state.get() }.try_grow_array_in_place(array, new_len)
-    }
-
     pub fn remaining_bytes_in_current_chunk(&self) -> usize {
         unsafe { &*self.state.get() }.remaining_bytes_in_current_chunk()
     }
@@ -113,7 +102,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         unsafe { &mut *self.state.get() }.allocate_bytes(size)
     }
 
-    unsafe fn deallocate_bytes(&mut self, p: *mut u8, size: usize) {
+    unsafe fn deallocate_bytes(&self, p: *mut u8, size: usize) {
         // TODO(strager): Mark memory as unallocated for Valgrind and ASAN.
     }
 
@@ -125,8 +114,34 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         assert!(align <= ALIGNMENT);
         self.allocate_bytes(Self::align_up(bytes))
     }
+}
 
-    pub unsafe fn do_deallocate(&mut self, p: *mut u8, bytes: usize, align: usize) {
+impl<const ALIGNMENT: usize> BumpAllocatorLike for LinkedBumpAllocator<ALIGNMENT> {
+    fn allocate_uninitialized_array<'b, T>(
+        &self,
+        len: usize,
+    ) -> &'b mut [std::mem::MaybeUninit<T>] {
+        /* TODO(port)
+        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
+                      "T is not allowed by this allocator; this allocator's "
+                      "alignment is insufficient for T");
+        */
+        let byte_size: usize = Self::align_up(len * std::mem::size_of::<T>());
+        let data = self.allocate_bytes(byte_size) as *mut std::mem::MaybeUninit<T>;
+        unsafe { std::slice::from_raw_parts_mut(data, len) }
+    }
+
+    // TODO(port): Should this accept MaybeUninit?
+    // TODO(port): Should this return MaybeUninit?
+    fn try_grow_array_in_place<'b, T>(
+        &self,
+        array: &'b mut [T],
+        new_len: usize,
+    ) -> Option<&'b mut [T]> {
+        unsafe { &mut *self.state.get() }.try_grow_array_in_place(array, new_len)
+    }
+
+    unsafe fn deallocate(&self, p: *mut u8, bytes: usize, align: usize) {
         assert!(align <= ALIGNMENT);
         self.deallocate_bytes(p, bytes);
     }

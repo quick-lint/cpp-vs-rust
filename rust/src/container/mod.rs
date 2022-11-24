@@ -5,3 +5,6 @@ pub use padded_string::*;
 
 mod sorted_search;
 pub use sorted_search::*;
+
+pub mod vector;
+pub mod winkable;
