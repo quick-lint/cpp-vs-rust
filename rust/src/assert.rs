@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! qljs_always_assert {
     ($cond:expr $(,)?) => {
-        // TODO(port): Force.
+        // TODO(port): Use our own infrastructure.
         assert!($cond);
     };
 }
@@ -9,15 +9,15 @@ macro_rules! qljs_always_assert {
 #[macro_export]
 macro_rules! qljs_assert {
     ($cond:expr $(,)?) => {
-        // TODO(port)
-        assert!($cond);
+        #[cfg(debug_assertions)]
+        crate::qljs_always_assert!($cond);
     };
 }
 
 #[macro_export]
 macro_rules! qljs_slow_assert {
     ($cond:expr $(,)?) => {
-        // TODO(port): Conditional on qljs_debug feature.
-        assert!($cond);
+        #[cfg(feature = "qljs_debug")]
+        qljs_always_assert!($cond);
     };
 }
