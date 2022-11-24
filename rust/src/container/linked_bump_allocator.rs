@@ -1,4 +1,5 @@
 use crate::qljs_always_assert;
+use crate::qljs_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 
@@ -111,7 +112,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
     }
 
     pub fn allocate(&self, bytes: usize, align: usize) -> *mut u8 {
-        assert!(align <= ALIGNMENT);
+        qljs_assert!(align <= ALIGNMENT);
         self.allocate_bytes(Self::align_up(bytes))
     }
 }
@@ -142,7 +143,7 @@ impl<const ALIGNMENT: usize> BumpAllocatorLike for LinkedBumpAllocator<ALIGNMENT
     }
 
     unsafe fn deallocate(&self, p: *mut u8, bytes: usize, align: usize) {
-        assert!(align <= ALIGNMENT);
+        qljs_assert!(align <= ALIGNMENT);
         self.deallocate_bytes(p, bytes);
     }
 }
@@ -183,12 +184,12 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
             // TODO(strager): Should we use the *oldest* chunk or the *newest* chunk?
             // Here we pick the *oldest* chunk.
             let mut c: *mut ChunkHeader<ALIGNMENT> = self.chunk;
-            assert!(!c.is_null());
+            qljs_assert!(!c.is_null());
             while c.as_ref().unwrap().previous != r_chunk {
                 let previous = c.as_ref().unwrap().previous;
                 ChunkHeader::<ALIGNMENT>::delete_chunk(c);
                 c = previous;
-                assert!(!c.is_null());
+                qljs_assert!(!c.is_null());
             }
             self.chunk = c;
             self.next_allocation = c.as_mut().unwrap().data_begin();
@@ -211,7 +212,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
     ) -> Option<&'b mut [T]> {
         unsafe {
             self.assert_not_disabled();
-            assert!(new_len > array.len());
+            qljs_assert!(new_len > array.len());
             let old_byte_size = Self::align_up(array.len() * std::mem::size_of::<T>());
             let old_array_end: *mut u8 =
                 (array.as_mut_ptr() as *mut u8).offset(old_byte_size as isize);
@@ -241,7 +242,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
             qljs_slow_assert!(size % ALIGNMENT == 0);
             if self.remaining_bytes_in_current_chunk() < size {
                 self.append_chunk(std::cmp::max(size, default_chunk_size::<ALIGNMENT>()));
-                assert!(self.remaining_bytes_in_current_chunk() >= size);
+                qljs_assert!(self.remaining_bytes_in_current_chunk() >= size);
             }
             let result = self.next_allocation;
             self.next_allocation = self.next_allocation.offset(size as isize);

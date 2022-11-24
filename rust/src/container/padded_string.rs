@@ -1,3 +1,4 @@
+use crate::qljs_assert;
 use crate::util::narrow_cast;
 
 pub type PaddedStringSizeType = i32;
@@ -101,7 +102,7 @@ impl PaddedString {
 
     pub fn resize_grow_uninitialized(&mut self, new_size: PaddedStringSizeType) {
         let old_size = self.size_excluding_padding_bytes;
-        assert!(new_size > old_size);
+        qljs_assert!(new_size > old_size);
         let new_size_including_padding_bytes = new_size + PADDED_STRING_PADDING_SIZE;
 
         unsafe {
@@ -177,7 +178,7 @@ impl<'a> PaddedStringView<'a> {
             length: s.size(),
             phantom: std::marker::PhantomData,
         };
-        assert!(unsafe { *result.null_terminator() } == 0);
+        qljs_assert!(unsafe { *result.null_terminator() } == 0);
         result
     }
 
@@ -227,8 +228,8 @@ impl<'a> std::ops::Index<PaddedStringSizeType> for PaddedStringView<'a> {
     type Output = u8;
 
     fn index(&self, index: PaddedStringSizeType) -> &u8 {
-        assert!(index >= 0);
-        assert!(index <= self.size());
+        qljs_assert!(index >= 0);
+        qljs_assert!(index <= self.size());
         unsafe { &*self.data.offset(index as isize) }
     }
 }

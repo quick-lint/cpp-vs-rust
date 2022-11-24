@@ -7,6 +7,14 @@ macro_rules! qljs_always_assert {
 }
 
 #[macro_export]
+macro_rules! qljs_assert {
+    ($cond:expr $(,)?) => {
+        // TODO(port)
+        assert!($cond);
+    };
+}
+
+#[macro_export]
 macro_rules! qljs_slow_assert {
     ($cond:expr $(,)?) => {
         // TODO(port): Conditional on qljs_debug feature.

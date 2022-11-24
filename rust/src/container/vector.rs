@@ -1,5 +1,6 @@
 use crate::container::linked_bump_allocator::*;
 use crate::container::winkable::*;
+use crate::qljs_assert;
 use crate::util::narrow_cast::*;
 
 // TODO(port): Use InstrumentedVector if vector instrumentation is enabled.
@@ -125,7 +126,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     }
 
     fn pop_back(&mut self) {
-        assert!(!self.empty());
+        qljs_assert!(!self.empty());
         // NOTE(port): The C++ code didn't destruct, so we don't drop here.
         self.data_end = unsafe { self.data_end.offset(-1) };
     }
@@ -167,28 +168,28 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
     }
 
     pub fn front_mut(&mut self) -> &mut T {
-        assert!(!self.empty());
+        qljs_assert!(!self.empty());
         unsafe { (&mut *self.data).assume_init_mut() }
     }
 
     pub fn back_mut(&mut self) -> &mut T {
-        assert!(!self.empty());
+        qljs_assert!(!self.empty());
         unsafe { (&mut *self.data_end.offset(-1)).assume_init_mut() }
     }
 
     pub fn front(&self) -> &T {
-        assert!(!self.empty());
+        qljs_assert!(!self.empty());
         unsafe { (&*self.data).assume_init_ref() }
     }
 
     pub fn back(&self) -> &T {
-        assert!(!self.empty());
+        qljs_assert!(!self.empty());
         unsafe { (&*self.data_end.offset(-1)).assume_init_ref() }
     }
 
     pub fn reserve_grow(&mut self, new_capacity: usize) {
         unsafe {
-            assert!(new_capacity > self.capacity());
+            qljs_assert!(new_capacity > self.capacity());
             if self.data.is_null() {
                 self.data = self
                     .allocator
@@ -290,7 +291,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::Index<usiz
     type Output = T;
 
     fn index<'a>(&'a self, index: usize) -> &'a T {
-        assert!(index < self.size());
+        qljs_assert!(index < self.size());
         unsafe { (&*self.data.offset(index as isize)).assume_init_ref() }
     }
 }
@@ -299,7 +300,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::IndexMut<u
     for RawBumpVector<'alloc, T, BumpAllocator>
 {
     fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut T {
-        assert!(index < self.size());
+        qljs_assert!(index < self.size());
         unsafe { (&mut *self.data.offset(index as isize)).assume_init_mut() }
     }
 }

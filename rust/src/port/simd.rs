@@ -1,3 +1,5 @@
+use crate::qljs_assert;
+
 #[cfg(target_arch = "x86")]
 use std::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
@@ -9,7 +11,7 @@ pub struct CharVector16SSE2(__m128i);
 impl CharVector16SSE2 {
     // data must point to at least 16 elements.
     pub fn load(data: &[u8]) -> CharVector16SSE2 {
-        assert!(data.len() >= 16);
+        qljs_assert!(data.len() >= 16);
         unsafe { CharVector16SSE2(_mm_loadu_si128(data.as_ptr() as *const __m128i)) }
     }
 
@@ -19,7 +21,7 @@ impl CharVector16SSE2 {
 
     // out_data must point to at least 16 elements.
     pub fn store(&self, out_data: &mut [u8]) {
-        assert!(out_data.len() >= 16);
+        qljs_assert!(out_data.len() >= 16);
         unsafe {
             _mm_storeu_si128(out_data.as_mut_ptr() as *mut __m128i, self.0);
         }
@@ -57,7 +59,7 @@ pub struct BoolVector16SSE2(__m128i);
 impl BoolVector16SSE2 {
     // data must point to at least 16 elements.
     pub fn load_slow(data: &[bool]) -> BoolVector16SSE2 {
-        assert!(data.len() >= 16);
+        qljs_assert!(data.len() >= 16);
         let mut bytes: [u8; 16] = [0; 16]; // TODO(port): Do not initialize.
         for i in 0..16 {
             bytes[i] = if data[i] { 0xff } else { 0x00 };

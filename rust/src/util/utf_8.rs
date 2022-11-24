@@ -1,9 +1,10 @@
 use crate::container::padded_string::*;
+use crate::qljs_assert;
 
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 pub fn encode_utf_8<'a>(code_point: u32, out: &'a mut [u8]) -> &'a mut [u8] {
     let byte = |x: u32| {
-        assert!(x <= 0x100);
+        qljs_assert!(x <= 0x100);
         return x as u8;
     };
     let continuation = 0b1000_0000;
