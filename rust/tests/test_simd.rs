@@ -2,9 +2,11 @@ use cpp_vs_rust::port::simd::*;
 
 // TODO(port): Run tests with each supported CharVector16 implementation, rather than run with just
 // one.
-// TODO(port): NEON and WASMSIMD128.
+// TODO(port): WASMSIMD128.
 #[cfg(target_feature = "sse2")]
 type CharVector16 = CharVector16SSE2;
+#[cfg(target_feature = "neon")]
+type CharVector16 = CharVector16NEON;
 
 #[test]
 fn char16_repeated() {
@@ -36,9 +38,11 @@ fn char16_bitwise_or() {
 
 // TODO(port): Run tests with each supported BoolVector16 implementation, rather than run with just
 // one.
-// TODO(port): NEON and WASMSIMD128.
+// TODO(port): WASMSIMD128.
 #[cfg(target_feature = "sse2")]
 type BoolVector16 = BoolVector16SSE2;
+#[cfg(target_feature = "neon")]
+type BoolVector16 = BoolVector16NEON;
 
 #[test]
 fn bool16_first_false_of_all_false() {

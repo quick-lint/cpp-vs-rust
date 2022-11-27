@@ -1,3 +1,4 @@
+#[cfg(feature = "qljs_debug")]
 use crate::qljs_always_assert;
 use crate::qljs_assert;
 use crate::qljs_slow_assert;
