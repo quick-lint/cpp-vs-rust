@@ -1,5 +1,5 @@
 use crate::qljs_assert;
-use crate::util::narrow_cast;
+use crate::util::narrow_cast::*;
 
 pub type PaddedStringSizeType = i32;
 

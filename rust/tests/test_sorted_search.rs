@@ -1,4 +1,4 @@
-use cpp_vs_rust::container::*;
+use cpp_vs_rust::container::sorted_search::*;
 
 #[test]
 fn empty_never_finds() {
