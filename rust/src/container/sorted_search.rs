@@ -1,4 +1,6 @@
-pub fn sorted_search(haystack: &[&str], needle: &str) -> Option<usize> {
+use crate::port::constexpr::*;
+
+pub const fn sorted_search(haystack: &[&str], needle: &str) -> Option<usize> {
     use std::cmp::Ordering;
 
     let length: isize = haystack.len() as isize;
@@ -6,7 +8,7 @@ pub fn sorted_search(haystack: &[&str], needle: &str) -> Option<usize> {
     let mut hi: isize = length - 1;
     while lo <= hi {
         let mid: isize = (lo + hi) / 2;
-        match haystack[mid as usize].cmp(needle) {
+        match const_str_cmp(haystack[mid as usize], needle) {
             Ordering::Less => {
                 lo = mid + 1;
             }

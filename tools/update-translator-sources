@@ -33,6 +33,7 @@ update_template_file() {
   printf 'updating: %s\n' "${pot_file}"
 
   pot_temp_file="$(mktemp)"
+  # TODO(port): Check Rust sources.
   xgettext \
     --keyword=QLJS_TRANSLATABLE \
     --output="${pot_temp_file}" \

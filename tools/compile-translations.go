@@ -118,10 +118,16 @@ func main() {
 	if err := WriteTranslationTableSource(&table, "cpp/src/quick-lint-js/i18n/translation-table-generated.cpp"); err != nil {
 		log.Fatal(err)
 	}
+	if err := WriteTranslationTableRustSource(&table, "rust/src/i18n/translation_table_generated.rs"); err != nil {
+		log.Fatal(err)
+	}
 	if err := WriteTranslationTestHeader(locales, "cpp/test/quick-lint-js/test-translation-table-generated.h"); err != nil {
 		log.Fatal(err)
 	}
 	if err := WriteTranslationTestSource(locales, "cpp/test/test-translation-table-generated.cpp"); err != nil {
+		log.Fatal(err)
+	}
+	if err := WriteTranslationTestRustSource(locales, "rust/tests/test_translation_table_generated.rs"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -439,7 +445,7 @@ using namespace std::literals::string_view_literals;
 `)
 	for _, constLookupEntry := range table.ConstLookupTable {
 		fmt.Fprintf(writer, "          \"")
-		DumpStringLiteralBody(string(constLookupEntry.Untranslated), writer)
+		DumpCPPStringLiteralBody(string(constLookupEntry.Untranslated), writer)
 		writer.WriteString("\"sv,\n")
 	}
 	fmt.Fprintf(writer,
@@ -518,7 +524,7 @@ const translation_table translation_data = {
     // clang-format off
     .string_table =
 `)
-	DumpStringTable(table.StringTable, "        u8", writer)
+	DumpCPPStringTable(table.StringTable, "        u8", writer)
 
 	writer.WriteString(
 		`,
@@ -527,12 +533,79 @@ const translation_table translation_data = {
     .locale_table =
 `)
 
-	DumpStringTable(table.LocaleTable, "        ", writer)
+	DumpCPPStringTable(table.LocaleTable, "        ", writer)
 
 	writer.WriteString(
 		`,
 };
 }
+
+`)
+	WriteCopyrightFooter(writer)
+
+	if err := writer.Flush(); err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func WriteTranslationTableRustSource(table *TranslationTable, path string) error {
+	outputFile, err := os.Create(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer outputFile.Close()
+	writer := bufio.NewWriter(outputFile)
+
+	writeFileHeader(writer)
+
+	writer.WriteString(
+		`
+use crate::i18n::translation_table::*;
+
+`)
+	fmt.Fprintf(writer, "pub const TRANSLATION_TABLE_LOCALE_COUNT: u32 = %d;\n", len(table.Locales)-1)
+	fmt.Fprintf(writer, "pub const TRANSLATION_TABLE_MAPPING_TABLE_SIZE: u16 = %d;\n", len(table.RelativeMappingTable))
+
+	fmt.Fprintf(writer, "\npub const UNTRANSLATED_STRINGS: [&str; %d] = [\n", len(table.ConstLookupTable))
+	for _, constLookupEntry := range table.ConstLookupTable {
+		fmt.Fprintf(writer, "    \"")
+		DumpRustStringLiteralBody(string(constLookupEntry.Untranslated), writer)
+		writer.WriteString("\",\n")
+	}
+
+	writer.WriteString(
+		`];
+
+pub const TRANSLATION_DATA_MAPPING_TABLE: [TranslationTableMappingEntry;
+    TRANSLATION_TABLE_MAPPING_TABLE_SIZE as usize] = [
+`)
+	// TODO(port): Write out RelativeMappingTable instead.
+	for _, mappingEntry := range table.AbsoluteMappingTable {
+		writer.WriteString("    TranslationTableMappingEntry([")
+		for i, stringOffset := range mappingEntry.StringOffsets {
+			if i != 0 {
+				writer.WriteString(", ")
+			}
+			fmt.Fprintf(writer, "%d", stringOffset)
+		}
+		fmt.Fprintf(writer, "]), //\n")
+	}
+	writer.WriteString(
+		`];
+
+pub const TRANSLATION_DATA_STRING_TABLE: &[u8] = `)
+	DumpRustStringTable(table.StringTable, "        ", writer)
+
+	writer.WriteString(
+		`.as_bytes();
+
+pub const TRANSLATION_DATA_LOCALE_TABLE: &str = `)
+
+	DumpRustStringTable(table.LocaleTable, "        ", writer)
+
+	writer.WriteString(
+		`;
 
 `)
 	WriteCopyrightFooter(writer)
@@ -571,7 +644,7 @@ inline constexpr const char *test_locale_names[] = {
 
 	for _, localeName := range localeNames {
 		fmt.Fprintf(writer, "    \"")
-		DumpStringLiteralBody(localeName, writer)
+		DumpCPPStringLiteralBody(localeName, writer)
 		fmt.Fprintf(writer, "\",\n")
 	}
 
@@ -633,11 +706,11 @@ const translated_string test_translation_table[] = {
 
 	for _, untranslated := range allUntranslated {
 		fmt.Fprintf(writer, "    {\n        \"")
-		DumpStringLiteralBody(string(untranslated), writer)
+		DumpCPPStringLiteralBody(string(untranslated), writer)
 		fmt.Fprintf(writer, "\"_translatable,\n        {\n")
 		for _, localeName := range localeNames {
 			fmt.Fprintf(writer, "            u8\"")
-			DumpStringLiteralBody(string(lookUpTranslation(localeName, untranslated)), writer)
+			DumpCPPStringLiteralBody(string(lookUpTranslation(localeName, untranslated)), writer)
 			fmt.Fprintf(writer, "\",\n")
 		}
 		fmt.Fprintf(writer, "        },\n    },\n")
@@ -646,6 +719,100 @@ const translated_string test_translation_table[] = {
 	fmt.Fprintf(writer,
 		`};
 // clang-format on
+}
+
+`)
+	WriteCopyrightFooter(writer)
+
+	if err := writer.Flush(); err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func WriteTranslationTestRustSource(locales map[string][]TranslationEntry, path string) error {
+	outputFile, err := os.Create(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer outputFile.Close()
+	writer := bufio.NewWriter(outputFile)
+
+	localeNames := GetLocaleNames(locales)
+	allUntranslated := GetAllUntranslated(locales)
+
+	// Returns the untranslated string if there is no translation.
+	lookUpTranslation := func(localeName string, untranslated []byte) []byte {
+		for _, entry := range locales[localeName] {
+			if bytes.Equal(entry.Untranslated, untranslated) {
+				return entry.Translated
+			}
+		}
+		return untranslated
+	}
+
+	writeFileHeader(writer)
+
+	fmt.Fprintf(writer, `
+use cpp_vs_rust::i18n::translation::*;
+use cpp_vs_rust::qljs_translatable;
+
+#[rustfmt::skip]
+pub const TEST_LOCALE_NAMES: [&'static str; %d] = [
+`, len(localeNames))
+	for _, localeName := range localeNames {
+		fmt.Fprintf(writer, "    \"")
+		DumpRustStringLiteralBody(localeName, writer)
+		fmt.Fprintf(writer, "\",\n")
+	}
+	fmt.Fprintf(writer,
+		`];
+
+pub struct TranslatedString {
+    pub translatable: TranslatableMessage,
+    pub expected_per_locale: [&'static str; %d],
+}
+
+pub const TEST_TRANSLATION_TABLE: [TranslatedString; %d] = [
+`, len(localeNames), len(allUntranslated))
+	for _, untranslated := range allUntranslated {
+		fmt.Fprintf(writer, "    TranslatedString{\n        translatable: qljs_translatable!(\"")
+		DumpRustStringLiteralBody(string(untranslated), writer)
+		fmt.Fprintf(writer, "\"),\n        expected_per_locale: [\n")
+		for _, localeName := range localeNames {
+			fmt.Fprintf(writer, "            \"")
+			DumpRustStringLiteralBody(string(lookUpTranslation(localeName, untranslated)), writer)
+			fmt.Fprintf(writer, "\",\n")
+		}
+		fmt.Fprintf(writer, "        ],\n    },\n")
+	}
+	fmt.Fprintf(writer,
+		`];
+
+#[test]
+fn full_translation_table() {
+    for (locale_index, locale_name) in TEST_LOCALE_NAMES.iter().enumerate() {
+        let mut messages: Translator = Translator::new_using_messages_from_source_code();
+        if locale_name.is_empty() {
+            messages.use_messages_from_source_code();
+        } else {
+            assert!(
+                messages.use_messages_from_locale(locale_name),
+                "locale_name={:?}",
+                locale_name,
+            );
+        }
+
+        for test_case in TEST_TRANSLATION_TABLE {
+            assert!(test_case.translatable.valid());
+            assert_eq!(
+                messages.translate(test_case.translatable),
+                test_case.expected_per_locale[locale_index],
+                "locale_name={:?}",
+                locale_name,
+            );
+        }
+    }
 }
 
 `)
@@ -679,13 +846,13 @@ func WriteCopyrightFooter(writer *bufio.Writer) {
 `)
 }
 
-func DumpStringTable(strings []byte, linePrefix string, writer *bufio.Writer) {
+func DumpCPPStringTable(strings []byte, linePrefix string, writer *bufio.Writer) {
 	for len(strings) != 0 {
 		writer.WriteString(linePrefix)
 		writer.WriteRune('"')
 		stringLength := bytes.IndexByte(strings, 0)
 		s := string(strings[:stringLength])
-		DumpStringLiteralBody(s, writer)
+		DumpCPPStringLiteralBody(s, writer)
 		strings = strings[stringLength+1:]
 		if len(strings) != 0 {
 			// C++ adds a \0 for us, so we don't need to add one ourselves.
@@ -698,7 +865,7 @@ func DumpStringTable(strings []byte, linePrefix string, writer *bufio.Writer) {
 	}
 }
 
-func DumpStringLiteralBody(s string, writer *bufio.Writer) {
+func DumpCPPStringLiteralBody(s string, writer *bufio.Writer) {
 	for _, c := range s {
 		if c < 0x20 || c >= 0x7f {
 			if c >= 0x10000 {
@@ -706,6 +873,35 @@ func DumpStringLiteralBody(s string, writer *bufio.Writer) {
 			} else {
 				fmt.Fprintf(writer, `\u%04x`, c)
 			}
+		} else if c == '\\' || c == '"' {
+			writer.WriteRune('\\')
+			writer.WriteRune(c)
+		} else {
+			writer.WriteRune(c)
+		}
+	}
+}
+
+func DumpRustStringTable(strings []byte, linePrefix string, writer *bufio.Writer) {
+	writer.WriteString("\"\\\n")
+	for len(strings) != 0 {
+		writer.WriteString(linePrefix)
+		stringLength := bytes.IndexByte(strings, 0)
+		s := string(strings[:stringLength])
+		if len(s) != 0 && s[0] == ' ' {
+			panic("TODO(port): Escape leading spaces, because Rust will ignore them.")
+		}
+		DumpRustStringLiteralBody(s, writer)
+		strings = strings[stringLength+1:]
+		writer.WriteString("\\0\\\n")
+	}
+	writer.WriteRune('"')
+}
+
+func DumpRustStringLiteralBody(s string, writer *bufio.Writer) {
+	for _, c := range s {
+		if c < 0x20 || c >= 0x7f {
+			fmt.Fprintf(writer, `\u{%04x}`, c)
 		} else if c == '\\' || c == '"' {
 			writer.WriteRune('\\')
 			writer.WriteRune(c)
