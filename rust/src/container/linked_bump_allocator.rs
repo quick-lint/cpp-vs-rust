@@ -294,6 +294,7 @@ struct ChunkHeader<const ALIGNMENT: usize> {
 
 impl<const ALIGNMENT: usize> ChunkHeader<ALIGNMENT> {
     fn data_begin(&mut self) -> *mut u8 {
+        // FIXME(port): Data is not guaranteed to be aligned!
         unsafe { (self as *mut Self).offset(1) as *mut u8 }
     }
 
