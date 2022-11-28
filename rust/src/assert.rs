@@ -10,7 +10,7 @@ macro_rules! qljs_always_assert {
 macro_rules! qljs_assert {
     ($cond:expr $(,)?) => {
         #[cfg(debug_assertions)]
-        crate::qljs_always_assert!($cond);
+        $crate::qljs_always_assert!($cond);
     };
 }
 
@@ -18,6 +18,6 @@ macro_rules! qljs_assert {
 macro_rules! qljs_slow_assert {
     ($cond:expr $(,)?) => {
         #[cfg(feature = "qljs_debug")]
-        crate::qljs_always_assert!($cond);
+        $crate::qljs_always_assert!($cond);
     };
 }

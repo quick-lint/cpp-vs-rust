@@ -3,5 +3,6 @@
 
 pub mod assert;
 pub mod container;
+pub mod i18n;
 pub mod port;
 pub mod util;
