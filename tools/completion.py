@@ -14,7 +14,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/container/allocator.h",
     "cpp/src/quick-lint-js/container/linked-bump-allocator.h",
     "cpp/src/quick-lint-js/container/linked-vector.h",
-    "cpp/src/quick-lint-js/container/monotonic-allocator.h",  # Sorta.
+    "cpp/src/quick-lint-js/container/monotonic-allocator.h",
     "cpp/src/quick-lint-js/container/optional.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/container/padded-string-debug.cpp",
     "cpp/src/quick-lint-js/container/padded-string.cpp",
@@ -23,6 +23,10 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/container/string-view.h",  # Sorta.
     "cpp/src/quick-lint-js/container/vector.h",
     "cpp/src/quick-lint-js/container/winkable.h",
+    "cpp/src/quick-lint-js/fe/identifier.h",
+    "cpp/src/quick-lint-js/fe/source_code_span.cpp",
+    "cpp/src/quick-lint-js/fe/source_code_span.h",
+    "cpp/src/quick-lint-js/fe/token.h",
     "cpp/src/quick-lint-js/i18n/locale.cpp",
     "cpp/src/quick-lint-js/i18n/locale.h",
     "cpp/src/quick-lint-js/i18n/translation-table-generated.cpp",

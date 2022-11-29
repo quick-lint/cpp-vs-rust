@@ -5,6 +5,7 @@
 // Some routines have a different copyright than the rest of quick-lint-js, thus
 // are in this separate file.
 
+#[cfg(target_feature = "neon")]
 use crate::port::simd::*;
 
 #[cfg(target_arch = "aarch64")]
