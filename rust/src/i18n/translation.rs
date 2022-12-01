@@ -95,10 +95,11 @@ unsafe fn read_utf8_c_string(bytes: &[u8]) -> &str {
 }
 
 // An un-translated message.
+#[derive(Clone, Copy)]
 pub struct TranslatableMessage(pub u16);
 
 impl TranslatableMessage {
-    pub fn unallocated() -> TranslatableMessage {
+    pub const fn unallocated() -> TranslatableMessage {
         TranslatableMessage(TRANSLATION_TABLE_UNALLOCATED_MAPPING_INDEX)
     }
 

@@ -23,6 +23,9 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/container/string-view.h",  # Sorta.
     "cpp/src/quick-lint-js/container/vector.h",
     "cpp/src/quick-lint-js/container/winkable.h",
+    "cpp/src/quick-lint-js/fe/diagnostic-types.h",
+    "cpp/src/quick-lint-js/fe/diagnostic.cpp",
+    "cpp/src/quick-lint-js/fe/diagnostic.h",
     "cpp/src/quick-lint-js/fe/identifier.h",
     "cpp/src/quick-lint-js/fe/source_code_span.cpp",
     "cpp/src/quick-lint-js/fe/source_code_span.h",
@@ -59,6 +62,7 @@ CONVERTED_CPP_FILES = [
     "cpp/test/quick-lint-js/array.h",  # Not needed in Rust.
     "cpp/test/quick-lint-js/gtest.h",  # Not needed in Rust.
     "cpp/test/test-assert.cpp",
+    "cpp/test/test-diagnostic.cpp",
     "cpp/test/test-linked-bump-allocator.cpp",
     "cpp/test/test-linked-vector.cpp",
     "cpp/test/test-locale.cpp",
