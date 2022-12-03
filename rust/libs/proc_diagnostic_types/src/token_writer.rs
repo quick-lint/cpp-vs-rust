@@ -16,6 +16,14 @@ impl TokenWriter {
         )))
     }
 
+    pub fn lifetime(&mut self, name: &str) {
+        self.token(proc_macro::TokenTree::Punct(proc_macro::Punct::new(
+            '\'',
+            proc_macro::Spacing::Joint,
+        )));
+        self.ident(name);
+    }
+
     pub fn string(&mut self, value: &str) {
         self.0
             .push(proc_macro::TokenTree::Literal(proc_macro::Literal::string(

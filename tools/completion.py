@@ -23,6 +23,8 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/container/string-view.h",  # Sorta.
     "cpp/src/quick-lint-js/container/vector.h",
     "cpp/src/quick-lint-js/container/winkable.h",
+    "cpp/src/quick-lint-js/diag-reporter.cpp",
+    "cpp/src/quick-lint-js/diag-reporter.h",
     "cpp/src/quick-lint-js/fe/diagnostic-types.h",
     "cpp/src/quick-lint-js/fe/diagnostic.cpp",
     "cpp/src/quick-lint-js/fe/diagnostic.h",

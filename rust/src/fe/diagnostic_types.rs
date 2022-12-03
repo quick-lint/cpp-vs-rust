@@ -341,6 +341,13 @@ pub struct DiagMultipleMessageTest<'code> {
 
 qljs_make_diag_type_enum!(DiagType);
 
+// NOTE(port): In C++, this was a function template called diag_type_from_type.
+pub trait HasDiagType {
+    const TYPE_: DiagType;
+}
+
+qljs_make_has_diag_type_impls!();
+
 const DIAG_TYPE_COUNT: i32 = qljs_diag_type_count!() as i32;
 
 pub(crate) const ALL_DIAGNOSTIC_INFOS: &[DiagnosticInfo] = &qljs_make_diag_type_infos!();

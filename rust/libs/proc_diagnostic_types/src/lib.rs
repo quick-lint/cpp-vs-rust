@@ -230,6 +230,41 @@ pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::To
     enum_writer.to_token_stream()
 }
 
+// For each registered diagnostic struct, write the following:
+//
+// impl<'code> HasDiagType for $diag<'code> {
+//     const TYPE_: DiagType = DiagType::$diag;
+// }
+#[proc_macro]
+pub fn qljs_make_has_diag_type_impls(_args: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let mut writer = TokenWriter::new();
+    for diag_struct in unsafe { &REGISTERED_DIAG_STRUCTS } {
+        writer.ident("impl");
+        writer.punct("<");
+        writer.lifetime("code");
+        writer.punct(">");
+        writer.ident("HasDiagType");
+        writer.ident("for");
+        writer.ident(&diag_struct.name);
+        writer.punct("<");
+        writer.lifetime("code");
+        writer.punct(">");
+        writer.build_brace(|impl_members: &mut TokenWriter| {
+            impl_members.ident("const");
+            impl_members.ident("TYPE_");
+            impl_members.punct(":");
+            impl_members.ident("DiagType");
+            impl_members.punct("=");
+            impl_members.ident("DiagType");
+            impl_members.punct("::");
+            impl_members.ident(&diag_struct.name);
+            impl_members.punct(";");
+        });
+    }
+
+    writer.to_token_stream()
+}
+
 #[proc_macro]
 pub fn qljs_diag_type_count(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     TokenStreamParser::new(item).expect_eof();
