@@ -97,6 +97,7 @@ def main() -> None:
     rust_files = flatten(
         cwd.glob(pattern)
         for pattern in [
+            "rust/libs/**/*.rs",
             "rust/src/**/*.rs",
             "rust/tests/**/*.rs",
         ]
