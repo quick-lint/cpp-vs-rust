@@ -164,6 +164,7 @@ impl std::fmt::Debug for PaddedString {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct PaddedStringView<'a> {
     data: *const u8,
     length: PaddedStringSizeType,
@@ -190,7 +191,7 @@ impl<'a> PaddedStringView<'a> {
         }
     }
 
-    pub fn data_ptr(&self) -> *const u8 {
+    pub fn c_str(&self) -> *const u8 {
         self.data
     }
 

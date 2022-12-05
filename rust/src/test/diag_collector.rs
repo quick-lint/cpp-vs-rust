@@ -19,6 +19,10 @@ impl<'code> DiagCollector<'code> {
     pub fn index<'a>(&'a self, index: usize) -> AnyDiag<'code> {
         self.errors.borrow_mut()[index].clone()
     }
+
+    pub fn clone_errors(&self) -> Vec<AnyDiag<'code>> {
+        self.errors.borrow_mut().clone()
+    }
 }
 
 impl<'code> DiagReporter for DiagCollector<'code> {

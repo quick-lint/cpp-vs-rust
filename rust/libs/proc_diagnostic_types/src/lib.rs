@@ -100,8 +100,7 @@ pub fn qljs_diagnostic(
 
     let mut derive = TokenWriter::new();
     derive.derive_attribute(&[
-        "Clone",
-        "Debug", // TODO(strager): Instead, only implement Debug on AnyDiag.
+        "Clone", "Debug", // TODO(strager): Instead, only implement Debug on AnyDiag.
     ]);
 
     let mut tokens: proc_macro::TokenStream = derive.to_token_stream();

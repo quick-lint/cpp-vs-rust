@@ -37,16 +37,16 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     }
 
     // TODO(port): Rename to 'push'.
-    pub fn emplace_back(&mut self, value: T) {
+    pub fn emplace_back(&mut self, value: T) -> &mut T {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.tail;
             if c.is_null() || (&*c).item_count == ChunkHeader::<T>::capacity() {
                 c = self.append_new_chunk_slow();
             }
-            let c: &mut ChunkHeader<T> = &mut *c;
-            let item: &mut std::mem::MaybeUninit<T> = c.slot(c.item_count);
+            let item: &mut std::mem::MaybeUninit<T> = (&mut *c).slot((&mut *c).item_count);
             item.write(value);
-            c.item_count += 1;
+            (&mut *c).item_count += 1;
+            item.assume_init_mut()
         }
     }
 

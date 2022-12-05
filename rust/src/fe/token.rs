@@ -257,7 +257,7 @@ macro_rules! qljs_case_conditional_assignment_operator {
     };
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TokenType {
     // Single-character symbols:
     Ampersand = '&' as isize,
@@ -585,7 +585,8 @@ fn to_string(token: TokenType) -> &'static str {
 pub type EscapeSequenceList<'alloc, 'code> =
     BumpVector<'alloc, SourceCodeSpan<'code>, MonotonicAllocator>;
 
-pub struct Token<'alloc, 'code> {
+#[derive(Clone)]
+pub struct Token<'alloc, 'code: 'alloc> {
     pub type_: TokenType,
 
     pub begin: *const u8,
@@ -596,23 +597,29 @@ pub struct Token<'alloc, 'code> {
     // Used only if this is a keyword token or an identifier token.
     // If the token contains no escape sequences, .normalized_identifier is
     // equivalent to string8_view(.begin, .end).
-    pub normalized_identifier: &'code [u8],
+    pub normalized_identifier: &'alloc [u8],
 
     pub extras: TokenExtras<'alloc, 'code>,
 }
 
 pub union TokenExtras<'alloc, 'code> {
-    no_data: (),
+    pub no_data: (),
     // Used only if this is a ReservedKeywordWithEscapeSequence token.
-    identifier_escape_sequences: &'alloc EscapeSequenceList<'alloc, 'code>,
+    pub identifier_escape_sequences: &'alloc EscapeSequenceList<'alloc, 'code>,
     // Used only if this is a CompleteTemplate or IncompleteTemplate token.
     // TODO(port)
-    // template_escape_sequence_diagnostics: &'TODO dyn BufferingDiagReporter,
+    // pub template_escape_sequence_diagnostics: &'TODO dyn BufferingDiagReporter,
+}
+
+impl<'alloc, 'code> Clone for TokenExtras<'alloc, 'code> {
+    fn clone(&self) -> Self {
+        unsafe { std::mem::transmute_copy(self) }
+    }
 }
 
 impl<'alloc, 'code> Token<'alloc, 'code> {
     // NOTE(port): This used to be in lex.cpp, not token.h.
-    pub fn identifier_name(&self) -> Identifier<'code> {
+    pub fn identifier_name(&self) -> Identifier<'alloc, 'code> {
         match self.type_ {
             qljs_case_keyword!()
             | TokenType::Identifier

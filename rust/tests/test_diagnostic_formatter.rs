@@ -223,7 +223,7 @@ fn message_with_extra_identifier_placeholder() {
 
     struct TestDiag {
         hello: SourceCodeSpan<'static>,
-        world: Identifier<'static>,
+        world: Identifier<'static, 'static>,
     }
     let diag = TestDiag {
         hello: SourceCodeSpan::from_slice(&CODE[0..5]),

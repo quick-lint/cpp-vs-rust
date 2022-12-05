@@ -5,5 +5,6 @@ pub mod diagnostic_formatter;
 pub mod diagnostic_types;
 pub mod identifier;
 pub mod language;
+pub mod lex;
 pub mod source_code_span;
 pub mod token;

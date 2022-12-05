@@ -1,3 +1,10 @@
+use cpp_vs_rust::assert_matches;
+use cpp_vs_rust::container::padded_string::*;
+use cpp_vs_rust::fe::diagnostic_types::*;
+use cpp_vs_rust::fe::lex::*;
+use cpp_vs_rust::fe::token::*;
+use cpp_vs_rust::test::diag_collector::*;
+
 // TODO(port): lex_block_comments
 // TODO(port): lex_unopened_block_comment
 // TODO(port): lex_regexp_literal_starting_with_star_slash
@@ -69,7 +76,36 @@
 // TODO(port): lex_typescript_contextual_keywords
 // TODO(port): lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences
 // TODO(port): lex_contextual_keywords_and_await_and_yield_can_contain_escape_sequences
-// TODO(port): lex_single_character_symbols
+
+#[test]
+fn lex_single_character_symbols() {
+    let mut f = Fixture::new();
+    // TODO(port): f.check_tokens("+", &[TokenType::Plus]);
+    // TODO(port): f.check_tokens("-", &[TokenType::Minus]);
+    // TODO(port): f.check_tokens("*", &[TokenType::Star]);
+    // TODO(port): f.check_tokens("/", &[TokenType::Slash]);
+    // TODO(port): f.check_tokens("<", &[TokenType::Less]);
+    // TODO(port): f.check_tokens(">", &[TokenType::Greater]);
+    // TODO(port): f.check_tokens("=", &[TokenType::Equal]);
+    // TODO(port): f.check_tokens("&", &[TokenType::Ampersand]);
+    // TODO(port): f.check_tokens("^", &[TokenType::Circumflex]);
+    // TODO(port): f.check_tokens("!", &[TokenType::Bang]);
+    // TODO(port): f.check_tokens(".", &[TokenType::Dot]);
+    f.check_tokens(",", &[TokenType::Comma]);
+    f.check_tokens("~", &[TokenType::Tilde]);
+    // TODO(port): f.check_tokens("%", &[TokenType::Percent]);
+    f.check_tokens("(", &[TokenType::LeftParen]);
+    f.check_tokens(")", &[TokenType::RightParen]);
+    f.check_tokens("[", &[TokenType::LeftSquare]);
+    f.check_tokens("]", &[TokenType::RightSquare]);
+    f.check_tokens("{", &[TokenType::LeftCurly]);
+    f.check_tokens("}", &[TokenType::RightCurly]);
+    f.check_tokens(":", &[TokenType::Colon]);
+    f.check_tokens(";", &[TokenType::Semicolon]);
+    // TODO(port): f.check_tokens("?", &[TokenType::Question]);
+    // TODO(port): f.check_tokens("|", &[TokenType::Pipe]);
+}
+
 // TODO(port): lex_multi_character_symbols
 // TODO(port): lex_adjacent_symbols
 // TODO(port): lex_symbols_separated_by_whitespace
@@ -110,3 +146,68 @@
 // TODO(port): jsx_illegal_text_children
 // TODO(port): jsx_expression_children
 // TODO(port): jsx_nested_children
+
+struct Fixture {
+    lex_jsx_tokens: bool,
+}
+
+impl Fixture {
+    fn new() -> Fixture {
+        Fixture {
+            lex_jsx_tokens: false,
+        }
+    }
+
+    fn check_tokens(&mut self, input: &str, expected_token_types: &[TokenType]) {
+        let input = PaddedString::from_str(input);
+        self.check_tokens_with_errors(
+            input.view(),
+            expected_token_types,
+            |_code: PaddedStringView, errors: &Vec<AnyDiag>| {
+                assert_matches!(errors, e if e.is_empty());
+            },
+        );
+    }
+
+    fn check_tokens_with_errors(
+        &mut self,
+        input: PaddedStringView,
+        expected_token_types: &[TokenType],
+        check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
+    ) {
+        let errors = DiagCollector::new();
+        self.lex_to_eof(input, &errors, |lexed_tokens: &Vec<Token>| {
+            let lexed_token_types: Vec<TokenType> = lexed_tokens.iter().map(|t| t.type_).collect();
+
+            assert_eq!(lexed_token_types, expected_token_types.to_vec());
+            check_errors(input, &errors.clone_errors());
+        });
+    }
+
+    fn lex_to_eof<
+        'code,
+        'reporter: 'code,
+        Callback: for<'lexer> FnOnce(&'lexer Vec<Token<'lexer, 'code>>),
+    >(
+        &mut self,
+        input: PaddedStringView<'code>,
+        errors: &'reporter DiagCollector<'code>,
+        callback: Callback,
+    ) {
+        let mut l: Lexer<'code, 'reporter> = Lexer::new(input, errors);
+        let mut tokens: Vec<Token<'_, 'code>> = vec![];
+        while l.peek().type_ != TokenType::EndOfFile {
+            let t: &Token<'_, 'code> = l.peek();
+            // HACK(strager): Rust doesn't know that Token::normalized_identifier and other fields
+            // won't be corrupted if we later mutate the Lexer. Work around lifetime issues with
+            // some reference transmutation.
+            tokens.push(unsafe { std::mem::transmute::<_, &Token>(t) }.clone());
+            if self.lex_jsx_tokens {
+                l.skip_in_jsx();
+            } else {
+                l.skip();
+            }
+        }
+        callback(&tokens);
+    }
+}
