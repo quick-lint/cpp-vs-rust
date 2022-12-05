@@ -137,6 +137,11 @@ Non-generated Rust SLOC:          {rust_human_sloc:7} ({100 * rust_human_sloc / 
 """
     )
 
+    print("\nUnconverted files:")
+    for file in sorted(cpp_files):
+        if file not in converted_cpp_files:
+            print(f"  {file}")
+
 
 def flatten(iterable_of_iterables) -> typing.List:
     return [x for iterable in iterable_of_iterables for x in iterable]
