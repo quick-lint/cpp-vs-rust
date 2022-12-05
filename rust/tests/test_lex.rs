@@ -5,6 +5,12 @@ use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::token::*;
 use cpp_vs_rust::test::diag_collector::*;
 
+macro_rules! scoped_trace {
+    ($expr:expr $(,)?) => {
+        // TODO(port): SCOPED_TRACE from Google Test.
+    };
+}
+
 // TODO(port): lex_block_comments
 // TODO(port): lex_unopened_block_comment
 // TODO(port): lex_regexp_literal_starting_with_star_slash
@@ -157,7 +163,59 @@ fn lex_adjacent_symbols() {
 // TODO(port): lex_symbols_separated_by_whitespace
 // TODO(port): question_followed_by_number_is_not_question_dot
 // TODO(port): question_dot_followed_by_non_digit_is_question_dot
-// TODO(port): lex_whitespace
+
+#[test]
+#[allow(unused_mut, unused_variables)] // TODO(port): Delete.
+fn lex_whitespace() {
+    let mut f = Fixture::new();
+    for whitespace in &[
+        "\n",       //
+        "\r",       //
+        "\r\n",     //
+        "\u{2028}", // 0xe2 0x80 0xa8 Line Separator
+        "\u{2029}", // 0xe2 0x80 0xa9 Paragraph Separator
+        " ",        //
+        "\t",       //
+        "\u{000c}", // 0x0c Form Feed
+        "\u{000b}", // 0x0b Vertical Tab
+        "\u{00a0}", // 0xc2 0xa0      No-Break Space (NBSP)
+        "\u{1680}", // 0xe1 0x9a 0x80 Ogham Space Mark
+        "\u{2000}", // 0xe2 0x80 0x80 En Quad
+        "\u{2001}", // 0xe2 0x80 0x81 Em Quad
+        "\u{2002}", // 0xe2 0x80 0x82 En Space
+        "\u{2003}", // 0xe2 0x80 0x83 Em Space
+        "\u{2004}", // 0xe2 0x80 0x84 Three-Per-Em Space
+        "\u{2005}", // 0xe2 0x80 0x85 Four-Per-Em Space
+        "\u{2006}", // 0xe2 0x80 0x86 Six-Per-Em Space
+        "\u{2007}", // 0xe2 0x80 0x87 Figure Space
+        "\u{2008}", // 0xe2 0x80 0x88 Punctuation Space
+        "\u{2009}", // 0xe2 0x80 0x89 Thin Space
+        "\u{200a}", // 0xe2 0x80 0x8a Hair Space
+        "\u{202f}", // 0xe2 0x80 0xaf Narrow No-Break Space (NNBSP)
+        "\u{205f}", // 0xe2 0x81 0x9f Medium Mathematical Space (MMSP)
+        "\u{3000}", // 0xe3 0x80 0x80 Ideographic Space
+        "\u{feff}", // 0xef 0xbb 0xbf Zero Width No-Break Space (BOM, ZWNBSP)
+    ] {
+        {
+            let input: String = format!("a{whitespace}b");
+            scoped_trace!(input);
+            // TODO(port): f.check_tokens(&input, &[TokenType::Identifier, TokenType::Identifier]);
+        }
+
+        {
+            let input: String = format!("{whitespace}10{whitespace}'hi'{whitespace}");
+            scoped_trace!(input);
+            // TODO(port): f.check_tokens(&input, &[TokenType::Number, TokenType::String]);
+        }
+
+        {
+            let input: String = format!("async{whitespace}function{whitespace}");
+            scoped_trace!(input);
+            // TODO(port): f.check_tokens(&input, &[TokenType::KWAsync, TokenType::KWFunction]);
+        }
+    }
+}
+
 // TODO(port): lex_shebang
 // TODO(port): lex_not_shebang
 // TODO(port): lex_unexpected_bom_before_shebang

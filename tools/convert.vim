@@ -30,11 +30,11 @@
 
 %s/\<case \(.*\):$/\1 =>/g
 
-%s/\<token_type::kw_\([a-z]\+\)\>/TokenType::KW\u\1/
-%s/\<token_type::\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2\u\3\u\4/
-%s/\<token_type::\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2\u\3/
-%s/\<token_type::\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2/
-%s/\<token_type::\([a-z]\+\)\>/TokenType::\u\1/
+%s/\<token_type::kw_\([a-z]\+\)\>/TokenType::KW\u\1/g
+%s/\<token_type::\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2\u\3\u\4/g
+%s/\<token_type::\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2\u\3/g
+%s/\<token_type::\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2/g
+%s/\<token_type::\([a-z]\+\)\>/TokenType::\u\1/g
 
 %s/\<u8"\([^"]*\)"_sv\>/"\1"/
 %s/\<u8"\([^"]*\)"sv\>/"\1"/
