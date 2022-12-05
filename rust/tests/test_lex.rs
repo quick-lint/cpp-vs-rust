@@ -80,20 +80,20 @@ use cpp_vs_rust::test::diag_collector::*;
 #[test]
 fn lex_single_character_symbols() {
     let mut f = Fixture::new();
-    // TODO(port): f.check_tokens("+", &[TokenType::Plus]);
-    // TODO(port): f.check_tokens("-", &[TokenType::Minus]);
-    // TODO(port): f.check_tokens("*", &[TokenType::Star]);
-    // TODO(port): f.check_tokens("/", &[TokenType::Slash]);
-    // TODO(port): f.check_tokens("<", &[TokenType::Less]);
-    // TODO(port): f.check_tokens(">", &[TokenType::Greater]);
-    // TODO(port): f.check_tokens("=", &[TokenType::Equal]);
-    // TODO(port): f.check_tokens("&", &[TokenType::Ampersand]);
-    // TODO(port): f.check_tokens("^", &[TokenType::Circumflex]);
-    // TODO(port): f.check_tokens("!", &[TokenType::Bang]);
-    // TODO(port): f.check_tokens(".", &[TokenType::Dot]);
+    f.check_tokens("+", &[TokenType::Plus]);
+    f.check_tokens("-", &[TokenType::Minus]);
+    f.check_tokens("*", &[TokenType::Star]);
+    f.check_tokens("/", &[TokenType::Slash]);
+    f.check_tokens("<", &[TokenType::Less]);
+    f.check_tokens(">", &[TokenType::Greater]);
+    f.check_tokens("=", &[TokenType::Equal]);
+    f.check_tokens("&", &[TokenType::Ampersand]);
+    f.check_tokens("^", &[TokenType::Circumflex]);
+    f.check_tokens("!", &[TokenType::Bang]);
+    f.check_tokens(".", &[TokenType::Dot]);
     f.check_tokens(",", &[TokenType::Comma]);
     f.check_tokens("~", &[TokenType::Tilde]);
-    // TODO(port): f.check_tokens("%", &[TokenType::Percent]);
+    f.check_tokens("%", &[TokenType::Percent]);
     f.check_tokens("(", &[TokenType::LeftParen]);
     f.check_tokens(")", &[TokenType::RightParen]);
     f.check_tokens("[", &[TokenType::LeftSquare]);
@@ -102,12 +102,58 @@ fn lex_single_character_symbols() {
     f.check_tokens("}", &[TokenType::RightCurly]);
     f.check_tokens(":", &[TokenType::Colon]);
     f.check_tokens(";", &[TokenType::Semicolon]);
-    // TODO(port): f.check_tokens("?", &[TokenType::Question]);
-    // TODO(port): f.check_tokens("|", &[TokenType::Pipe]);
+    f.check_tokens("?", &[TokenType::Question]);
+    f.check_tokens("|", &[TokenType::Pipe]);
 }
 
-// TODO(port): lex_multi_character_symbols
-// TODO(port): lex_adjacent_symbols
+#[test]
+fn lex_multi_character_symbols() {
+    let mut f = Fixture::new();
+    f.check_tokens("<=", &[TokenType::LessEqual]);
+    f.check_tokens(">=", &[TokenType::GreaterEqual]);
+    f.check_tokens("==", &[TokenType::EqualEqual]);
+    f.check_tokens("===", &[TokenType::EqualEqualEqual]);
+    f.check_tokens("!=", &[TokenType::BangEqual]);
+    f.check_tokens("!==", &[TokenType::BangEqualEqual]);
+    f.check_tokens("**", &[TokenType::StarStar]);
+    f.check_tokens("++", &[TokenType::PlusPlus]);
+    f.check_tokens("--", &[TokenType::MinusMinus]);
+    f.check_tokens("<<", &[TokenType::LessLess]);
+    f.check_tokens(">>", &[TokenType::GreaterGreater]);
+    f.check_tokens(">>>", &[TokenType::GreaterGreaterGreater]);
+    f.check_tokens("&&", &[TokenType::AmpersandAmpersand]);
+    f.check_tokens("||", &[TokenType::PipePipe]);
+    f.check_tokens("+=", &[TokenType::PlusEqual]);
+    f.check_tokens("-=", &[TokenType::MinusEqual]);
+    f.check_tokens("*=", &[TokenType::StarEqual]);
+    f.check_tokens("/=", &[TokenType::SlashEqual]);
+    f.check_tokens("%=", &[TokenType::PercentEqual]);
+    f.check_tokens("**=", &[TokenType::StarStarEqual]);
+    f.check_tokens("&&=", &[TokenType::AmpersandAmpersandEqual]);
+    f.check_tokens("&=", &[TokenType::AmpersandEqual]);
+    f.check_tokens("?.", &[TokenType::QuestionDot]);
+    f.check_tokens("??", &[TokenType::QuestionQuestion]);
+    f.check_tokens("??=", &[TokenType::QuestionQuestionEqual]);
+    f.check_tokens("^=", &[TokenType::CircumflexEqual]);
+    f.check_tokens("|=", &[TokenType::PipeEqual]);
+    f.check_tokens("||=", &[TokenType::PipePipeEqual]);
+    f.check_tokens("<<=", &[TokenType::LessLessEqual]);
+    f.check_tokens(">>=", &[TokenType::GreaterGreaterEqual]);
+    f.check_tokens(">>>=", &[TokenType::GreaterGreaterGreaterEqual]);
+    f.check_tokens("=>", &[TokenType::EqualGreater]);
+    f.check_tokens("...", &[TokenType::DotDotDot]);
+}
+
+#[test]
+fn lex_adjacent_symbols() {
+    let mut f = Fixture::new();
+    f.check_tokens("{}", &[TokenType::LeftCurly, TokenType::RightCurly]);
+    f.check_tokens("[]", &[TokenType::LeftSquare, TokenType::RightSquare]);
+    f.check_tokens("/!", &[TokenType::Slash, TokenType::Bang]);
+    f.check_tokens("*==", &[TokenType::StarEqual, TokenType::Equal]);
+    f.check_tokens("^>>", &[TokenType::Circumflex, TokenType::GreaterGreater]);
+}
+
 // TODO(port): lex_symbols_separated_by_whitespace
 // TODO(port): question_followed_by_number_is_not_question_dot
 // TODO(port): question_dot_followed_by_non_digit_is_question_dot
