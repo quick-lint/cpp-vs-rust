@@ -25,6 +25,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/container/winkable.h",
     "cpp/src/quick-lint-js/fe/buffering-diag-reporter.cpp",
     "cpp/src/quick-lint-js/fe/buffering-diag-reporter.h",
+    "cpp/src/quick-lint-js/fe/diag-debug.cpp",
     "cpp/src/quick-lint-js/fe/diag-reporter.cpp",
     "cpp/src/quick-lint-js/fe/diag-reporter.h",
     "cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp",
@@ -71,7 +72,9 @@ CONVERTED_CPP_FILES = [
     "cpp/test/quick-lint-js/array.h",  # Not needed in Rust.
     "cpp/test/quick-lint-js/diag-collector.h",
     "cpp/test/quick-lint-js/gtest.h",  # Not needed in Rust.
+    "cpp/test/quick-lint-js/test-translation-table-generated.h",
     "cpp/test/test-assert.cpp",
+    "cpp/test/test-buffering-diag-reporter.cpp",
     "cpp/test/test-diagnostic-formatter.cpp",
     "cpp/test/test-diagnostic.cpp",
     "cpp/test/test-linked-bump-allocator.cpp",
