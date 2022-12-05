@@ -11,7 +11,8 @@ pub struct Identifier<'code> {
 }
 
 impl<'code> Identifier<'code> {
-    #[cfg(test)]
+    // For tests only.
+    // TODO(port): Use #[cfg(test)] when it works properly.
     pub fn from_source_code_span(span: SourceCodeSpan<'code>) -> Identifier<'code> {
         let span_begin = span.begin_ptr();
         let span_size = span.size();

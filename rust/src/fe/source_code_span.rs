@@ -30,6 +30,11 @@ impl<'code> SourceCodeSpan<'code> {
         }
     }
 
+    pub fn from_slice(slice: &'code [u8]) -> SourceCodeSpan<'code> {
+        let begin: *const u8 = slice.as_ptr();
+        unsafe { SourceCodeSpan::new(begin, begin.offset(slice.len() as isize)) }
+    }
+
     pub fn begin_ptr(&self) -> *const u8 {
         self.begin
     }

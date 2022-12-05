@@ -12,6 +12,11 @@ macro_rules! qljs_assert {
         #[cfg(debug_assertions)]
         $crate::qljs_always_assert!($cond);
     };
+    ($cond:expr, $message:expr $(,)?) => {
+        // TODO(strager): Include the message.
+        #[cfg(debug_assertions)]
+        $crate::qljs_always_assert!($cond);
+    };
 }
 
 #[macro_export]

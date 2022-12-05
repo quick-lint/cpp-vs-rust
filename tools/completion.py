@@ -27,6 +27,8 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/diag-reporter.h",
     "cpp/src/quick-lint-js/fe/buffering-diag-reporter.cpp",
     "cpp/src/quick-lint-js/fe/buffering-diag-reporter.h",
+    "cpp/src/quick-lint-js/fe/diagnostic-formatter.cpp",
+    "cpp/src/quick-lint-js/fe/diagnostic-formatter.h",
     "cpp/src/quick-lint-js/fe/diagnostic-types.h",
     "cpp/src/quick-lint-js/fe/diagnostic.cpp",
     "cpp/src/quick-lint-js/fe/diagnostic.h",
@@ -70,6 +72,7 @@ CONVERTED_CPP_FILES = [
     "cpp/test/quick-lint-js/diag-collector.h",
     "cpp/test/quick-lint-js/gtest.h",  # Not needed in Rust.
     "cpp/test/test-assert.cpp",
+    "cpp/test/test-diagnostic-formatter.cpp",
     "cpp/test/test-diagnostic.cpp",
     "cpp/test/test-linked-bump-allocator.cpp",
     "cpp/test/test-linked-vector.cpp",

@@ -78,7 +78,7 @@ impl DiagnosticMessageArgInfo {
     }
 }
 
-type DiagnosticMessageArgs = [DiagnosticMessageArgInfo; DIAGNOSTIC_MAX_ARG_COUNT];
+pub type DiagnosticMessageArgs = [DiagnosticMessageArgInfo; DIAGNOSTIC_MAX_ARG_COUNT];
 
 const DIAGNOSTIC_INFO_CODE_BITS: u16 = 14;
 const DIAGNOSTIC_INFO_CODE_MASK: u16 = (1 << DIAGNOSTIC_INFO_CODE_BITS) - 1;
@@ -112,7 +112,15 @@ impl DiagnosticInfo {
     }
 
     pub const fn code_string(&self) -> [u8; 5] {
-        todo!(); // TODO(port)
+        let diag_code: u16 = self.code();
+        qljs_assert!(diag_code <= 9999);
+        [
+            b'E',
+            b'0' + (((diag_code / 1000) % 10) as u8),
+            b'0' + (((diag_code / 100) % 10) as u8),
+            b'0' + (((diag_code / 10) % 10) as u8),
+            b'0' + (((diag_code / 1) % 10) as u8),
+        ]
     }
 
     pub const fn code(&self) -> u16 {
