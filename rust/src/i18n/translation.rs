@@ -28,6 +28,7 @@ fn initialize_translations_from_locale(locale_name: &str) {
     }
 }
 
+#[derive(Clone)]
 pub struct Translator {
     locale_index: i32,
 }
