@@ -5,6 +5,19 @@ impl TokenWriter {
         TokenWriter(vec![])
     }
 
+    pub fn derive_attribute(&mut self, traits: &[&str]) {
+        self.punct("#");
+        self.build_bracket(|attribute: &mut TokenWriter| {
+            attribute.ident("derive");
+            attribute.build_paren(|derives: &mut TokenWriter| {
+                for t in traits {
+                    derives.ident(t);
+                    derives.punct(",");
+                }
+            });
+        });
+    }
+
     pub fn token(&mut self, token: proc_macro::TokenTree) {
         self.0.push(token);
     }

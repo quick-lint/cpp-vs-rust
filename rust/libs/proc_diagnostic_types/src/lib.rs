@@ -99,16 +99,10 @@ pub fn qljs_diagnostic(
     };
 
     let mut derive = TokenWriter::new();
-    derive.punct("#");
-    derive.build_bracket(|attribute: &mut TokenWriter| {
-        attribute.ident("derive");
-        attribute.build_paren(|derives: &mut TokenWriter| {
-            derives.ident("Clone");
-            // TODO(strager): Instead, only implement Debug on AnyDiag.
-            derives.punct(",");
-            derives.ident("Debug");
-        });
-    });
+    derive.derive_attribute(&[
+        "Clone",
+        "Debug", // TODO(strager): Instead, only implement Debug on AnyDiag.
+    ]);
 
     let mut tokens: proc_macro::TokenStream = derive.to_token_stream();
     tokens.extend([item]);
@@ -242,21 +236,7 @@ pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::To
     parser.expect_eof();
 
     let mut enum_writer = TokenWriter::new();
-    enum_writer.punct("#");
-    enum_writer.build_bracket(|attribute: &mut TokenWriter| {
-        attribute.ident("derive");
-        attribute.build_paren(|derives: &mut TokenWriter| {
-            derives.ident("Clone");
-            derives.punct(",");
-            derives.ident("Copy");
-            derives.punct(",");
-            derives.ident("Debug");
-            derives.punct(",");
-            derives.ident("Eq");
-            derives.punct(",");
-            derives.ident("PartialEq");
-        });
-    });
+    enum_writer.derive_attribute(&["Clone", "Copy", "Debug", "Eq", "PartialEq"]);
     enum_writer.ident("pub");
     enum_writer.ident("enum");
     enum_writer.token(proc_macro::TokenTree::Ident(name));
@@ -291,17 +271,12 @@ pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::To
 pub fn qljs_make_any_diag_enum(_args: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut writer = TokenWriter::new();
 
-    writer.punct("#");
-    writer.build_bracket(|attribute: &mut TokenWriter| {
-        attribute.ident("derive");
-        attribute.build_paren(|derives: &mut TokenWriter| {
-            derives.ident("Clone");
-            derives.punct(",");
-            // TODO(strager): Instead, debug print without the enum name, to avoid duplicating the
-            // diag struct name.
-            derives.ident("Debug");
-        });
-    });
+    writer.derive_attribute(&[
+        "Clone",
+        // TODO(strager): Instead, debug print without the enum name, to avoid duplicating the diag
+        // struct name.
+        "Debug",
+    ]);
     writer.ident("pub");
     writer.ident("enum");
     writer.ident("AnyDiag");
