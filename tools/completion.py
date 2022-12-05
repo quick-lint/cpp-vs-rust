@@ -31,6 +31,8 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/fe/diagnostic.cpp",
     "cpp/src/quick-lint-js/fe/diagnostic.h",
     "cpp/src/quick-lint-js/fe/identifier.h",
+    "cpp/src/quick-lint-js/fe/language-debug.cpp",
+    "cpp/src/quick-lint-js/fe/language.h",
     "cpp/src/quick-lint-js/fe/source_code_span.cpp",
     "cpp/src/quick-lint-js/fe/source_code_span.h",
     "cpp/src/quick-lint-js/fe/token.h",
