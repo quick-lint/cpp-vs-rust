@@ -34,6 +34,8 @@ const DIAGNOSTIC_MAX_ARG_COUNT: usize = 3;
 //   (without "self.")
 // * The tuple's second argument must have type *Identifier* or *SourceCodeSpan*
 //
+// Adding the qljs_diagnostic attribute will automatically derive Clone.
+//
 // Example:
 //
 // #[qljs_diagnostic(
@@ -96,7 +98,21 @@ pub fn qljs_diagnostic(
         })
     };
 
-    item
+    let mut derive = TokenWriter::new();
+    derive.punct("#");
+    derive.build_bracket(|attribute: &mut TokenWriter| {
+        attribute.ident("derive");
+        attribute.build_paren(|derives: &mut TokenWriter| {
+            derives.ident("Clone");
+            // TODO(strager): Instead, only implement Debug on AnyDiag.
+            derives.punct(",");
+            derives.ident("Debug");
+        });
+    });
+
+    let mut tokens: proc_macro::TokenStream = derive.to_token_stream();
+    tokens.extend([item]);
+    tokens
 }
 
 fn parse_qljs_diagnostic_attribute(stream: proc_macro::TokenStream) -> QLJSDiagnosticAttribute {
@@ -209,6 +225,14 @@ fn parse_arg_type(parser: &mut TokenStreamParser) -> DiagnosticArgType {
     );
 }
 
+// Write:
+//
+// #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+// pub enum $name {
+//     Diag1,
+//     Diag2,
+//     /* ... */
+// }
 #[proc_macro]
 pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut parser = TokenStreamParser::new(item);
@@ -218,6 +242,21 @@ pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::To
     parser.expect_eof();
 
     let mut enum_writer = TokenWriter::new();
+    enum_writer.punct("#");
+    enum_writer.build_bracket(|attribute: &mut TokenWriter| {
+        attribute.ident("derive");
+        attribute.build_paren(|derives: &mut TokenWriter| {
+            derives.ident("Clone");
+            derives.punct(",");
+            derives.ident("Copy");
+            derives.punct(",");
+            derives.ident("Debug");
+            derives.punct(",");
+            derives.ident("Eq");
+            derives.punct(",");
+            derives.ident("PartialEq");
+        });
+    });
     enum_writer.ident("pub");
     enum_writer.ident("enum");
     enum_writer.token(proc_macro::TokenTree::Ident(name));
@@ -228,6 +267,121 @@ pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::To
         }
     });
     enum_writer.to_token_stream()
+}
+
+// Write:
+//
+// #[derive(Clone, Debug)]
+// pub enum AnyDiag<'code> {
+//     Diag1(Diag1<'code>),
+//     Diag2(Diag2<'code>),
+//     /* ... */
+// }
+//
+// impl<'code> AnyDiag<'code> {
+//     pub unsafe fn from_raw_parts(type_: DiagType, diag: *const u8) -> Self {
+//         match type_ {
+//             DiagType::Diag1 => AnyDiag::Diag1((&*(diag as *const Diag1)).clone()),
+//             DiagType::Diag2 => AnyDiag::Diag2((&*(diag as *const Diag2)).clone()),
+//             /* ... */
+//         }
+//     }
+// }
+#[proc_macro]
+pub fn qljs_make_any_diag_enum(_args: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let mut writer = TokenWriter::new();
+
+    writer.punct("#");
+    writer.build_bracket(|attribute: &mut TokenWriter| {
+        attribute.ident("derive");
+        attribute.build_paren(|derives: &mut TokenWriter| {
+            derives.ident("Clone");
+            derives.punct(",");
+            // TODO(strager): Instead, debug print without the enum name, to avoid duplicating the
+            // diag struct name.
+            derives.ident("Debug");
+        });
+    });
+    writer.ident("pub");
+    writer.ident("enum");
+    writer.ident("AnyDiag");
+    writer.punct("<");
+    writer.lifetime("code");
+    writer.punct(">");
+    writer.build_brace(|enum_members: &mut TokenWriter| {
+        for diag_struct in unsafe { &REGISTERED_DIAG_STRUCTS } {
+            enum_members.ident(&diag_struct.name);
+            enum_members.build_paren(|member: &mut TokenWriter| {
+                member.ident(&diag_struct.name);
+                member.punct("<");
+                member.lifetime("code");
+                member.punct(">");
+            });
+            enum_members.punct(",");
+        }
+    });
+
+    writer.ident("impl");
+    writer.punct("<");
+    writer.lifetime("code");
+    writer.punct(">");
+    writer.ident("AnyDiag");
+    writer.punct("<");
+    writer.lifetime("code");
+    writer.punct(">");
+    writer.build_brace(|impl_body: &mut TokenWriter| {
+        impl_body.ident("pub");
+        impl_body.ident("unsafe");
+        impl_body.ident("fn");
+        impl_body.ident("from_raw_parts");
+        impl_body.build_paren(|parameters: &mut TokenWriter| {
+            parameters.ident("type_");
+            parameters.punct(":");
+            parameters.ident("DiagType");
+            parameters.punct(",");
+            parameters.ident("diag");
+            parameters.punct(":");
+            parameters.punct("*");
+            parameters.ident("const");
+            parameters.ident("u8");
+        });
+        impl_body.punct("->");
+        impl_body.ident("Self");
+        impl_body.build_brace(|fn_body: &mut TokenWriter| {
+            fn_body.ident("match");
+            fn_body.ident("type_");
+            fn_body.build_brace(|match_body: &mut TokenWriter| {
+                for diag_struct in unsafe { &REGISTERED_DIAG_STRUCTS } {
+                    match_body.ident("DiagType");
+                    match_body.punct("::");
+                    match_body.ident(&diag_struct.name);
+                    match_body.punct("=>");
+                    match_body.ident("AnyDiag");
+                    match_body.punct("::");
+                    match_body.ident(&diag_struct.name);
+                    match_body.build_paren(|construct_args: &mut TokenWriter| {
+                        construct_args.build_paren(|diag: &mut TokenWriter| {
+                            diag.punct("&");
+                            diag.punct("*");
+                            diag.build_paren(|diag_ptr: &mut TokenWriter| {
+                                diag_ptr.ident("diag");
+                                diag_ptr.ident("as");
+                                diag_ptr.punct("*");
+                                diag_ptr.ident("const");
+                                diag_ptr.ident(&diag_struct.name);
+                            });
+                        });
+                        construct_args.punct(".");
+                        construct_args.ident("clone");
+                        construct_args.empty_paren();
+                    });
+                    match_body.punct(",");
+                }
+            });
+        });
+    });
+
+    writer.to_token_stream()
 }
 
 // For each registered diagnostic struct, write the following:
@@ -272,6 +426,49 @@ pub fn qljs_diag_type_count(item: proc_macro::TokenStream) -> proc_macro::TokenS
     let mut size = TokenWriter::new();
     size.literal_usize(unsafe { REGISTERED_DIAG_STRUCTS.len() });
     size.to_token_stream()
+}
+
+// Write:
+//
+// pub const DIAG_SIZES: [u8; $diag_count] = [
+//     std::mem::size_of::<Diag1>() as u8,
+//     std::mem::size_of::<Diag2>() as u8,
+//     /* ... */
+// ];
+#[proc_macro]
+pub fn qljs_diag_sizes_array(args: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    TokenStreamParser::new(args).expect_eof();
+
+    let mut writer = TokenWriter::new();
+    writer.ident("pub");
+    writer.ident("const");
+    writer.ident("DIAG_SIZES");
+    writer.punct(":");
+    writer.build_bracket(|array_type: &mut TokenWriter| {
+        array_type.ident("u8");
+        array_type.punct(";");
+        array_type.literal_usize(unsafe { REGISTERED_DIAG_STRUCTS.len() });
+    });
+    writer.punct("=");
+    writer.build_bracket(|array: &mut TokenWriter| {
+        for diag_struct in unsafe { &REGISTERED_DIAG_STRUCTS } {
+            array.ident("std");
+            array.punct("::");
+            array.ident("mem");
+            array.punct("::");
+            array.ident("size_of");
+            array.punct("::");
+            array.punct("<");
+            array.ident(&diag_struct.name);
+            array.punct(">");
+            array.empty_paren();
+            array.ident("as");
+            array.ident("u8");
+            array.punct(",");
+        }
+    });
+    writer.punct(";");
+    writer.to_token_stream()
 }
 
 #[proc_macro]

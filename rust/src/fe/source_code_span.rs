@@ -1,6 +1,8 @@
 use crate::container::winkable::*;
 use crate::util::narrow_cast::*;
 
+// TODO(port): Custom implementation of Debug.
+#[derive(Clone, Copy, Debug)]
 pub struct SourceCodeSpan<'code> {
     begin: *const u8,
     end: *const u8,

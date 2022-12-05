@@ -1,6 +1,7 @@
 use crate::fe::diagnostic::*;
 use crate::fe::source_code_span::*;
 use crate::i18n::translation::*;
+use crate::port::constexpr::*;
 use crate::qljs_translatable;
 use cpp_vs_rust_proc_diagnostic_types::*;
 
@@ -348,6 +349,15 @@ pub trait HasDiagType {
 
 qljs_make_has_diag_type_impls!();
 
+// NOTE(strager): For use in tests only.
+// NOTE(port): This was called diag_collector::diag in the C++ code.
+qljs_make_any_diag_enum!();
+
 const DIAG_TYPE_COUNT: i32 = qljs_diag_type_count!() as i32;
 
 pub(crate) const ALL_DIAGNOSTIC_INFOS: &[DiagnosticInfo] = &qljs_make_diag_type_infos!();
+
+// NOTE(port): This was called diag_sizes inside of diag_collector::report in the C++ code.
+qljs_diag_sizes_array!();
+
+pub(crate) const MAX_SIZE_OF_DIAGNOSTIC_TYPE: usize = maximum_u8(&DIAG_SIZES) as usize;

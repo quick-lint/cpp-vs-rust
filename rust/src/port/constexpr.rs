@@ -47,3 +47,15 @@ const fn const_slice_cmp_u8_impl(x: &[u8], y: &[u8], i: usize) -> std::cmp::Orde
     }
     const_slice_cmp_u8_impl(x, y, i + 1)
 }
+
+pub const fn maximum_u8(xs: &[u8]) -> u8 {
+    let mut max: u8 = xs[0];
+    let mut i: usize = 1;
+    while i < xs.len() {
+        if xs[i] > max {
+            max = xs[i];
+        }
+        i += 1;
+    }
+    max
+}

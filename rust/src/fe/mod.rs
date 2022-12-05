@@ -1,3 +1,4 @@
+pub mod buffering_diag_reporter;
 pub mod diag_reporter;
 pub mod diagnostic;
 pub mod diagnostic_types;

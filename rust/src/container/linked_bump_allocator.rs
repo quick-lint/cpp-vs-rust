@@ -1,5 +1,7 @@
 #[cfg(feature = "qljs_debug")]
 use crate::qljs_always_assert;
+
+use crate::port::allocator::*;
 use crate::qljs_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
@@ -338,5 +340,21 @@ impl<const ALIGNMENT: usize> Drop for LinkedBumpAllocator<ALIGNMENT> {
         unsafe {
             self.release();
         }
+    }
+}
+
+impl<const ALIGNMENT: usize> Allocator for LinkedBumpAllocator<ALIGNMENT> {
+    fn allocate(&self, layout: std::alloc::Layout) -> Result<std::ptr::NonNull<[u8]>, AllocError> {
+        unsafe {
+            // TODO(port): Does an allocation size of 0 work?
+            let result: *mut u8 = self.allocate(layout.size(), layout.align());
+            Ok(std::ptr::NonNull::new_unchecked(
+                std::ptr::slice_from_raw_parts_mut(result, layout.size()),
+            ))
+        }
+    }
+
+    unsafe fn deallocate(&self, ptr: std::ptr::NonNull<u8>, layout: std::alloc::Layout) {
+        self.deallocate_bytes(ptr.as_ptr(), layout.size());
     }
 }
