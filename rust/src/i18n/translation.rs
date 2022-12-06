@@ -109,7 +109,7 @@ impl TranslatableMessage {
     }
 
     pub const fn valid(&self) -> bool {
-        return self.0 != TRANSLATION_TABLE_UNALLOCATED_MAPPING_INDEX;
+        self.0 != TRANSLATION_TABLE_UNALLOCATED_MAPPING_INDEX
     }
 
     pub const fn translation_table_mapping_index(&self) -> u16 {

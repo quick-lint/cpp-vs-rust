@@ -5,7 +5,7 @@ use crate::qljs_assert;
 pub fn encode_utf_8<'a>(code_point: u32, out: &'a mut [u8]) -> &'a mut [u8] {
     let byte = |x: u32| {
         qljs_assert!(x <= 0x100);
-        return x as u8;
+        x as u8
     };
     let continuation = 0b1000_0000;
     if code_point >= 0x10000 {

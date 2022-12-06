@@ -1,5 +1,15 @@
+// TODO(port): Warn on these after the port is done.
 #![allow(dead_code)]
 #![allow(unused_variables)]
+// Clippy's suggested fix is ugly.
+#![allow(clippy::explicit_counter_loop)]
+// Often we write (x << 0) or (x | 0) for symmetry with other code.
+#![allow(clippy::identity_op)]
+// Often we write lifetimes explicitly for better readability.
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::redundant_static_lifetimes)]
+// Refactoring is easier if the shorthand syntax is avoided.
+#![allow(clippy::redundant_field_names)]
 
 pub mod assert;
 pub mod container;

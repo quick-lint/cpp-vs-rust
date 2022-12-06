@@ -322,7 +322,7 @@ fn assert_valid_memory<T>(begin: *mut T, len: usize, alignment: usize) {
 
         // Try to get the OS or malloc to detect heap corruption by writing over all
         // of the given memory.
-        std::ptr::write_bytes(begin, 'X' as u8, len);
+        std::ptr::write_bytes(begin, b'X', len);
     }
 }
 

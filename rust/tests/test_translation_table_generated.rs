@@ -4,6 +4,8 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
+#![allow(clippy::redundant_static_lifetimes)]
+
 use cpp_vs_rust::i18n::translation::*;
 use cpp_vs_rust::qljs_translatable;
 

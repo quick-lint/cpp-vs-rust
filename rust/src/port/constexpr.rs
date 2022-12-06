@@ -8,7 +8,7 @@ pub const fn const_slice_eq_u8(x: &[u8], y: &[u8]) -> bool {
     if x.len() != y.len() {
         return false;
     }
-    const_slice_eq_u8_impl(&x, &y, 0)
+    const_slice_eq_u8_impl(x, y, 0)
 }
 
 const fn const_slice_eq_u8_impl(x: &[u8], y: &[u8], i: usize) -> bool {
@@ -26,7 +26,7 @@ pub const fn const_str_cmp(x: &str, y: &str) -> std::cmp::Ordering {
 }
 
 pub const fn const_slice_cmp_u8(x: &[u8], y: &[u8]) -> std::cmp::Ordering {
-    const_slice_cmp_u8_impl(&x, &y, 0)
+    const_slice_cmp_u8_impl(x, y, 0)
 }
 
 const fn const_slice_cmp_u8_impl(x: &[u8], y: &[u8], i: usize) -> std::cmp::Ordering {

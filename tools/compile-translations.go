@@ -754,6 +754,8 @@ func WriteTranslationTestRustSource(locales map[string][]TranslationEntry, path 
 	writeFileHeader(writer)
 
 	fmt.Fprintf(writer, `
+#![allow(clippy::redundant_static_lifetimes)]
+
 use cpp_vs_rust::i18n::translation::*;
 use cpp_vs_rust::qljs_translatable;
 

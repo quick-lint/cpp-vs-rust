@@ -48,7 +48,7 @@ fn parse_locale<'a>(locale_name: &'a str) -> LocaleParts<'a> {
         length: usize,
         which_separator: usize,
     }
-    const INVALID_WHICH_SEPARATOR: usize = (-1 as isize) as usize;
+    const INVALID_WHICH_SEPARATOR: usize = -1_isize as usize;
 
     let find_next_separator = |c: &str, separators: &[char]| -> FoundSeparator {
         match c.find(separators) {

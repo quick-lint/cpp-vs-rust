@@ -11,8 +11,8 @@ type CharVector16 = CharVector16NEON;
 #[test]
 fn char16_repeated() {
     let mut actual: [u8; 16] = [0; 16];
-    CharVector16::repeated('x' as u8).store(&mut actual);
-    assert_eq!(actual, ['x' as u8; 16]);
+    CharVector16::repeated(b'x').store(&mut actual);
+    assert_eq!(actual, [b'x'; 16]);
 }
 
 #[test]

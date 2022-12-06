@@ -1,3 +1,5 @@
+#![allow(clippy::redundant_static_lifetimes)]
+
 use cpp_vs_rust::fe::diagnostic::*;
 use cpp_vs_rust::fe::diagnostic_formatter::*;
 use cpp_vs_rust::fe::identifier::*;

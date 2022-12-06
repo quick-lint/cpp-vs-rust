@@ -6,7 +6,7 @@ fn encode_ascii() {
     let mut buffer: [u8; 1] = [0];
     let rest: &mut [u8] = encode_utf_8('x' as u32, &mut buffer);
     assert_eq!(unsafe { rest.as_ptr().offset_from(buffer.as_ptr()) }, 1);
-    assert_eq!(buffer, ['x' as u8]);
+    assert_eq!(buffer, [b'x']);
 }
 
 #[test]
@@ -126,9 +126,7 @@ fn decode_always_invalid_code_unit_is_an_error() {
         }
 
         {
-            let input = PaddedString::from_slice(&[
-                code_unit, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8,
-            ]);
+            let input = PaddedString::from_slice(&[code_unit, b'?', b'?', b'?', b'?', b'?']);
             let result: DecodeUTF8Result = decode_utf_8(input.view());
             assert_eq!(result.size, 1);
             assert!(!result.ok);
@@ -157,8 +155,7 @@ fn decode_truncated_two_byte_character() {
     }
 
     {
-        let result: DecodeUTF8Result =
-            decode_utf_8(PaddedString::from_slice(&[0xc2, '?' as u8]).view());
+        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_slice(&[0xc2, b'?']).view());
         assert_eq!(result.size, 1);
         assert!(!result.ok);
     }
@@ -197,9 +194,8 @@ fn decode_truncated_three_byte_character() {
     }
 
     {
-        let result: DecodeUTF8Result = decode_utf_8(
-            PaddedString::from_slice(&[0xe0, 0xa4, '?' as u8, '?' as u8, '?' as u8]).view(),
-        );
+        let result: DecodeUTF8Result =
+            decode_utf_8(PaddedString::from_slice(&[0xe0, 0xa4, b'?', b'?', b'?']).view());
         assert_eq!(result.size, 2);
         assert!(!result.ok);
     }
@@ -211,16 +207,14 @@ fn decode_truncated_three_byte_character() {
     }
 
     {
-        let result: DecodeUTF8Result =
-            decode_utf_8(PaddedString::from_slice(&[0xe0, '?' as u8]).view());
+        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_slice(&[0xe0, b'?']).view());
         assert_eq!(result.size, 1);
         assert!(!result.ok);
     }
 
     {
-        let result: DecodeUTF8Result = decode_utf_8(
-            PaddedString::from_slice(&[0xe0, '?' as u8, '?' as u8, '?' as u8, '?' as u8]).view(),
-        );
+        let result: DecodeUTF8Result =
+            decode_utf_8(PaddedString::from_slice(&[0xe0, b'?', b'?', b'?', b'?']).view());
         assert_eq!(result.size, 1);
         assert!(!result.ok);
     }
@@ -242,10 +236,7 @@ fn decode_truncated_four_byte_character() {
 
     {
         let result: DecodeUTF8Result = decode_utf_8(
-            PaddedString::from_slice(&[
-                0xf0, 0x90, 0x8d, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8,
-            ])
-            .view(),
+            PaddedString::from_slice(&[0xf0, 0x90, 0x8d, b'?', b'?', b'?', b'?', b'?']).view(),
         );
         assert_eq!(result.size, 3);
         assert!(!result.ok);
@@ -259,17 +250,14 @@ fn decode_truncated_four_byte_character() {
 
     {
         let result: DecodeUTF8Result =
-            decode_utf_8(PaddedString::from_slice(&[0xf0, 0x90, '?' as u8]).view());
+            decode_utf_8(PaddedString::from_slice(&[0xf0, 0x90, b'?']).view());
         assert_eq!(result.size, 2);
         assert!(!result.ok);
     }
 
     {
         let result: DecodeUTF8Result = decode_utf_8(
-            PaddedString::from_slice(&[
-                0xf0, 0x90, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8,
-            ])
-            .view(),
+            PaddedString::from_slice(&[0xf0, 0x90, b'?', b'?', b'?', b'?', b'?', b'?']).view(),
         );
         assert_eq!(result.size, 2);
         assert!(!result.ok);
@@ -282,26 +270,22 @@ fn decode_truncated_four_byte_character() {
     }
 
     {
-        let result: DecodeUTF8Result =
-            decode_utf_8(PaddedString::from_slice(&[0xf0, '?' as u8]).view());
+        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_slice(&[0xf0, b'?']).view());
         assert_eq!(result.size, 1);
         assert!(!result.ok);
     }
 
     {
         let result: DecodeUTF8Result =
-            decode_utf_8(PaddedString::from_slice(&[0xf0, '?' as u8, '?' as u8]).view());
+            decode_utf_8(PaddedString::from_slice(&[0xf0, b'?', b'?']).view());
         assert_eq!(result.size, 1);
         assert!(!result.ok);
     }
 
     {
         let result: DecodeUTF8Result = decode_utf_8(
-            PaddedString::from_slice(&[
-                0xf0, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8, '?' as u8,
-                '?' as u8,
-            ])
-            .view(),
+            PaddedString::from_slice(&[0xf0, b'?', b'?', b'?', b'?', b'?', b'?', b'?', b'?'])
+                .view(),
         );
         assert_eq!(result.size, 1);
         assert!(!result.ok);
