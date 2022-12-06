@@ -4,10 +4,8 @@ use cpp_vs_rust::fe::identifier::*;
 use cpp_vs_rust::fe::language::*;
 use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::i18n::translation::*;
+use cpp_vs_rust::qljs_offset_of;
 use cpp_vs_rust::qljs_translatable;
-
-#[cfg(feature = "qljs_memoffset")]
-use memoffset::offset_of;
 
 fn empty_span() -> SourceCodeSpan<'static> {
     unsafe { SourceCodeSpan::new(std::ptr::null(), std::ptr::null()) }
@@ -217,7 +215,6 @@ fn message_with_zero_placeholder() {
 }
 
 #[test]
-#[cfg(feature = "qljs_memoffset")]
 fn message_with_extra_identifier_placeholder() {
     const CODE: &'static [u8] = b"hello world";
 
@@ -237,11 +234,11 @@ fn message_with_extra_identifier_placeholder() {
         qljs_translatable!("this {1} looks fishy"),
         &[
             DiagnosticMessageArgInfo::new(
-                offset_of!(TestDiag, hello),
+                qljs_offset_of!(TestDiag, hello),
                 DiagnosticArgType::SourceCodeSpan,
             ),
             DiagnosticMessageArgInfo::new(
-                offset_of!(TestDiag, world),
+                qljs_offset_of!(TestDiag, world),
                 DiagnosticArgType::Identifier,
             ),
             DiagnosticMessageArgInfo::empty(),
@@ -252,7 +249,6 @@ fn message_with_extra_identifier_placeholder() {
 }
 
 #[test]
-#[cfg(feature = "qljs_memoffset")]
 fn message_with_multiple_span_placeholders() {
     const CODE: &'static [u8] = b"let me = be(free);";
     struct TestDiag {
@@ -276,15 +272,15 @@ fn message_with_multiple_span_placeholders() {
         qljs_translatable!("free {1} and {0} {1} {2}"),
         &[
             DiagnosticMessageArgInfo::new(
-                offset_of!(TestDiag, let_span),
+                qljs_offset_of!(TestDiag, let_span),
                 DiagnosticArgType::SourceCodeSpan,
             ),
             DiagnosticMessageArgInfo::new(
-                offset_of!(TestDiag, me_span),
+                qljs_offset_of!(TestDiag, me_span),
                 DiagnosticArgType::SourceCodeSpan,
             ),
             DiagnosticMessageArgInfo::new(
-                offset_of!(TestDiag, be_span),
+                qljs_offset_of!(TestDiag, be_span),
                 DiagnosticArgType::SourceCodeSpan,
             ),
         ],
@@ -294,7 +290,6 @@ fn message_with_multiple_span_placeholders() {
 }
 
 #[test]
-#[cfg(feature = "qljs_memoffset")]
 fn message_with_char_placeholder() {
     struct TestDiag {
         span: SourceCodeSpan<'static>,
@@ -311,10 +306,10 @@ fn message_with_char_placeholder() {
         qljs_translatable!("what is this '{1}' nonsense?"),
         &[
             DiagnosticMessageArgInfo::new(
-                offset_of!(TestDiag, span),
+                qljs_offset_of!(TestDiag, span),
                 DiagnosticArgType::SourceCodeSpan,
             ),
-            DiagnosticMessageArgInfo::new(offset_of!(TestDiag, c), DiagnosticArgType::Char8),
+            DiagnosticMessageArgInfo::new(qljs_offset_of!(TestDiag, c), DiagnosticArgType::Char8),
             DiagnosticMessageArgInfo::empty(),
         ],
         &diag as *const _ as *const u8,
@@ -343,7 +338,6 @@ fn message_with_escaped_curlies() {
 }
 
 #[test]
-#[cfg(feature = "qljs_memoffset")]
 fn enum_kind_placeholder() {
     struct TestDiag {
         empty_span: SourceCodeSpan<'static>,
@@ -351,10 +345,10 @@ fn enum_kind_placeholder() {
     }
     let message_args: DiagnosticMessageArgs = [
         DiagnosticMessageArgInfo::new(
-            offset_of!(TestDiag, empty_span),
+            qljs_offset_of!(TestDiag, empty_span),
             DiagnosticArgType::SourceCodeSpan,
         ),
-        DiagnosticMessageArgInfo::new(offset_of!(TestDiag, kind), DiagnosticArgType::EnumKind),
+        DiagnosticMessageArgInfo::new(qljs_offset_of!(TestDiag, kind), DiagnosticArgType::EnumKind),
         DiagnosticMessageArgInfo::empty(),
     ];
 
@@ -376,7 +370,6 @@ fn enum_kind_placeholder() {
 }
 
 #[test]
-#[cfg(feature = "qljs_memoffset")]
 fn statement_kind_placeholder() {
     struct TestDiag {
         empty_span: SourceCodeSpan<'static>,
@@ -384,11 +377,11 @@ fn statement_kind_placeholder() {
     }
     let message_args: DiagnosticMessageArgs = [
         DiagnosticMessageArgInfo::new(
-            offset_of!(TestDiag, empty_span),
+            qljs_offset_of!(TestDiag, empty_span),
             DiagnosticArgType::SourceCodeSpan,
         ),
         DiagnosticMessageArgInfo::new(
-            offset_of!(TestDiag, statement),
+            qljs_offset_of!(TestDiag, statement),
             DiagnosticArgType::StatementKind,
         ),
         DiagnosticMessageArgInfo::empty(),

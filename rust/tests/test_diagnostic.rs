@@ -1,8 +1,7 @@
 use cpp_vs_rust::fe::diagnostic::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
 use cpp_vs_rust::i18n::translation::*;
-#[cfg(feature = "qljs_memoffset")]
-use memoffset::offset_of;
+use cpp_vs_rust::qljs_offset_of;
 
 #[test]
 fn diagnostic_info() {
@@ -18,10 +17,9 @@ fn diagnostic_info() {
             source_code_translator.translate(info.message_formats[0]),
             "BigInt literal contains decimal point"
         );
-        #[cfg(feature = "qljs_memoffset")]
         assert_eq!(
             info.message_args[0][0].offset(),
-            offset_of!(DiagBigIntLiteralContainsDecimalPoint, where_)
+            qljs_offset_of!(DiagBigIntLiteralContainsDecimalPoint, where_)
         );
         assert_eq!(
             info.message_args[0][0].type_(),
@@ -39,19 +37,17 @@ fn diagnostic_info() {
             source_code_translator.translate(info.message_formats[0]),
             "'{0}' is not allowed for strings; use {1} instead"
         );
-        #[cfg(feature = "qljs_memoffset")]
         assert_eq!(
             info.message_args[0][0].offset(),
-            offset_of!(DiagInvalidQuotesAroundStringLiteral, opening_quote)
+            qljs_offset_of!(DiagInvalidQuotesAroundStringLiteral, opening_quote)
         );
         assert_eq!(
             info.message_args[0][0].type_(),
             DiagnosticArgType::SourceCodeSpan
         );
-        #[cfg(feature = "qljs_memoffset")]
         assert_eq!(
             info.message_args[0][1].offset(),
-            offset_of!(DiagInvalidQuotesAroundStringLiteral, suggested_quote)
+            qljs_offset_of!(DiagInvalidQuotesAroundStringLiteral, suggested_quote)
         );
         assert_eq!(info.message_args[0][1].type_(), DiagnosticArgType::Char8);
         assert!(!info.message_formats[1].valid());
@@ -65,10 +61,9 @@ fn diagnostic_info() {
             source_code_translator.translate(info.message_formats[0]),
             "test for multiple messages"
         );
-        #[cfg(feature = "qljs_memoffset")]
         assert_eq!(
             info.message_args[0][0].offset(),
-            offset_of!(DiagMultipleMessageTest, a)
+            qljs_offset_of!(DiagMultipleMessageTest, a)
         );
         assert_eq!(
             info.message_args[0][0].type_(),
@@ -78,10 +73,9 @@ fn diagnostic_info() {
             source_code_translator.translate(info.message_formats[1]),
             "second message here"
         );
-        #[cfg(feature = "qljs_memoffset")]
         assert_eq!(
             info.message_args[1][0].offset(),
-            offset_of!(DiagMultipleMessageTest, b)
+            qljs_offset_of!(DiagMultipleMessageTest, b)
         );
         assert_eq!(
             info.message_args[1][0].type_(),
