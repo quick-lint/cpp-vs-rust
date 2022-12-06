@@ -6,6 +6,7 @@ use std::arch::x86::*;
 use std::arch::x86_64::*;
 
 #[cfg(target_feature = "sse2")]
+#[derive(Clone, Copy)]
 pub struct CharVector16SSE2(__m128i);
 
 #[cfg(target_feature = "sse2")]
@@ -14,6 +15,11 @@ impl CharVector16SSE2 {
     pub fn load(data: &[u8]) -> CharVector16SSE2 {
         qljs_assert!(data.len() >= 16);
         unsafe { CharVector16SSE2(_mm_loadu_si128(data.as_ptr() as *const __m128i)) }
+    }
+
+    // data must point to at least 16 elements.
+    pub unsafe fn load_raw(data: *const u8) -> CharVector16SSE2 {
+        Self::load(std::slice::from_raw_parts(data, 16))
     }
 
     pub fn repeated(x: u8) -> CharVector16SSE2 {
@@ -43,6 +49,10 @@ impl CharVector16SSE2 {
     pub fn m128i(&self) -> __m128i {
         self.0
     }
+
+    pub const fn len(&self) -> usize {
+        16
+    }
 }
 
 #[cfg(target_feature = "sse2")]
@@ -55,7 +65,7 @@ impl std::ops::BitOr<CharVector16SSE2> for CharVector16SSE2 {
 }
 
 #[cfg(target_feature = "sse2")]
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct BoolVector16SSE2(__m128i);
 
 #[cfg(target_feature = "sse2")]
@@ -110,6 +120,7 @@ use std::arch::aarch64::*;
 use std::arch::arm::*;
 
 #[cfg(target_feature = "neon")]
+#[derive(Clone, Copy)]
 pub struct CharVector16NEON(uint8x16_t);
 
 #[cfg(target_feature = "neon")]
@@ -118,6 +129,11 @@ impl CharVector16NEON {
     pub fn load(data: &[u8]) -> CharVector16NEON {
         qljs_assert!(data.len() >= 16);
         unsafe { CharVector16NEON(vld1q_u8(data.as_ptr())) }
+    }
+
+    // data must point to at least 16 elements.
+    pub unsafe fn load_raw(data: *const u8) -> CharVector16NEON {
+        Self::load(std::slice::from_raw_parts(data, 16))
     }
 
     pub fn repeated(x: u8) -> CharVector16NEON {
@@ -147,6 +163,10 @@ impl CharVector16NEON {
     pub fn uint8x16(&self) -> uint8x16_t {
         self.0
     }
+
+    pub const fn len(&self) -> usize {
+        16
+    }
 }
 
 #[cfg(target_feature = "neon")]
@@ -159,7 +179,7 @@ impl std::ops::BitOr<CharVector16NEON> for CharVector16NEON {
 }
 
 #[cfg(target_feature = "neon")]
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct BoolVector16NEON(pub(crate) uint8x16_t);
 
 #[cfg(target_feature = "neon")]

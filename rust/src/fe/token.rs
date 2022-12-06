@@ -585,7 +585,7 @@ fn to_string(token: TokenType) -> &'static str {
 pub type EscapeSequenceList<'alloc, 'code> =
     BumpVector<'alloc, SourceCodeSpan<'code>, MonotonicAllocator>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Token<'alloc, 'code: 'alloc> {
     pub type_: TokenType,
 
@@ -611,6 +611,13 @@ pub union TokenExtras<'alloc, 'code> {
     // pub template_escape_sequence_diagnostics: &'TODO dyn BufferingDiagReporter,
 }
 
+impl<'alloc, 'code> std::fmt::Debug for TokenExtras<'alloc, 'code> {
+    fn fmt(&self, _formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        // TODO(port)
+        Ok(())
+    }
+}
+
 impl<'alloc, 'code> Clone for TokenExtras<'alloc, 'code> {
     fn clone(&self) -> Self {
         unsafe { std::mem::transmute_copy(self) }
@@ -633,7 +640,7 @@ impl<'alloc, 'code> Token<'alloc, 'code> {
     }
 
     pub fn span(&self) -> SourceCodeSpan<'code> {
-        todo!();
+        unsafe { SourceCodeSpan::new(self.begin, self.end) }
     }
 
     // Report diag_keywords_cannot_contain_escape_sequences for each escape

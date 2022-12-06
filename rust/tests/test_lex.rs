@@ -59,7 +59,21 @@ macro_rules! scoped_trace {
 // TODO(port): split_less_less_has_no_leading_newline
 // TODO(port): split_greater_from_bigger_token
 // TODO(port): split_greater_from_bigger_token_has_no_leading_newline
-// TODO(port): lex_identifiers
+
+#[test]
+fn lex_identifiers() {
+    let mut f = Fixture::new();
+    f.check_tokens("i", &[TokenType::Identifier]);
+    f.check_tokens("_", &[TokenType::Identifier]);
+    f.check_tokens("$", &[TokenType::Identifier]);
+    f.check_single_token("id", "id");
+    // TODO(port): f.check_single_token("id ", "id");
+    f.check_single_token("this_is_an_identifier", "this_is_an_identifier");
+    f.check_single_token("MixedCaseIsAllowed", "MixedCaseIsAllowed");
+    f.check_single_token("ident$with$dollars", "ident$with$dollars");
+    f.check_single_token("digits0123456789", "digits0123456789");
+}
+
 // TODO(port): ascii_identifier_with_escape_sequence
 // TODO(port): non_ascii_identifier
 // TODO(port): non_ascii_identifier_with_escape_sequence
@@ -260,6 +274,33 @@ impl Fixture {
         Fixture {
             lex_jsx_tokens: false,
         }
+    }
+
+    fn check_single_token(&mut self, input: &str, expected_identifier_name: &str) {
+        self.check_single_token_with_errors(
+            input,
+            expected_identifier_name,
+            |_code: PaddedStringView, errors: &Vec<AnyDiag>| {
+                assert_matches!(errors, e if e.is_empty());
+            },
+        );
+    }
+
+    fn check_single_token_with_errors(
+        &mut self,
+        input: &str,
+        expected_identifier_name: &str,
+        check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
+    ) {
+        let code = PaddedString::from_str(input);
+        let errors = DiagCollector::new();
+        self.lex_to_eof(code.view(), &errors, |lexed_tokens: &Vec<Token>| {
+            assert_matches!(lexed_tokens, ts if ts.len() == 1);
+            assert_matches!(lexed_tokens[0],
+                ref t if t.type_ == TokenType::Identifier || t.type_ == TokenType::PrivateIdentifier);
+            assert_eq!(lexed_tokens[0].identifier_name().normalized_name(), expected_identifier_name.as_bytes());
+            check_errors(code.view(), &errors.clone_errors());
+        });
     }
 
     fn check_tokens(&mut self, input: &str, expected_token_types: &[TokenType]) {

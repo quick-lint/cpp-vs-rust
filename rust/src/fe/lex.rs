@@ -4,7 +4,42 @@ use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
 use crate::fe::source_code_span::*;
 use crate::fe::token::*;
+use crate::port::simd::*;
 use crate::qljs_assert;
+use crate::qljs_slow_assert;
+use crate::util::narrow_cast::*;
+
+macro_rules! qljs_case_identifier_start {
+    () => {
+      b'\\' | b'$' | b'_' |
+      b'A' | b'B' | b'C' | b'D' | b'E' | b'F' | b'G' |
+      b'H' | b'I' | b'J' | b'K' | b'L' | b'M' | b'N' |
+      b'O' | b'P' | b'Q' | b'R' | b'S' | b'T' | b'U' |
+      b'V' | b'W' | b'X' | b'Y' | b'Z' |
+      b'a' | b'b' | b'c' | b'd' | b'e' | b'f' | b'g' |
+      b'h' | b'i' | b'j' | b'k' | b'l' | b'm' | b'n' |
+      b'o' | b'p' | b'q' | b'r' | b's' | b't' | b'u' |
+      b'v' | b'w' | b'x' | b'y' | b'z'
+    }
+}
+
+macro_rules! qljs_case_octal_digit {
+    () => {
+        b'0'..=b'7'
+    };
+}
+
+macro_rules! qljs_case_decimal_digit {
+    () => {
+        qljs_case_octal_digit!() | b'8'..=b'9'
+    };
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum IdentifierKind {
+    JavaScript,
+    JSX, // Allows '-'.
+}
 
 pub struct Lexer<'code, 'reporter> {
     last_token: Token</* HACK(strager) */ 'code, 'code>,
@@ -53,7 +88,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     //
     // This function ignores leading and trailing whitespace and comments.
     //
-    // Precondition: self.peek().type != TokenType::EndOfFile.
+    // Precondition: self.peek().type_ != TokenType::EndOfFile.
     pub fn skip(&mut self) {
         self.parse_current_token();
     }
@@ -97,7 +132,49 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.begin = self.input.0;
         match self.input[0] {
             // TODO(port): QLJS_CASE_DECIMAL_DIGIT:
-            // TODO(port): QLJS_CASE_IDENTIFIER_START:
+            qljs_case_identifier_start!() => {
+                let ident: ParsedIdentifier =
+                    self.parse_identifier(self.input.0, IdentifierKind::JavaScript);
+                self.input = InputPointer(ident.after);
+                self.last_token.normalized_identifier = ident.normalized;
+                self.last_token.end = ident.after;
+                self.last_token.type_ = identifier_token_type(ident.normalized);
+                /* TODO(port)
+                if ident.escape_sequences && !ident.escape_sequences->empty() {
+                    match self.last_token.type_ {
+                        TokenType::Identifier => {
+                            self.last_token.type_ = TokenType::Identifier;
+                        }
+
+                        qljs_case_contextual_keyword!()
+                        | TokenType::KWAwait
+                        | TokenType::KWYield => {
+                            // Escape sequences in identifiers prevent it from becoming a
+                            // contextual keyword.
+                            self.last_token.type_ = TokenType::Identifier;
+                        }
+
+                        qljs_case_strict_only_reserved_keyword!() => {
+                            // TODO(#73): Treat 'protected', 'implements', etc. in strict mode as
+                            // reserved words.
+                            self.last_token.type_ = TokenType::Identifier;
+                        }
+
+                        qljs_case_reserved_keyword_except_await_and_yield!() => {
+                            // Escape sequences in identifiers prevent it from becoming a reserved
+                            // keyword.
+                            self.last_token.type_ = TokenType::ReservedKeywordWithEscapeSequence;
+                            self.last_token.identifier_escape_sequences = ident.escape_sequences;
+                        }
+
+                        _ => {
+                            unreachable!();
+                        }
+                    }
+                }
+                */
+            }
+
             // TODO(port): default:
             b'(' | b')' | b',' | b':' | b';' | b'[' | b']' | b'{' | b'}' | b'~' => {
                 self.last_token.type_ = unsafe { std::mem::transmute(self.input[0]) };
@@ -416,6 +493,124 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         todo!();
     }
 
+    fn parse_identifier(
+        &mut self,
+        input: *const u8,
+        kind: IdentifierKind,
+    ) -> ParsedIdentifier</* HACK(strager) */ 'code, 'code> {
+        let begin: *const u8 = input;
+        let end: *const u8 = self.parse_identifier_fast_only(input);
+        let end_c: u8 = unsafe { *end };
+        if end_c == b'\\'
+            || (kind == IdentifierKind::JSX && end_c == b'-')
+            || !is_ascii_code_unit(end_c)
+        {
+            self.parse_identifier_slow(end, /*identifier_begin=*/ begin, kind)
+        } else {
+            ParsedIdentifier {
+                after: end,
+                normalized: unsafe { slice_from_begin_end(begin, end) },
+                escape_sequences: None,
+            }
+        }
+    }
+
+    fn parse_identifier_fast_only(&mut self, input: *const u8) -> *const u8 {
+        let mut input = InputPointer(input);
+        // TODO(strager): Is the check for '\\' correct?
+        qljs_slow_assert!(is_identifier_byte(input[0]) || input[0] == b'\\');
+
+        #[cfg(target_feature = "neon")]
+        type CharVector = CharVector16NEON;
+        // TODO(port): char_vector_16_wasm_simd128
+        #[cfg(target_feature = "sse2")]
+        type CharVector = CharVector16SSE2;
+        // TODO(port): char_vector_1
+
+        fn count_identifier_characters(chars: CharVector) -> u32 {
+            // TODO(port): Test code gen carefully.
+            #[cfg(target_feature = "sse4.2")]
+            {
+                // TODO(port)
+                let ranges: __m128i = _mm_setr_epi8(
+                    '$', '$', //
+                    '_', '_', //
+                    '0', '9', //
+                    'a', 'z', //
+                    'A', 'Z', //
+                    // For unused table entries, duplicate a previous entry.
+                    // (If we zero-filled, we would match null bytes!)
+                    '$', '$', //
+                    '$', '$', //
+                    '$', '$',
+                );
+                _mm_cmpistri(
+                    ranges,
+                    chars.m128i(),
+                    _SIDD_CMP_RANGES
+                        | _SIDD_LEAST_SIGNIFICANT
+                        | _SIDD_NEGATIVE_POLARITY
+                        | _SIDD_UBYTE_OPS,
+                )
+            }
+            #[cfg(not(target_feature = "sse4.2"))]
+            {
+                #[cfg(target_feature = "neon")]
+                type BoolVector = BoolVector16NEON;
+                // TODO(port): bool_vector_16_wasm_simd128
+                #[cfg(target_feature = "sse2")]
+                type BoolVector = BoolVector16SSE2;
+                // TODO(port): bool_vector_1
+
+                const UPPER_TO_LOWER_MASK: u8 = b'a' - b'A';
+                /* TODO(port):
+                const_assert!((b'A' | UPPER_TO_LOWER_MASK) == b'a');
+                */
+
+                let lower_cased_characters: CharVector =
+                    chars | CharVector::repeated(UPPER_TO_LOWER_MASK);
+                let is_alpha: BoolVector = (lower_cased_characters
+                    .lane_gt(CharVector::repeated(b'a' - 1)))
+                    & (lower_cased_characters.lane_lt(CharVector::repeated(b'z' + 1)));
+                let is_digit: BoolVector = (chars.lane_gt(CharVector::repeated(b'0' - 1)))
+                    & (chars.lane_lt(CharVector::repeated(b'9' + 1)));
+                let is_identifier: BoolVector = is_alpha
+                    | is_digit
+                    | (chars.lane_eq(CharVector::repeated(b'$')))
+                    | (chars.lane_eq(CharVector::repeated(b'_')));
+                is_identifier.find_first_false()
+            }
+        }
+
+        let mut is_all_identifier_characters: bool = true;
+        while is_all_identifier_characters {
+            let chars: CharVector = unsafe { CharVector::load_raw(input.0) };
+            let identifier_character_count: usize = count_identifier_characters(chars) as usize;
+
+            for i in 0..identifier_character_count {
+                qljs_slow_assert!(is_ascii_code_unit(input[i]));
+                qljs_slow_assert!(is_identifier_character(
+                    input[i] as u32,
+                    IdentifierKind::JavaScript
+                ));
+            }
+            input += identifier_character_count as isize;
+
+            is_all_identifier_characters = identifier_character_count == chars.len();
+        }
+
+        input.0
+    }
+
+    fn parse_identifier_slow(
+        &mut self,
+        _input: *const u8,
+        _identifier_begin: *const u8,
+        _kind: IdentifierKind,
+    ) -> ParsedIdentifier</* HACK(strager) */ 'code, 'code> {
+        todo!();
+    }
+
     fn skip_whitespace(&mut self) {
         // TODO(port)
     }
@@ -439,8 +634,75 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 }
 
+// The result of parsing an identifier.
+//
+// Typically, .normalized is default-constructed. However, if an identifier
+// contains escape squences, then .normalized points to a heap-allocated
+// null-terminated string of the unescaped identifier.
+//
+// Say we are parsing the identifier starting with 'w' in the following
+// example:
+//
+// Input: log(w\u{61}t)
+//                    ^
+//                    .end
+//
+// In this case, .end points to the ')' character which follows the
+// identifier, and .normalized points to a heap-allocated string u8"wat".
+//
+// If any escape sequences were parsed, .escape_sequences points to a list of
+// escape squence spans.
+//
+// Invariant:
+//   (escape_sequences == nullptr) == (normalized.data() == nullptr)
+//
+// TODO(port): Update docs for Rustisms.
+struct ParsedIdentifier<'alloc, 'code> {
+    after: *const u8, // Where to continue parsing.
+    normalized: &'alloc [u8],
+
+    escape_sequences: Option<&'alloc EscapeSequenceList<'alloc, 'code>>,
+}
+
 fn is_digit(c: u8) -> bool {
-    matches!(c, b'0'..=b'9')
+    matches!(c, qljs_case_decimal_digit!())
+}
+
+fn is_initial_identifier_byte(byte: u8) -> bool {
+    matches!(byte, qljs_case_identifier_start!() | 0xc2..=0xcb | 0xcd..=0xed | 0xef..=0xf0)
+}
+
+fn is_identifier_byte(byte: u8) -> bool {
+    matches!(byte, qljs_case_decimal_digit!() | qljs_case_identifier_start!() | 0xc2..=0xed | 0xef..=0xf0 | 0xf3)
+}
+
+fn is_identifier_character(code_point: u32, kind: IdentifierKind) -> bool {
+    if kind == IdentifierKind::JSX && code_point == (b'-' as u32) {
+        return true;
+    }
+    /* TODO(port)
+    look_up_in_unicode_table(identifier_part_chunk_indexes,
+                                    identifier_part_chunk_indexes_size,
+                                    code_point)
+    */
+    // HACK(port): Temporary implementation.
+    matches!(
+        code_point as u8,
+        qljs_case_identifier_start!() | b'0'..=b'9'
+    )
+}
+
+fn is_ascii_code_unit(code_unit: u8) -> bool {
+    code_unit < 0x80
+}
+
+fn is_ascii_code_point(code_point: u32) -> bool {
+    code_point < 0x80
+}
+
+// TODO(port)
+fn identifier_token_type(identifier: &[u8]) -> TokenType {
+    TokenType::Identifier
 }
 
 // NOTE(port): This is a transitioning struct to make it easier to port code.
@@ -467,4 +729,8 @@ impl std::ops::AddAssign<isize> for InputPointer {
     fn add_assign(&mut self, rhs: isize) {
         *self = *self + rhs;
     }
+}
+
+unsafe fn slice_from_begin_end<'out>(begin: *const u8, end: *const u8) -> &'out [u8] {
+    std::slice::from_raw_parts(begin, narrow_cast(end.offset_from(begin)))
 }

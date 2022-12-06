@@ -21,14 +21,14 @@
 %s/linked_bump_allocator<\(.*\)> alloc(/let mut alloc = LinkedBumpAllocator::<\1>::new(/g
 
 " Method syntax:
-%s/^\s\+\(\(const \)\?\<\(fn\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) const \(noexcept \)\?{/pub fn \5(\&self, \6) -> \1 {/
-%s/^\s\+\(\(const \)\?\<\(fn\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) \(noexcept \)\?{/pub fn \5(\&mut self, \6) -> \1 {/
+%s/^\s\+\(\(const \)\?\<\(fn\|if\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) const \(noexcept \)\?{/pub fn \5(\&self, \6) -> \1 {/
+%s/^\s\+\(\(const \)\?\<\(fn\|if\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) \(noexcept \)\?{/pub fn \5(\&mut self, \6) -> \1 {/
 %s/\<this->\(\k\+\)_\>/self.\1/g
 %s/\<this->/self./g
 
 %s/for (\k\+ i = \(.*\); i < \(.*\); ++i) {/for i in \1..\2 {/
 
-%s/\<case \(.*\):$/\1 =>/g
+" %s/\<case \(.*\):$/\1 =>/g
 
 %s/\<token_type::kw_\([a-z]\+\)\>/TokenType::KW\u\1/g
 %s/\<token_type::\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2\u\3\u\4/g
