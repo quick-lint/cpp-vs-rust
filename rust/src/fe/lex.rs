@@ -604,15 +604,131 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     fn parse_identifier_slow(
         &mut self,
-        _input: *const u8,
-        _identifier_begin: *const u8,
+        input: *const u8,
+        identifier_begin: *const u8,
         _kind: IdentifierKind,
     ) -> ParsedIdentifier</* HACK(strager) */ 'code, 'code> {
-        todo!();
+        // TODO(port)
+        ParsedIdentifier {
+            after: input,
+            normalized: unsafe { slice_from_begin_end(identifier_begin, input) },
+            escape_sequences: None,
+        }
     }
 
+    #[allow(unreachable_code)]
     fn skip_whitespace(&mut self) {
-        // TODO(port)
+        let mut input: InputPointer = self.input;
+
+        loop {
+            let c0: u8 = input[0];
+            let c1: u8 = input[1];
+            let c2: u8 = input[2];
+            if c0 == b' ' || c0 == b'\t' || c0 == 0x0c || c0 == 0x0b {
+                input += 1;
+                continue;
+            } else if c0 == b'\n' || c0 == b'\r' {
+                self.last_token.has_leading_newline = true;
+                input += 1;
+                continue;
+            } else if c0 >= 0xc2 {
+                // TODO(port): [[unlikely]]
+                match c0 {
+                    0xe1 => {
+                        if c1 == 0x9a && c2 == 0x80 {
+                            // U+1680 Ogham Space Mark
+                            input += 3;
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    0xe2 => {
+                        if c1 == 0x80 {
+                            match c2 {
+                                0x80  // U+2000 En Quad
+                                | 0x81  // U+2001 Em Quad
+                                | 0x82  // U+2002 En Space
+                                | 0x83  // U+2003 Em Space
+                                | 0x84  // U+2004 Three-Per-Em Space
+                                | 0x85  // U+2005 Four-Per-Em Space
+                                | 0x86  // U+2006 Six-Per-Em Space
+                                | 0x87  // U+2007 Figure Space
+                                | 0x88  // U+2008 Punctuation Space
+                                | 0x89  // U+2009 Thin Space
+                                | 0x8a  // U+200A Hair Space
+                                | 0xaf => { // U+202F Narrow No-Break Space (NNBSP)
+                                    input += 3;
+                                    continue;
+                                }
+
+                                0xa8  // U+2028 Line Separator
+                                | 0xa9 => { // U+2029 Paragraph Separator
+                                    qljs_assert!(newline_character_size(input) == 3);
+                                    self.last_token.has_leading_newline = true;
+                                    input += 3;
+                                    continue;
+                                }
+
+                                _ => {
+                                    break;
+                                }
+                            }
+                        } else if c1 == 0x81 {
+                            if c2 == 0x9f {
+                                // U+205F Medium Mathematical Space (MMSP)
+                                input += 3;
+                                continue;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+
+                    0xe3 => {
+                        if c1 == 0x80 && c2 == 0x80 {
+                            // U+3000 Ideographic Space
+                            input += 3;
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    0xef => {
+                        if c1 == 0xbb && c2 == 0xbf {
+                            // U+FEFF Zero Width No-Break Space (BOM, ZWNBSP)
+                            input += 3;
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    0xc2 => {
+                        if c1 == 0xa0 {
+                            // U+00A0 No-Break Space (NBSP)
+                            input += 2;
+                            continue;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    _ => {
+                        break;
+                    }
+                }
+            } else {
+                break;
+            }
+            unreachable!();
+        }
+
+        self.input = input;
     }
 
     fn skip_block_comment(&mut self) {
@@ -698,6 +814,24 @@ fn is_ascii_code_unit(code_unit: u8) -> bool {
 
 fn is_ascii_code_point(code_point: u32) -> bool {
     code_point < 0x80
+}
+
+fn newline_character_size(input: InputPointer) -> usize {
+    if input[0] == b'\n' || input[0] == b'\r' {
+        1
+    // U+2028 Line Separator
+    // U+2029 Paragraph Separator
+    } else if input[0] == 0xe2 && input[1] == 0x80 && (input[2] == 0xa8 || input[2] == 0xa9) {
+        3
+    } else {
+        0
+    }
+}
+
+fn is_newline_character(code_point: u32) -> bool {
+    code_point == ('\n' as u32) || code_point == ('\r' as u32) ||
+         code_point == 0x2028 ||  // Line Separator
+         code_point == 0x2029 // Paragraph Separator
 }
 
 // TODO(port)

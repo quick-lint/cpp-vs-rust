@@ -67,7 +67,7 @@ fn lex_identifiers() {
     f.check_tokens("_", &[TokenType::Identifier]);
     f.check_tokens("$", &[TokenType::Identifier]);
     f.check_single_token("id", "id");
-    // TODO(port): f.check_single_token("id ", "id");
+    f.check_single_token("id ", "id");
     f.check_single_token("this_is_an_identifier", "this_is_an_identifier");
     f.check_single_token("MixedCaseIsAllowed", "MixedCaseIsAllowed");
     f.check_single_token("ident$with$dollars", "ident$with$dollars");
@@ -174,7 +174,15 @@ fn lex_adjacent_symbols() {
     f.check_tokens("^>>", &[TokenType::Circumflex, TokenType::GreaterGreater]);
 }
 
-// TODO(port): lex_symbols_separated_by_whitespace
+#[test]
+fn lex_symbols_separated_by_whitespace() {
+    let mut f = Fixture::new();
+    f.check_tokens("{ }", &[TokenType::LeftCurly, TokenType::RightCurly]);
+    f.check_tokens("< =", &[TokenType::Less, TokenType::Equal]);
+    f.check_tokens("? .", &[TokenType::Question, TokenType::Dot]);
+    f.check_tokens(". . .", &[TokenType::Dot, TokenType::Dot, TokenType::Dot]);
+}
+
 // TODO(port): question_followed_by_number_is_not_question_dot
 // TODO(port): question_dot_followed_by_non_digit_is_question_dot
 
@@ -213,7 +221,7 @@ fn lex_whitespace() {
         {
             let input: String = format!("a{whitespace}b");
             scoped_trace!(input);
-            // TODO(port): f.check_tokens(&input, &[TokenType::Identifier, TokenType::Identifier]);
+            f.check_tokens(&input, &[TokenType::Identifier, TokenType::Identifier]);
         }
 
         {
@@ -225,7 +233,7 @@ fn lex_whitespace() {
         {
             let input: String = format!("async{whitespace}function{whitespace}");
             scoped_trace!(input);
-            // TODO(port): f.check_tokens(&input, &[TokenType::KWAsync, TokenType::KWFunction]);
+            // f.check_tokens(&input, &[TokenType::KWAsync, TokenType::KWFunction]);
         }
     }
 }
