@@ -40,12 +40,12 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     pub fn emplace_back(&mut self, value: T) -> &mut T {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.tail;
-            if c.is_null() || (&*c).item_count == ChunkHeader::<T>::capacity() {
+            if c.is_null() || (*c).item_count == ChunkHeader::<T>::capacity() {
                 c = self.append_new_chunk_slow();
             }
-            let item: &mut std::mem::MaybeUninit<T> = (&mut *c).slot((&mut *c).item_count);
+            let item: &mut std::mem::MaybeUninit<T> = (*c).slot((*c).item_count);
             item.write(value);
-            (&mut *c).item_count += 1;
+            (*c).item_count += 1;
             item.assume_init_mut()
         }
     }
@@ -67,9 +67,9 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.head;
             while !c.is_null() {
-                let next: *mut ChunkHeader<T> = (&*c).next;
-                for i in 0..(&*c).item_count {
-                    (&mut *c).slot(i).assume_init_drop();
+                let next: *mut ChunkHeader<T> = (*c).next;
+                for i in 0..(*c).item_count {
+                    (*c).slot(i).assume_init_drop();
                 }
                 self.drop_and_deallocate_chunk(c);
                 c = next;
@@ -86,7 +86,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     pub fn back(&self) -> &T {
         unsafe {
             qljs_assert!(!self.empty());
-            (&*self.tail).items().last().unwrap_unchecked()
+            (*self.tail).items().last().unwrap_unchecked()
         }
     }
 
@@ -94,10 +94,10 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.head;
             while !c.is_null() {
-                for item in (&*c).items() {
+                for item in (*c).items() {
                     func(item);
                 }
-                c = (&*c).next;
+                c = (*c).next;
             }
         }
     }
@@ -122,7 +122,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
             if self.head.is_null() {
                 self.head = c;
             } else {
-                (&mut *self.tail).next = c;
+                (*self.tail).next = c;
             }
             c.prev = self.tail;
             self.tail = c;
@@ -135,9 +135,9 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         unsafe {
             let old_tail: *mut ChunkHeader<T> = self.tail;
             qljs_assert!(!old_tail.is_null());
-            qljs_assert!((&*old_tail).item_count == 0);
+            qljs_assert!((*old_tail).item_count == 0);
 
-            let new_tail: *mut ChunkHeader<T> = (&*old_tail).prev;
+            let new_tail: *mut ChunkHeader<T> = (*old_tail).prev;
             qljs_assert!(new_tail.is_null() == (self.head == self.tail));
             self.drop_and_deallocate_chunk(old_tail);
             if new_tail.is_null() {
@@ -145,7 +145,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
                 self.head = std::ptr::null_mut();
                 self.tail = std::ptr::null_mut();
             } else {
-                (&mut *new_tail).next = std::ptr::null_mut();
+                (*new_tail).next = std::ptr::null_mut();
                 self.tail = new_tail;
             }
         }

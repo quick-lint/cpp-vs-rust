@@ -63,7 +63,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
     }
 
     pub unsafe fn rewind(&self, r: LinkedBumpAllocatorRewindState) {
-        (&mut *self.state.get()).rewind(r);
+        (*self.state.get()).rewind(r);
     }
 
     // TODO(port): make_rewind_guard

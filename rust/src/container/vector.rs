@@ -120,7 +120,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
             self.reserve_grow_by_at_least(1);
         }
         unsafe {
-            (&mut *self.data_end).write(value);
+            (*self.data_end).write(value);
             self.data_end = self.data_end.offset(1);
         }
     }
@@ -142,7 +142,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
             } else if new_size < old_size {
                 let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_size);
                 for i in new_size..old_size {
-                    (&mut *self.data.add(i)).assume_init_drop();
+                    (*self.data.add(i)).assume_init_drop();
                 }
                 self.data_end = new_end;
             } else {
@@ -152,7 +152,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
                 }
                 let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_size);
                 for i in old_size..new_size {
-                    (&mut *self.data.add(i)).write(T::default());
+                    (*self.data.add(i)).write(T::default());
                 }
                 self.data_end = new_end;
             }
@@ -169,22 +169,22 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
 
     pub fn front_mut(&mut self) -> &mut T {
         qljs_assert!(!self.empty());
-        unsafe { (&mut *self.data).assume_init_mut() }
+        unsafe { (*self.data).assume_init_mut() }
     }
 
     pub fn back_mut(&mut self) -> &mut T {
         qljs_assert!(!self.empty());
-        unsafe { (&mut *self.data_end.offset(-1)).assume_init_mut() }
+        unsafe { (*self.data_end.offset(-1)).assume_init_mut() }
     }
 
     pub fn front(&self) -> &T {
         qljs_assert!(!self.empty());
-        unsafe { (&*self.data).assume_init_ref() }
+        unsafe { (*self.data).assume_init_ref() }
     }
 
     pub fn back(&self) -> &T {
         qljs_assert!(!self.empty());
-        unsafe { (&*self.data_end.offset(-1)).assume_init_ref() }
+        unsafe { (*self.data_end.offset(-1)).assume_init_ref() }
     }
 
     pub fn reserve_grow(&mut self, new_capacity: usize) {
@@ -262,7 +262,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
             let size = self.size();
             unsafe {
                 for i in 0..size {
-                    (&mut *self.data.add(i)).assume_init_drop();
+                    (*self.data.add(i)).assume_init_drop();
                 }
                 self.allocator.deallocate(
                     self.data as *mut u8,
@@ -292,7 +292,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::Index<usiz
 
     fn index<'a>(&'a self, index: usize) -> &'a T {
         qljs_assert!(index < self.size());
-        unsafe { (&*self.data.add(index)).assume_init_ref() }
+        unsafe { (*self.data.add(index)).assume_init_ref() }
     }
 }
 
@@ -301,7 +301,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::IndexMut<u
 {
     fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut T {
         qljs_assert!(index < self.size());
-        unsafe { (&mut *self.data.add(index)).assume_init_mut() }
+        unsafe { (*self.data.add(index)).assume_init_mut() }
     }
 }
 

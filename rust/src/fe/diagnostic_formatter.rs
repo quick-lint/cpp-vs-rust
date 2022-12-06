@@ -114,7 +114,7 @@ unsafe fn get_argument_source_code_span<'code>(
 ) -> SourceCodeSpan<'code> {
     let (arg_data, arg_type) = get_arg(args, diagnostic, arg_index);
     match arg_type {
-        DiagnosticArgType::Identifier => (&*(arg_data as *const Identifier)).span(),
+        DiagnosticArgType::Identifier => (*(arg_data as *const Identifier)).span(),
 
         DiagnosticArgType::SourceCodeSpan => *(arg_data as *const SourceCodeSpan),
 
@@ -144,10 +144,10 @@ unsafe fn expand_argument<'diag>(
         // UTF-8. We should perhaps change the interface of DiagnosticFormatter to emit u8s. Or
         // maybe we should write placeholders here on invalid UTF-8?
         DiagnosticArgType::Identifier => {
-            std::str::from_utf8_unchecked((&*(arg_data as *const Identifier)).span().as_slice())
+            std::str::from_utf8_unchecked((*(arg_data as *const Identifier)).span().as_slice())
         }
         DiagnosticArgType::SourceCodeSpan => {
-            std::str::from_utf8_unchecked((&*(arg_data as *const SourceCodeSpan)).as_slice())
+            std::str::from_utf8_unchecked((*(arg_data as *const SourceCodeSpan)).as_slice())
         }
         DiagnosticArgType::String8View => {
             std::str::from_utf8_unchecked(*(arg_data as *const &[u8]))
