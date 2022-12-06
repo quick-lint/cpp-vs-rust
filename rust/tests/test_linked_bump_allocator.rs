@@ -313,7 +313,7 @@ fn assert_is_aligned<T>(p: *mut T, alignment: usize) {
 // len is a number of T-s, not a number of bytes.
 fn assert_valid_memory<T>(begin: *mut T, len: usize, alignment: usize) {
     unsafe {
-        let end = begin.offset(len as isize);
+        let end = begin.add(len);
 
         assert_is_aligned(begin, alignment);
         assert_is_aligned(end, alignment);

@@ -847,7 +847,7 @@ impl std::ops::Index<usize> for InputPointer {
     type Output = u8;
 
     fn index(&self, index: usize) -> &u8 {
-        unsafe { &*self.0.offset(index as isize) }
+        unsafe { &*self.0.add(index) }
     }
 }
 

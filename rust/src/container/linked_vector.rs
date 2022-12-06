@@ -200,7 +200,7 @@ impl<T> ChunkHeader<T> {
 
     fn slot(&mut self, index: usize) -> &mut std::mem::MaybeUninit<T> {
         qljs_slow_assert!(index < Self::capacity());
-        unsafe { &mut *self.data_begin_mut().offset(index as isize) }
+        unsafe { &mut *self.data_begin_mut().add(index) }
     }
 
     fn data_begin(&self) -> *const std::mem::MaybeUninit<T> {

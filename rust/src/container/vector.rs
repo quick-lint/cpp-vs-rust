@@ -140,9 +140,9 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
             if new_size == old_size {
                 // Do nothing.
             } else if new_size < old_size {
-                let new_end: *mut std::mem::MaybeUninit<T> = self.data.offset(new_size as isize);
+                let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_size);
                 for i in new_size..old_size {
-                    (&mut *self.data.offset(i as isize)).assume_init_drop();
+                    (&mut *self.data.add(i)).assume_init_drop();
                 }
                 self.data_end = new_end;
             } else {
@@ -150,9 +150,9 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
                 if new_size > old_capacity {
                     self.reserve_grow_by_at_least(new_size - old_capacity);
                 }
-                let new_end: *mut std::mem::MaybeUninit<T> = self.data.offset(new_size as isize);
+                let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_size);
                 for i in old_size..new_size {
-                    (&mut *self.data.offset(i as isize)).write(T::default());
+                    (&mut *self.data.add(i)).write(T::default());
                 }
                 self.data_end = new_end;
             }
@@ -196,7 +196,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
                     .allocate_uninitialized_array::<T>(new_capacity)
                     .as_mut_ptr();
                 self.data_end = self.data;
-                self.capacity_end = self.data.offset(new_capacity as isize);
+                self.capacity_end = self.data.add(new_capacity);
             } else {
                 let old_size = self.size();
                 let old_capacity = self.capacity();
@@ -207,7 +207,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
                     .try_grow_array_in_place(old_array, new_capacity);
                 match new_array {
                     Some(_new_array) => {
-                        self.capacity_end = self.data.offset(new_capacity as isize);
+                        self.capacity_end = self.data.add(new_capacity);
                     }
                     None => {
                         let new_data: &mut [std::mem::MaybeUninit<T>] = self
@@ -219,8 +219,8 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
                         self.clear();
                         let new_data_ptr: *mut std::mem::MaybeUninit<T> = new_data.as_mut_ptr();
                         self.data = new_data_ptr;
-                        self.data_end = new_data_ptr.offset(old_size as isize);
-                        self.capacity_end = new_data_ptr.offset(new_capacity as isize);
+                        self.data_end = new_data_ptr.add(old_size);
+                        self.capacity_end = new_data_ptr.add(new_capacity);
                     }
                 }
             }
@@ -262,7 +262,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
             let size = self.size();
             unsafe {
                 for i in 0..size {
-                    (&mut *self.data.offset(i as isize)).assume_init_drop();
+                    (&mut *self.data.add(i)).assume_init_drop();
                 }
                 self.allocator.deallocate(
                     self.data as *mut u8,
@@ -292,7 +292,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::Index<usiz
 
     fn index<'a>(&'a self, index: usize) -> &'a T {
         qljs_assert!(index < self.size());
-        unsafe { (&*self.data.offset(index as isize)).assume_init_ref() }
+        unsafe { (&*self.data.add(index)).assume_init_ref() }
     }
 }
 
@@ -301,7 +301,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::IndexMut<u
 {
     fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut T {
         qljs_assert!(index < self.size());
-        unsafe { (&mut *self.data.offset(index as isize)).assume_init_mut() }
+        unsafe { (&mut *self.data.add(index)).assume_init_mut() }
     }
 }
 

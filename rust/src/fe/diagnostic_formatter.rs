@@ -224,7 +224,7 @@ fn get_arg(
     arg_index: i32,
 ) -> (*const u8, DiagnosticArgType) {
     let arg_info: &DiagnosticMessageArgInfo = &args[narrow_cast::<usize, _>(arg_index)];
-    let arg_data: *const u8 = unsafe { diagnostic.offset(arg_info.offset() as isize) };
+    let arg_data: *const u8 = unsafe { diagnostic.add(arg_info.offset()) };
     (arg_data, arg_info.type_())
 }
 

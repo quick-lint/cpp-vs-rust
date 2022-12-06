@@ -217,8 +217,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
             self.assert_not_disabled();
             qljs_assert!(new_len > array.len());
             let old_byte_size = Self::align_up(array.len() * std::mem::size_of::<T>());
-            let old_array_end: *mut u8 =
-                (array.as_mut_ptr() as *mut u8).offset(old_byte_size as isize);
+            let old_array_end: *mut u8 = (array.as_mut_ptr() as *mut u8).add(old_byte_size);
             let array_is_last_allocation = old_array_end == self.next_allocation;
             if !array_is_last_allocation {
                 // We can't grow because something else was already allocated.
@@ -230,7 +229,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
                 return None;
             }
             self.did_allocate_bytes(self.next_allocation, extra_bytes);
-            self.next_allocation = self.next_allocation.offset(extra_bytes as isize);
+            self.next_allocation = self.next_allocation.add(extra_bytes);
             Some(std::slice::from_raw_parts_mut(array.as_mut_ptr(), new_len))
         }
     }
@@ -248,7 +247,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
                 qljs_assert!(self.remaining_bytes_in_current_chunk() >= size);
             }
             let result = self.next_allocation;
-            self.next_allocation = self.next_allocation.offset(size as isize);
+            self.next_allocation = self.next_allocation.add(size);
             self.did_allocate_bytes(result, size);
             result
         }
@@ -301,7 +300,7 @@ impl<const ALIGNMENT: usize> ChunkHeader<ALIGNMENT> {
     }
 
     fn data_end<'a>(&'a mut self) -> *mut u8 {
-        unsafe { self.data_begin().offset(self.len as isize) }
+        unsafe { self.data_begin().add(self.len) }
     }
 
     fn allocation_layout(len: usize) -> std::alloc::Layout {
