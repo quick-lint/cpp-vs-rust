@@ -16,7 +16,7 @@ use std::arch::arm::*;
 #[cfg(target_feature = "neon")]
 impl BoolVector16NEON {
     #[cfg(target_arch = "aarch64")]
-    pub fn find_first_false(&self) -> i32 {
+    pub fn find_first_false(&self) -> u32 {
         unsafe {
             // You might expect a magic pattern to look like the following:
             //
@@ -64,13 +64,13 @@ impl BoolVector16NEON {
             //   0b0A0B0C0D0E0F0G0H0I0J0K0L0M0N0O0P
             //
             // To deal with the extra zeros, we to divide our countr_zero result by 2.
-            (mask.trailing_zeros() / 2) as i32
+            mask.trailing_zeros() / 2
         }
     }
 
     #[cfg(target_arch = "arm")]
-    pub fn find_first_false() -> i32 {
-        self.mask().trailing_ones() as i32
+    pub fn find_first_false() -> u32 {
+        self.mask().trailing_ones()
     }
 
     #[rustfmt::skip]
