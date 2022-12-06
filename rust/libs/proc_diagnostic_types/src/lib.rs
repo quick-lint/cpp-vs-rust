@@ -1,3 +1,13 @@
+// Clippy's suggested fix is ugly.
+#![allow(clippy::explicit_counter_loop)]
+// Often we write (x << 0) or (x | 0) for symmetry with other code.
+#![allow(clippy::identity_op)]
+// Often we write lifetimes explicitly for better readability.
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::redundant_static_lifetimes)]
+// Refactoring is easier if the shorthand syntax is avoided.
+#![allow(clippy::redundant_field_names)]
+
 mod token_stream_parser;
 mod token_writer;
 
@@ -477,7 +487,7 @@ pub fn qljs_make_diag_type_infos(item: proc_macro::TokenStream) -> proc_macro::T
                 for message in &diag_struct.attribute.messages {
                     arg_infos.build_bracket(|arg_info: &mut TokenWriter| {
                         for field in &message.fields {
-                            write_diagnostic_message_arg_info_new(arg_info, &diag_struct, field);
+                            write_diagnostic_message_arg_info_new(arg_info, diag_struct, field);
                             arg_info.punct(",");
                         }
                         write_filler_entries(
@@ -548,12 +558,12 @@ impl QLJSDiagnosticAttribute {
     fn code(&self) -> u16 {
         let code_string: &[u8] = self.code_string.as_bytes();
         assert_eq!(code_string.len(), 5);
-        assert_eq!(code_string[0], 'E' as u8);
-        let zero: u8 = '0' as u8;
-        assert!(zero <= code_string[1] && code_string[1] <= ('9' as u8));
-        assert!(zero <= code_string[2] && code_string[2] <= ('9' as u8));
-        assert!(zero <= code_string[3] && code_string[3] <= ('9' as u8));
-        assert!(zero <= code_string[4] && code_string[4] <= ('9' as u8));
+        assert_eq!(code_string[0], b'E');
+        let zero: u8 = b'0';
+        assert!(zero <= code_string[1] && code_string[1] <= b'9');
+        assert!(zero <= code_string[2] && code_string[2] <= b'9');
+        assert!(zero <= code_string[3] && code_string[3] <= b'9');
+        assert!(zero <= code_string[4] && code_string[4] <= b'9');
         ((code_string[1] - zero) as u16) * 1000
             + ((code_string[2] - zero) as u16) * 100
             + ((code_string[3] - zero) as u16) * 10
@@ -609,7 +619,7 @@ fn write_diagnostic_message_new<
         // severity
         args.ident("DiagnosticSeverity");
         args.punct("::");
-        args.ident(&severity);
+        args.ident(severity);
         args.punct(",");
 
         // message_formats
