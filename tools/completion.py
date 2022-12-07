@@ -91,10 +91,24 @@ CONVERTED_CPP_FILES = [
 ]
 
 
+LEX_CPP_FILES = [
+    "cpp/src/quick-lint-js/fe/lex-debug.cpp",
+    "cpp/src/quick-lint-js/fe/lex-keyword-generated.cpp",
+    "cpp/src/quick-lint-js/fe/lex.cpp",
+    "cpp/src/quick-lint-js/fe/lex.h",
+    "cpp/test/test-lex.cpp",
+]
+
+
 def main() -> None:
     os.chdir(pathlib.Path(__file__).parent / "..")
     cwd = pathlib.Path(".")
+
+    lex_cpp_files = set(cwd / p for p in LEX_CPP_FILES)
     converted_cpp_files = set(cwd / p for p in CONVERTED_CPP_FILES)
+
+    for path in lex_cpp_files:
+        assert not is_generated(path)
 
     cpp_files = flatten(
         cwd.glob(pattern)
@@ -115,11 +129,24 @@ def main() -> None:
         ]
     )
 
+    lex_total_test_count = (cwd / "cpp/test/test-lex.cpp").read_text().count("TEST_F")
+    lex_converted_test_count = (
+        (cwd / "rust/tests/test_lex.rs").read_text().count("#[test]")
+    )
+    lex_converted_rate = lex_converted_test_count / lex_total_test_count
+
+    lex_cpp_total_sloc = sloc(lex_cpp_files)
+    lex_cpp_converted_sloc = int(lex_cpp_total_sloc * lex_converted_rate)
+
     cpp_total_sloc = sloc(cpp_files)
     cpp_human_sloc = sloc([p for p in cpp_files if not is_generated(p)])
-    cpp_total_converted_sloc = sloc([p for p in cpp_files if p in converted_cpp_files])
-    cpp_human_converted_sloc = sloc(
-        [p for p in cpp_files if p in converted_cpp_files and not is_generated(p)]
+    cpp_total_converted_sloc = (
+        sloc([p for p in cpp_files if p in converted_cpp_files])
+        + lex_cpp_converted_sloc
+    )
+    cpp_human_converted_sloc = (
+        sloc([p for p in cpp_files if p in converted_cpp_files and not is_generated(p)])
+        + lex_cpp_converted_sloc
     )
 
     rust_total_sloc = sloc(rust_files)
@@ -127,13 +154,14 @@ def main() -> None:
 
     print(
         f"""\
-Total C++ SLOC:                   {cpp_total_sloc:7}
-Total non-generated C++ SLOC:     {cpp_human_sloc:7}
-Converted C++ SLOC:               {cpp_total_converted_sloc:7} ({100 * cpp_total_converted_sloc / cpp_total_sloc:.1f}%)
-Converted non-generated C++ SLOC: {cpp_human_converted_sloc:7} ({100 * cpp_human_converted_sloc / cpp_human_sloc:.1f}%)
+Total C++ SLOC:                    {cpp_total_sloc:7}
+Total non-generated C++ SLOC:      {cpp_human_sloc:7}
+Converted C++ lexer SLOC:         ~{lex_cpp_converted_sloc:7} ({100 * lex_converted_rate:.1f}%)
+Converted C++ SLOC:               ~{cpp_total_converted_sloc:7} ({100 * cpp_total_converted_sloc / cpp_total_sloc:.1f}%)
+Converted non-generated C++ SLOC: ~{cpp_human_converted_sloc:7} ({100 * cpp_human_converted_sloc / cpp_human_sloc:.1f}%)
 
-Rust SLOC:                        {rust_total_sloc:7} ({100 * rust_total_sloc / cpp_total_converted_sloc:.1f}% of converted C++)
-Non-generated Rust SLOC:          {rust_human_sloc:7} ({100 * rust_human_sloc / cpp_human_converted_sloc:.1f}% of converted C++)\
+Rust SLOC:                         {rust_total_sloc:7} ({100 * rust_total_sloc / cpp_total_converted_sloc:.1f}% of converted C++)
+Non-generated Rust SLOC:           {rust_human_sloc:7} ({100 * rust_human_sloc / cpp_human_converted_sloc:.1f}% of converted C++)\
 """
     )
 
@@ -148,7 +176,9 @@ def flatten(iterable_of_iterables) -> typing.List:
 
 
 def is_generated(path: pathlib.Path) -> bool:
-    return "generated" in str(path)
+    # lex-keyword-generated.cpp comes from lex-keyword.gperf and has roughly the
+    # same SLOC. Consider it not generated.
+    return "generated" in str(path) and "lex-keyword-generated.cpp" not in str(path)
 
 
 def is_test(path: pathlib.Path) -> bool:
@@ -156,8 +186,10 @@ def is_test(path: pathlib.Path) -> bool:
     return True
 
 
-def sloc(files: typing.List[pathlib.Path]) -> None:
-    output = subprocess.check_output(["cloc", "--json", "--"] + files, encoding="utf-8")
+def sloc(files: typing.Iterable[pathlib.Path]) -> None:
+    output = subprocess.check_output(
+        ["cloc", "--json", "--"] + list(files), encoding="utf-8"
+    )
     data = json.loads(output)
     return data["SUM"]["code"]
 
