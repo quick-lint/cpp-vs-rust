@@ -519,7 +519,32 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn parse_binary_number(&mut self) {
-        todo!();
+        let mut input: InputPointer = self.input;
+
+        input = InputPointer(self.parse_digits_and_underscores(
+            |character: u8| -> bool { is_binary_digit(character) },
+            input.0,
+        ));
+        let found_digits: bool = input.0 != self.input.0;
+        if input[0] == b'n' {
+            input += 1;
+        }
+
+        if found_digits {
+            self.input = InputPointer(
+                self.check_garbage_in_number_literal::<DiagUnexpectedCharactersInBinaryNumber>(
+                    input.0,
+                ),
+            );
+        } else {
+            report(
+                self.diag_reporter,
+                DiagNoDigitsInBinaryNumber {
+                    characters: unsafe { SourceCodeSpan::new(self.last_token.begin, input.0) },
+                },
+            );
+            self.input = input;
+        }
     }
 
     // 0775, 09999, 08.24
@@ -537,7 +562,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn check_garbage_in_number_literal<Error>(&mut self, input: *const u8) -> *const u8 {
-        todo!();
+        // TODO(port)
+        input
     }
 
     fn check_integer_precision_loss(&mut self, number_literal: &[u8]) {
@@ -1023,6 +1049,10 @@ struct ParsedIdentifier<'alloc, 'code> {
     normalized: &'alloc [u8],
 
     escape_sequences: Option<&'alloc EscapeSequenceList<'alloc, 'code>>,
+}
+
+fn is_binary_digit(c: u8) -> bool {
+    c == b'0' || c == b'1'
 }
 
 fn is_digit(c: u8) -> bool {

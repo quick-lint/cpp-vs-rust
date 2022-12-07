@@ -87,7 +87,27 @@ fn lex_numbers() {
     f.check_tokens("0.3", &[TokenType::Number]);
 }
 
-// TODO(port): lex_binary_numbers
+#[test]
+fn lex_binary_numbers() {
+    let mut f = Fixture::new();
+
+    f.check_tokens("0b0", &[TokenType::Number]);
+    f.check_tokens("0b1", &[TokenType::Number]);
+    f.check_tokens("0b010101010101010", &[TokenType::Number]);
+    f.check_tokens("0B010101010101010", &[TokenType::Number]);
+    f.check_tokens("0b01_11_00_10", &[TokenType::Number]);
+    f.check_tokens("0b01n", &[TokenType::Number]);
+
+    f.check_tokens(
+        "0b0.toString",
+        &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
+    );
+    f.check_tokens(
+        "0b0101010101.toString",
+        &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
+    );
+}
+
 // TODO(port): fail_lex_integer_loses_precision
 // TODO(port): fail_lex_binary_number_no_digits
 // TODO(port): fail_lex_binary_number
