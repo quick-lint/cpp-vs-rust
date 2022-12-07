@@ -120,6 +120,14 @@ pub struct DiagNumberLiteralContainsConsecutiveUnderscores<'code> {
 }
 
 #[qljs_diagnostic(
+    "E0029", DiagnosticSeverity::Error,
+    (qljs_translatable!("number literal contains trailing underscore(s)"), underscores),
+)]
+pub struct DiagNumberLiteralContainsTrailingUnderscores<'code> {
+    pub underscores: SourceCodeSpan<'code>,
+}
+
+#[qljs_diagnostic(
     "E0030", DiagnosticSeverity::Error,
     (qljs_translatable!("octal literal may not have exponent"), characters),
 )]

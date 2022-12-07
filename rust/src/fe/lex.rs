@@ -131,7 +131,36 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     fn try_parse_current_token(&mut self) -> bool {
         self.last_token.begin = self.input.0;
         match self.input[0] {
-            // TODO(port): QLJS_CASE_DECIMAL_DIGIT:
+            qljs_case_decimal_digit!() => {
+                self.last_token.type_ = TokenType::Number;
+                if self.input[0] == b'0' {
+                    match self.input[1] {
+                        b'b' | b'B' => {
+                            self.input += 2;
+                            self.parse_binary_number();
+                        }
+                        b'o' | b'O' => {
+                            self.input += 2;
+                            self.parse_modern_octal_number();
+                        }
+                        qljs_case_decimal_digit!() => {
+                            self.input += 1;
+                            self.parse_legacy_octal_number();
+                        }
+                        b'x' | b'X' => {
+                            self.input += 2;
+                            self.parse_hexadecimal_number();
+                        }
+                        _ => {
+                            self.parse_number();
+                        }
+                    }
+                } else {
+                    self.parse_number();
+                }
+                self.last_token.end = self.input.0;
+            }
+
             qljs_case_identifier_start!() => {
                 let ident: ParsedIdentifier =
                     self.parse_identifier(self.input.0, IdentifierKind::JavaScript);
@@ -489,7 +518,164 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         true
     }
 
+    fn parse_binary_number(&mut self) {
+        todo!();
+    }
+
+    // 0775, 09999, 08.24
+    fn parse_legacy_octal_number(&mut self) {
+        todo!();
+    }
+
+    // 0o775, 0o111_555
+    fn parse_modern_octal_number(&mut self) {
+        todo!();
+    }
+
+    fn parse_hexadecimal_number(&mut self) {
+        todo!();
+    }
+
+    fn check_garbage_in_number_literal<Error>(&mut self, input: *const u8) -> *const u8 {
+        todo!();
+    }
+
+    fn check_integer_precision_loss(&mut self, number_literal: &[u8]) {
+        // TODO(port)
+    }
+
     fn parse_number(&mut self) {
+        qljs_slow_assert!(is_digit(self.input[0]) || self.input[0] == b'.');
+        let mut input: InputPointer = self.input;
+        let number_begin = InputPointer(input.0);
+
+        let consume_garbage = |this: &mut Self, input: &mut InputPointer| {
+            let garbage_begin: *const u8 = input.0;
+            let garbage_end: *const u8 = this
+                .parse_identifier(garbage_begin, IdentifierKind::JavaScript)
+                .after;
+            report(
+                this.diag_reporter,
+                DiagUnexpectedCharactersInNumber {
+                    characters: unsafe { SourceCodeSpan::new(garbage_begin, garbage_end) },
+                },
+            );
+            *input = InputPointer(garbage_end);
+        };
+
+        input = InputPointer(self.parse_decimal_digits_and_underscores(input.0));
+        let has_decimal_point: bool = input[0] == b'.';
+        if has_decimal_point {
+            input += 1;
+            input = InputPointer(self.parse_decimal_digits_and_underscores(input.0));
+        }
+        let has_exponent: bool = input[0] == b'e' || input[0] == b'E';
+        if has_exponent {
+            let e: InputPointer = input;
+            input += 1;
+            if input[0] == b'-' || input[0] == b'+' {
+                input += 1;
+            }
+            if is_digit(input[0]) {
+                input = InputPointer(self.parse_decimal_digits_and_underscores(input.0));
+            } else {
+                input = e;
+                consume_garbage(self, &mut input);
+            }
+        }
+        let is_bigint: bool = input[0] == b'n';
+        if is_bigint {
+            input += 1;
+            if has_decimal_point {
+                report(
+                    self.diag_reporter,
+                    DiagBigIntLiteralContainsDecimalPoint {
+                        where_: unsafe { SourceCodeSpan::new(number_begin.0, input.0) },
+                    },
+                );
+            }
+            if has_exponent {
+                report(
+                    self.diag_reporter,
+                    DiagBigIntLiteralContainsExponent {
+                        where_: unsafe { SourceCodeSpan::new(number_begin.0, input.0) },
+                    },
+                );
+            }
+            qljs_slow_assert!(!(number_begin[0] == b'0' && is_digit(number_begin[1])));
+        }
+        if !has_decimal_point && !has_exponent && !is_bigint {
+            self.check_integer_precision_loss(unsafe {
+                slice_from_begin_end(number_begin.0, input.0)
+            });
+        }
+
+        if matches!(input[0], qljs_case_identifier_start!()) {
+            consume_garbage(self, &mut input);
+        }
+        self.input = input;
+    }
+
+    fn parse_digits_and_underscores<Func: FnMut(u8) -> bool>(
+        &mut self,
+        mut is_valid_digit: Func,
+        input: *const u8,
+    ) -> *const u8 {
+        let mut input = InputPointer(input);
+        let mut has_trailing_underscore: bool = false;
+        let mut garbage_begin: *const u8 = std::ptr::null();
+        while is_valid_digit(input[0]) {
+            has_trailing_underscore = false;
+            input += 1;
+            if input[0] == b'_' {
+                garbage_begin = input.0;
+                has_trailing_underscore = true;
+                input += 1;
+                if input[0] == b'_' {
+                    has_trailing_underscore = false;
+
+                    while input[0] == b'_' {
+                        input += 1;
+                    }
+
+                    if is_valid_digit(input[0]) {
+                        report(
+                            self.diag_reporter,
+                            DiagNumberLiteralContainsConsecutiveUnderscores {
+                                underscores: unsafe { SourceCodeSpan::new(garbage_begin, input.0) },
+                            },
+                        );
+                    } else {
+                        report(
+                            self.diag_reporter,
+                            DiagNumberLiteralContainsTrailingUnderscores {
+                                underscores: unsafe { SourceCodeSpan::new(garbage_begin, input.0) },
+                            },
+                        );
+                    }
+                }
+            }
+        }
+        if !garbage_begin.is_null() && has_trailing_underscore == true {
+            report(
+                self.diag_reporter,
+                DiagNumberLiteralContainsTrailingUnderscores {
+                    underscores: unsafe { SourceCodeSpan::new(garbage_begin, input.0) },
+                },
+            );
+        }
+        input.0
+    }
+
+    fn parse_octal_digits(&mut self, input: *const u8) -> *const u8 {
+        todo!();
+    }
+
+    fn parse_decimal_digits_and_underscores(&mut self, input: *const u8) -> *const u8 {
+        self.parse_digits_and_underscores(|character: u8| -> bool { is_digit(character) }, input)
+    }
+
+    fn parse_hex_digits_and_underscores(&mut self, input: *const u8) -> *const u8 {
         todo!();
     }
 

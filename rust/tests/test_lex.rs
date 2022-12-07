@@ -54,7 +54,39 @@ fn lex_line_comments_with_control_characters() {
 
 // TODO(port): lex_html_open_comments
 // TODO(port): lex_html_close_comments
-// TODO(port): lex_numbers
+
+#[test]
+fn lex_numbers() {
+    let mut f = Fixture::new();
+
+    f.check_tokens("0", &[TokenType::Number]);
+    f.check_tokens("2", &[TokenType::Number]);
+    f.check_tokens("42", &[TokenType::Number]);
+    f.check_tokens("12.34", &[TokenType::Number]);
+    f.check_tokens(".34", &[TokenType::Number]);
+
+    f.check_tokens("1e3", &[TokenType::Number]);
+    f.check_tokens(".1e3", &[TokenType::Number]);
+    f.check_tokens("1.e3", &[TokenType::Number]);
+    f.check_tokens("1.0e3", &[TokenType::Number]);
+    f.check_tokens("1e-3", &[TokenType::Number]);
+    f.check_tokens("1e+3", &[TokenType::Number]);
+    f.check_tokens("1E+3", &[TokenType::Number]);
+    f.check_tokens("1E123_233_22", &[TokenType::Number]);
+
+    f.check_tokens("0n", &[TokenType::Number]);
+    f.check_tokens("123456789n", &[TokenType::Number]);
+
+    f.check_tokens("123_123_123", &[TokenType::Number]);
+    f.check_tokens("123.123_123", &[TokenType::Number]);
+
+    f.check_tokens("123. 456", &[TokenType::Number, TokenType::Number]);
+
+    f.check_tokens("1.2.3", &[TokenType::Number, TokenType::Number]);
+    // TODO(port): f.check_tokens(".2.3", &[TokenType::Number, TokenType::Number]);
+    f.check_tokens("0.3", &[TokenType::Number]);
+}
+
 // TODO(port): lex_binary_numbers
 // TODO(port): fail_lex_integer_loses_precision
 // TODO(port): fail_lex_binary_number_no_digits
