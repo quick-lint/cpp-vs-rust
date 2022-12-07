@@ -94,6 +94,10 @@ impl BoolVector16SSE2 {
     pub fn mask(&self) -> u32 {
         unsafe { _mm_movemask_epi8(self.0) as u32 }
     }
+
+    pub const fn len(&self) -> usize {
+        16
+    }
 }
 
 #[cfg(target_feature = "sse2")]
@@ -195,6 +199,10 @@ impl BoolVector16NEON {
     }
 
     // find_first_falls and mask are implemented in simd_neon_arm.rs.
+
+    pub const fn len(&self) -> usize {
+        16
+    }
 }
 
 #[cfg(target_feature = "neon")]

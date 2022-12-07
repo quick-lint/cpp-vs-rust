@@ -1,7 +1,7 @@
 " Vim script to help convert C++ code into Rust code.
 
 " Google Test:
-%s/^TEST(\k\+,\_\s*\(\k\+\)) {/#[test]fn \1() {/
+%s/^TEST\(_F\)\?(\k\+,\_\s*\(\k\+\)) {/#[test]fn \2() {/
 %s/EXPECT_EQ/assert_eq!/g
 %s/EXPECT_TRUE(\(.*\));/assert!(\1);/g
 %s/EXPECT_FALSE(\(.*\));/assert!(!(\1));/g

@@ -736,7 +736,66 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn skip_line_comment_body(&mut self) {
-        todo!();
+        #[cfg(target_feature = "neon")]
+        type BoolVector = BoolVector16NEON;
+        #[cfg(target_feature = "neon")]
+        type CharVector = CharVector16NEON;
+        // TODO(port): char_vector_16_wasm_simd128, bool_vector_16_wasm_simd128
+        #[cfg(target_feature = "sse2")]
+        type BoolVector = BoolVector16SSE2;
+        #[cfg(target_feature = "sse2")]
+        type CharVector = CharVector16SSE2;
+        // TODO(port): bool_vector_1, char_vector_1
+
+        let new_line: CharVector = CharVector::repeated(b'\n');
+        let carriage_return: CharVector = CharVector::repeated(b'\r');
+        let unicode_first_byte: CharVector = CharVector::repeated(0xe2); // U+2028 U+2029
+        let zero: CharVector = CharVector::repeated(0);
+
+        loop {
+            let chars: CharVector = unsafe { CharVector::load_raw(self.input.0) };
+
+            let matches: BoolVector = chars.lane_eq(new_line)
+                | chars.lane_eq(carriage_return)
+                | chars.lane_eq(unicode_first_byte)
+                | chars.lane_eq(zero);
+
+            let mask: u32 = matches.mask();
+            if mask == 0 {
+                // nothing found, go to the next chunk
+                self.input += matches.len() as isize;
+            } else {
+                // found an interesting char
+                self.input += mask.trailing_zeros() as isize;
+
+                let found_comment_end: bool = {
+                    let n: usize = newline_character_size(self.input);
+
+                    if n == 1 {
+                        self.input += 1;
+                        self.skip_whitespace();
+                        true
+                    }
+                    // U+2028 Line Separator
+                    // U+2029 Paragraph Separator
+                    else if n == 3 {
+                        self.input += 3;
+                        self.skip_whitespace();
+                        true
+                    } else if self.input[0] == b'\0' && self.is_eof(self.input.0) {
+                        true
+                    } else {
+                        self.input += 1;
+                        false
+                    }
+                };
+                if found_comment_end {
+                    break;
+                }
+            }
+        }
+
+        self.last_token.has_leading_newline = true;
     }
 
     fn is_eof(&self, input: *const u8) -> bool {

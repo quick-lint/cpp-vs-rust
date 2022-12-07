@@ -3,6 +3,7 @@ use cpp_vs_rust::container::padded_string::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
 use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::token::*;
+use cpp_vs_rust::test::characters::*;
 use cpp_vs_rust::test::diag_collector::*;
 
 macro_rules! scoped_trace {
@@ -15,8 +16,42 @@ macro_rules! scoped_trace {
 // TODO(port): lex_unopened_block_comment
 // TODO(port): lex_regexp_literal_starting_with_star_slash
 // TODO(port): lex_regexp_literal_starting_with_star_star_slash
-// TODO(port): lex_line_comments
-// TODO(port): lex_line_comments_with_control_characters
+
+#[test]
+fn lex_line_comments() {
+    let mut f = Fixture::new();
+
+    assert_matches!(f.lex_to_eof_types("// hello"), ts if ts.is_empty());
+    for line_terminator in LINE_TERMINATORS {
+        f.check_single_token(&format!("// hello{line_terminator}world"), "world");
+    }
+    assert_matches!(f.lex_to_eof_types("// hello\n// world"), ts if ts.is_empty());
+    f.check_tokens(
+        "hello//*/\n \n \nworld",
+        &[TokenType::Identifier, TokenType::Identifier],
+    );
+
+    /*
+     * Also test for a unicode sign that starts with 0xe280, because the
+     * skip_line_comment() will also look for U+2028 and U+2029
+     *  > U+2028 Line Separator      (0xe280a8)
+     *  > U+2029 Paragraph Separator (0xe280a9)
+     *  > U+2030 Per Mille Sign      (0xe280b0)
+     */
+    assert_matches!(f.lex_to_eof_types("// 123‰"), ts if ts.is_empty());
+}
+
+#[test]
+fn lex_line_comments_with_control_characters() {
+    let mut f = Fixture::new();
+    for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
+        // TODO(port): Change this back to "42.0".
+        let input: String = format!("// hello {control_character} world\nident");
+        scoped_trace!(input);
+        f.check_tokens(&input, &[TokenType::Identifier]);
+    }
+}
+
 // TODO(port): lex_html_open_comments
 // TODO(port): lex_html_close_comments
 // TODO(port): lex_numbers
@@ -362,5 +397,21 @@ impl Fixture {
             }
         }
         callback(&tokens);
+    }
+
+    fn lex_to_eof_types(&mut self, input: &str) -> Vec<TokenType> {
+        self.lex_to_eof_types_padded(PaddedString::from_str(input).view())
+    }
+
+    fn lex_to_eof_types_padded(&mut self, input: PaddedStringView<'_>) -> Vec<TokenType> {
+        let errors = DiagCollector::new();
+        let mut lexed_token_types: Vec<TokenType> = vec![];
+        self.lex_to_eof(input, &errors, |lexed_tokens: &Vec<Token>| {
+            for t in lexed_tokens {
+                lexed_token_types.push(t.type_);
+            }
+            assert_eq!(errors.len(), 0);
+        });
+        lexed_token_types
     }
 }
