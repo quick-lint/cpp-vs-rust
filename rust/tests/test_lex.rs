@@ -249,7 +249,24 @@ fn fail_lex_binary_number_no_digits() {
     );
 }
 
-// TODO(port): fail_lex_binary_number
+#[test]
+fn fail_lex_binary_number() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        "0b1ee",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInBinaryNumber {
+                    characters: b"0b1"..b"ee",
+                },
+            );
+        },
+    );
+}
+
 // TODO(port): lex_modern_octal_numbers
 // TODO(port): fail_lex_modern_octal_number_no_digits
 // TODO(port): fail_lex_modern_octal_numbers

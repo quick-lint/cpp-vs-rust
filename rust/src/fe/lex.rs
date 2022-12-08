@@ -535,9 +535,9 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
         if found_digits {
             self.input = InputPointer(
-                self.check_garbage_in_number_literal::<DiagUnexpectedCharactersInBinaryNumber>(
-                    input.0,
-                ),
+                self.check_garbage_in_number_literal(input.0, |span: SourceCodeSpan| {
+                    DiagUnexpectedCharactersInBinaryNumber { characters: span }
+                }),
             );
         } else {
             report(
@@ -564,9 +564,53 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         todo!();
     }
 
-    fn check_garbage_in_number_literal<Error>(&mut self, input: *const u8) -> *const u8 {
-        // TODO(port)
-        input
+    fn check_garbage_in_number_literal<
+        Diag: 'code + HasDiagType,
+        MakeError: FnOnce(SourceCodeSpan<'code>) -> Diag,
+    >(
+        &mut self,
+        input: *const u8,
+        make_error: MakeError,
+    ) -> *const u8 {
+        let mut input: InputPointer = InputPointer(input);
+        let garbage_begin: *const u8 = input.0;
+        loop {
+            match input[0] {
+                // 0xffffq  // Invalid.
+                // 0b0123   // Invalid.
+                qljs_case_decimal_digit!() | qljs_case_identifier_start!() => {
+                    input += 1;
+                }
+
+                // 0b0000.toString()
+                // 0b0000.2  // Invalid.
+                b'.' => {
+                    if is_digit(input[1]) {
+                        // 0b0000.2  // Invalid.
+                        input += 2;
+                    } else {
+                        // 0b0000.toString()
+                        // 0b0000. 2          // Invalid.
+                        break;
+                    }
+                }
+
+                _ => {
+                    break;
+                }
+            }
+        }
+
+        let garbage_end: *const u8 = input.0;
+        if garbage_end != garbage_begin {
+            report(
+                self.diag_reporter,
+                make_error(unsafe { SourceCodeSpan::new(garbage_begin, garbage_end) }),
+            );
+            input = InputPointer(garbage_end);
+        }
+
+        input.0
     }
 
     fn check_integer_precision_loss(&mut self, number_literal: &[u8]) {
