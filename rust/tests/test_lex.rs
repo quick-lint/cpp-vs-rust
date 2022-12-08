@@ -25,11 +25,14 @@ fn lex_line_comments() {
 
     assert_eq!(f.lex_to_eof_types("// hello"), vec![]);
     for line_terminator in LINE_TERMINATORS {
-        f.check_single_token(&format!("// hello{line_terminator}world"), "world");
+        f.check_single_token(
+            format!("// hello{line_terminator}world").as_bytes(),
+            "world",
+        );
     }
     assert_eq!(f.lex_to_eof_types("// hello\n// world"), vec![]);
     f.check_tokens(
-        "hello//*/\n \n \nworld",
+        b"hello//*/\n \n \nworld",
         &[TokenType::Identifier, TokenType::Identifier],
     );
 
@@ -49,7 +52,7 @@ fn lex_line_comments_with_control_characters() {
     for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
         let input: String = format!("// hello {control_character} world\n42.0");
         scoped_trace!(input);
-        f.check_tokens(&input, &[TokenType::Number]);
+        f.check_tokens(input.as_bytes(), &[TokenType::Number]);
     }
 }
 
@@ -60,51 +63,51 @@ fn lex_line_comments_with_control_characters() {
 fn lex_numbers() {
     let mut f = Fixture::new();
 
-    f.check_tokens("0", &[TokenType::Number]);
-    f.check_tokens("2", &[TokenType::Number]);
-    f.check_tokens("42", &[TokenType::Number]);
-    f.check_tokens("12.34", &[TokenType::Number]);
-    f.check_tokens(".34", &[TokenType::Number]);
+    f.check_tokens(b"0", &[TokenType::Number]);
+    f.check_tokens(b"2", &[TokenType::Number]);
+    f.check_tokens(b"42", &[TokenType::Number]);
+    f.check_tokens(b"12.34", &[TokenType::Number]);
+    f.check_tokens(b".34", &[TokenType::Number]);
 
-    f.check_tokens("1e3", &[TokenType::Number]);
-    f.check_tokens(".1e3", &[TokenType::Number]);
-    f.check_tokens("1.e3", &[TokenType::Number]);
-    f.check_tokens("1.0e3", &[TokenType::Number]);
-    f.check_tokens("1e-3", &[TokenType::Number]);
-    f.check_tokens("1e+3", &[TokenType::Number]);
-    f.check_tokens("1E+3", &[TokenType::Number]);
-    f.check_tokens("1E123_233_22", &[TokenType::Number]);
+    f.check_tokens(b"1e3", &[TokenType::Number]);
+    f.check_tokens(b".1e3", &[TokenType::Number]);
+    f.check_tokens(b"1.e3", &[TokenType::Number]);
+    f.check_tokens(b"1.0e3", &[TokenType::Number]);
+    f.check_tokens(b"1e-3", &[TokenType::Number]);
+    f.check_tokens(b"1e+3", &[TokenType::Number]);
+    f.check_tokens(b"1E+3", &[TokenType::Number]);
+    f.check_tokens(b"1E123_233_22", &[TokenType::Number]);
 
-    f.check_tokens("0n", &[TokenType::Number]);
-    f.check_tokens("123456789n", &[TokenType::Number]);
+    f.check_tokens(b"0n", &[TokenType::Number]);
+    f.check_tokens(b"123456789n", &[TokenType::Number]);
 
-    f.check_tokens("123_123_123", &[TokenType::Number]);
-    f.check_tokens("123.123_123", &[TokenType::Number]);
+    f.check_tokens(b"123_123_123", &[TokenType::Number]);
+    f.check_tokens(b"123.123_123", &[TokenType::Number]);
 
-    f.check_tokens("123. 456", &[TokenType::Number, TokenType::Number]);
+    f.check_tokens(b"123. 456", &[TokenType::Number, TokenType::Number]);
 
-    f.check_tokens("1.2.3", &[TokenType::Number, TokenType::Number]);
-    f.check_tokens(".2.3", &[TokenType::Number, TokenType::Number]);
-    f.check_tokens("0.3", &[TokenType::Number]);
+    f.check_tokens(b"1.2.3", &[TokenType::Number, TokenType::Number]);
+    f.check_tokens(b".2.3", &[TokenType::Number, TokenType::Number]);
+    f.check_tokens(b"0.3", &[TokenType::Number]);
 }
 
 #[test]
 fn lex_binary_numbers() {
     let mut f = Fixture::new();
 
-    f.check_tokens("0b0", &[TokenType::Number]);
-    f.check_tokens("0b1", &[TokenType::Number]);
-    f.check_tokens("0b010101010101010", &[TokenType::Number]);
-    f.check_tokens("0B010101010101010", &[TokenType::Number]);
-    f.check_tokens("0b01_11_00_10", &[TokenType::Number]);
-    f.check_tokens("0b01n", &[TokenType::Number]);
+    f.check_tokens(b"0b0", &[TokenType::Number]);
+    f.check_tokens(b"0b1", &[TokenType::Number]);
+    f.check_tokens(b"0b010101010101010", &[TokenType::Number]);
+    f.check_tokens(b"0B010101010101010", &[TokenType::Number]);
+    f.check_tokens(b"0b01_11_00_10", &[TokenType::Number]);
+    f.check_tokens(b"0b01n", &[TokenType::Number]);
 
     f.check_tokens(
-        "0b0.toString",
+        b"0b0.toString",
         &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
     );
     f.check_tokens(
-        "0b0101010101.toString",
+        b"0b0101010101.toString",
         &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
     );
 }
@@ -113,7 +116,7 @@ fn lex_binary_numbers() {
 fn fail_lex_integer_loses_precision() {
     let mut f = Fixture::new();
     f.check_tokens_with_errors(
-        "9007199254740993",
+        b"9007199254740993",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -126,12 +129,12 @@ fn fail_lex_integer_loses_precision() {
             );
         },
     );
-    f.check_tokens("999999999999999", &[TokenType::Number]);
+    f.check_tokens(b"999999999999999", &[TokenType::Number]);
     f.check_tokens(
-      "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368",
+      b"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368",
       &[TokenType::Number]);
     f.check_tokens_with_errors(
-        &format!("1{}", "0".repeat(309)),
+        format!("1{}", "0".repeat(309)).as_bytes(),
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -145,7 +148,7 @@ fn fail_lex_integer_loses_precision() {
         },
     );
     f.check_tokens_with_errors(
-        "179769313486231580000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        b"179769313486231580000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -159,7 +162,7 @@ fn fail_lex_integer_loses_precision() {
         },
     );
     f.check_tokens_with_errors(
-        "179769313486231589999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+        b"179769313486231589999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -173,7 +176,7 @@ fn fail_lex_integer_loses_precision() {
         },
     );
     f.check_tokens_with_errors(
-        "18014398509481986",
+        b"18014398509481986",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -192,7 +195,7 @@ fn fail_lex_integer_loses_precision() {
 fn fail_lex_binary_number_no_digits() {
     let mut f = Fixture::new();
     f.check_tokens_with_errors(
-        "0b",
+        b"0b",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -205,7 +208,7 @@ fn fail_lex_binary_number_no_digits() {
         },
     );
     f.check_tokens_with_errors(
-        "0bn",
+        b"0bn",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -218,7 +221,7 @@ fn fail_lex_binary_number_no_digits() {
         },
     );
     f.check_tokens_with_errors(
-        "0b;",
+        b"0b;",
         &[TokenType::Number, TokenType::Semicolon],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -231,7 +234,7 @@ fn fail_lex_binary_number_no_digits() {
         },
     );
     f.check_tokens_with_errors(
-        "[0b]",
+        b"[0b]",
         &[
             TokenType::LeftSquare,
             TokenType::Number,
@@ -253,7 +256,7 @@ fn fail_lex_binary_number_no_digits() {
 fn fail_lex_binary_number() {
     let mut f = Fixture::new();
     f.check_tokens_with_errors(
-        "0b1ee",
+        b"0b1ee",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -270,21 +273,21 @@ fn fail_lex_binary_number() {
 #[test]
 fn lex_modern_octal_numbers() {
     let mut f = Fixture::new();
-    f.check_tokens("0o51", &[TokenType::Number]);
-    f.check_tokens("0o0", &[TokenType::Number]);
-    f.check_tokens("0O0", &[TokenType::Number]);
-    f.check_tokens("0O12345670", &[TokenType::Number]);
-    f.check_tokens("0o775_775", &[TokenType::Number]);
-    f.check_tokens("0o0n", &[TokenType::Number]);
-    f.check_tokens("0o01", &[TokenType::Number]);
-    f.check_tokens("0o123n", &[TokenType::Number]);
+    f.check_tokens(b"0o51", &[TokenType::Number]);
+    f.check_tokens(b"0o0", &[TokenType::Number]);
+    f.check_tokens(b"0O0", &[TokenType::Number]);
+    f.check_tokens(b"0O12345670", &[TokenType::Number]);
+    f.check_tokens(b"0o775_775", &[TokenType::Number]);
+    f.check_tokens(b"0o0n", &[TokenType::Number]);
+    f.check_tokens(b"0o01", &[TokenType::Number]);
+    f.check_tokens(b"0o123n", &[TokenType::Number]);
 }
 
 #[test]
 fn fail_lex_modern_octal_number_no_digits() {
     let mut f = Fixture::new();
     f.check_tokens_with_errors(
-        "0o",
+        b"0o",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -297,7 +300,7 @@ fn fail_lex_modern_octal_number_no_digits() {
         },
     );
     f.check_tokens_with_errors(
-        "0o;",
+        b"0o;",
         &[TokenType::Number, TokenType::Semicolon],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -310,7 +313,7 @@ fn fail_lex_modern_octal_number_no_digits() {
         },
     );
     f.check_tokens_with_errors(
-        "[0o]",
+        b"[0o]",
         &[
             TokenType::LeftSquare,
             TokenType::Number,
@@ -332,7 +335,7 @@ fn fail_lex_modern_octal_number_no_digits() {
 fn fail_lex_modern_octal_numbers() {
     let mut f = Fixture::new();
     f.check_tokens_with_errors(
-        "0o58",
+        b"0o58",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -346,7 +349,7 @@ fn fail_lex_modern_octal_numbers() {
     );
 
     f.check_tokens_with_errors(
-        "0o58.2",
+        b"0o58.2",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -363,19 +366,19 @@ fn fail_lex_modern_octal_numbers() {
 #[test]
 fn lex_legacy_octal_numbers_strict() {
     let mut f = Fixture::new();
-    f.check_tokens("000", &[TokenType::Number]);
-    f.check_tokens("001", &[TokenType::Number]);
-    f.check_tokens("00010101010101010", &[TokenType::Number]);
-    f.check_tokens("051", &[TokenType::Number]);
+    f.check_tokens(b"000", &[TokenType::Number]);
+    f.check_tokens(b"001", &[TokenType::Number]);
+    f.check_tokens(b"00010101010101010", &[TokenType::Number]);
+    f.check_tokens(b"051", &[TokenType::Number]);
 
     // Legacy octal number literals which ended up actually being octal support
     // method calls with '.'.
     f.check_tokens(
-        "0123.toString",
+        b"0123.toString",
         &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
     );
     f.check_tokens(
-        "00.toString",
+        b"00.toString",
         &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
     );
 }
@@ -383,9 +386,9 @@ fn lex_legacy_octal_numbers_strict() {
 #[test]
 fn lex_legacy_octal_numbers_lax() {
     let mut f = Fixture::new();
-    f.check_tokens("058", &[TokenType::Number]);
-    f.check_tokens("058.9", &[TokenType::Number]);
-    f.check_tokens("08", &[TokenType::Number]);
+    f.check_tokens(b"058", &[TokenType::Number]);
+    f.check_tokens(b"058.9", &[TokenType::Number]);
+    f.check_tokens(b"08", &[TokenType::Number]);
 }
 
 #[test]
@@ -393,7 +396,7 @@ fn fail_lex_legacy_octal_numbers() {
     let mut f = Fixture::new();
 
     f.check_tokens_with_errors(
-        "0123n",
+        b"0123n",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -407,7 +410,7 @@ fn fail_lex_legacy_octal_numbers() {
     );
 
     f.check_tokens_with_errors(
-        "052.2",
+        b"052.2",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -426,7 +429,7 @@ fn legacy_octal_numbers_cannot_contain_underscores() {
     let mut f = Fixture::new();
 
     f.check_tokens_with_errors(
-        "0775_775",
+        b"0775_775",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -440,7 +443,7 @@ fn legacy_octal_numbers_cannot_contain_underscores() {
     );
 
     f.check_tokens_with_errors(
-        "0775____775",
+        b"0775____775",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -463,7 +466,7 @@ fn lex_number_with_trailing_garbage() {
     let mut f = Fixture::new();
 
     f.check_tokens_with_errors(
-        "123abcd",
+        b"123abcd",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -476,7 +479,7 @@ fn lex_number_with_trailing_garbage() {
         },
     );
     f.check_tokens_with_errors(
-        "123e f",
+        b"123e f",
         &[TokenType::Number, TokenType::Identifier],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -489,7 +492,7 @@ fn lex_number_with_trailing_garbage() {
         },
     );
     f.check_tokens_with_errors(
-        "123e-f",
+        b"123e-f",
         &[TokenType::Number, TokenType::Minus, TokenType::Identifier],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -502,7 +505,7 @@ fn lex_number_with_trailing_garbage() {
         },
     );
     f.check_tokens_with_errors(
-        "0b01234",
+        b"0b01234",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -515,7 +518,7 @@ fn lex_number_with_trailing_garbage() {
         },
     );
     f.check_tokens_with_errors(
-        "0b0h0lla",
+        b"0b0h0lla",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -530,7 +533,7 @@ fn lex_number_with_trailing_garbage() {
     if false {
         // TODO(port)
         f.check_tokens_with_errors(
-            "0xabjjw",
+            b"0xabjjw",
             &[TokenType::Number],
             |input: PaddedStringView, errors: &Vec<AnyDiag>| {
                 qljs_assert_diags!(
@@ -544,7 +547,7 @@ fn lex_number_with_trailing_garbage() {
         );
     }
     f.check_tokens_with_errors(
-        "0o69",
+        b"0o69",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -565,7 +568,7 @@ fn lex_decimal_number_with_dot_method_call_is_invalid() {
     // TODO(strager): Perhaps a better diagnostic would suggest adding parentheses
     // or another '.' to make a valid method call.
     f.check_tokens_with_errors(
-        "0.toString()",
+        b"0.toString()",
         &[
             TokenType::Number,
             TokenType::LeftParen,
@@ -582,7 +585,7 @@ fn lex_decimal_number_with_dot_method_call_is_invalid() {
         },
     );
     f.check_tokens_with_errors(
-        "09.toString",
+        b"09.toString",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
@@ -626,15 +629,15 @@ fn lex_decimal_number_with_dot_method_call_is_invalid() {
 #[test]
 fn lex_identifiers() {
     let mut f = Fixture::new();
-    f.check_tokens("i", &[TokenType::Identifier]);
-    f.check_tokens("_", &[TokenType::Identifier]);
-    f.check_tokens("$", &[TokenType::Identifier]);
-    f.check_single_token("id", "id");
-    f.check_single_token("id ", "id");
-    f.check_single_token("this_is_an_identifier", "this_is_an_identifier");
-    f.check_single_token("MixedCaseIsAllowed", "MixedCaseIsAllowed");
-    f.check_single_token("ident$with$dollars", "ident$with$dollars");
-    f.check_single_token("digits0123456789", "digits0123456789");
+    f.check_tokens(b"i", &[TokenType::Identifier]);
+    f.check_tokens(b"_", &[TokenType::Identifier]);
+    f.check_tokens(b"$", &[TokenType::Identifier]);
+    f.check_single_token(b"id", "id");
+    f.check_single_token(b"id ", "id");
+    f.check_single_token(b"this_is_an_identifier", "this_is_an_identifier");
+    f.check_single_token(b"MixedCaseIsAllowed", "MixedCaseIsAllowed");
+    f.check_single_token(b"ident$with$dollars", "ident$with$dollars");
+    f.check_single_token(b"digits0123456789", "digits0123456789");
 }
 
 // TODO(port): ascii_identifier_with_escape_sequence
@@ -663,87 +666,87 @@ fn lex_identifiers() {
 #[test]
 fn lex_single_character_symbols() {
     let mut f = Fixture::new();
-    f.check_tokens("+", &[TokenType::Plus]);
-    f.check_tokens("-", &[TokenType::Minus]);
-    f.check_tokens("*", &[TokenType::Star]);
-    f.check_tokens("/", &[TokenType::Slash]);
-    f.check_tokens("<", &[TokenType::Less]);
-    f.check_tokens(">", &[TokenType::Greater]);
-    f.check_tokens("=", &[TokenType::Equal]);
-    f.check_tokens("&", &[TokenType::Ampersand]);
-    f.check_tokens("^", &[TokenType::Circumflex]);
-    f.check_tokens("!", &[TokenType::Bang]);
-    f.check_tokens(".", &[TokenType::Dot]);
-    f.check_tokens(",", &[TokenType::Comma]);
-    f.check_tokens("~", &[TokenType::Tilde]);
-    f.check_tokens("%", &[TokenType::Percent]);
-    f.check_tokens("(", &[TokenType::LeftParen]);
-    f.check_tokens(")", &[TokenType::RightParen]);
-    f.check_tokens("[", &[TokenType::LeftSquare]);
-    f.check_tokens("]", &[TokenType::RightSquare]);
-    f.check_tokens("{", &[TokenType::LeftCurly]);
-    f.check_tokens("}", &[TokenType::RightCurly]);
-    f.check_tokens(":", &[TokenType::Colon]);
-    f.check_tokens(";", &[TokenType::Semicolon]);
-    f.check_tokens("?", &[TokenType::Question]);
-    f.check_tokens("|", &[TokenType::Pipe]);
+    f.check_tokens(b"+", &[TokenType::Plus]);
+    f.check_tokens(b"-", &[TokenType::Minus]);
+    f.check_tokens(b"*", &[TokenType::Star]);
+    f.check_tokens(b"/", &[TokenType::Slash]);
+    f.check_tokens(b"<", &[TokenType::Less]);
+    f.check_tokens(b">", &[TokenType::Greater]);
+    f.check_tokens(b"=", &[TokenType::Equal]);
+    f.check_tokens(b"&", &[TokenType::Ampersand]);
+    f.check_tokens(b"^", &[TokenType::Circumflex]);
+    f.check_tokens(b"!", &[TokenType::Bang]);
+    f.check_tokens(b".", &[TokenType::Dot]);
+    f.check_tokens(b",", &[TokenType::Comma]);
+    f.check_tokens(b"~", &[TokenType::Tilde]);
+    f.check_tokens(b"%", &[TokenType::Percent]);
+    f.check_tokens(b"(", &[TokenType::LeftParen]);
+    f.check_tokens(b")", &[TokenType::RightParen]);
+    f.check_tokens(b"[", &[TokenType::LeftSquare]);
+    f.check_tokens(b"]", &[TokenType::RightSquare]);
+    f.check_tokens(b"{", &[TokenType::LeftCurly]);
+    f.check_tokens(b"}", &[TokenType::RightCurly]);
+    f.check_tokens(b":", &[TokenType::Colon]);
+    f.check_tokens(b";", &[TokenType::Semicolon]);
+    f.check_tokens(b"?", &[TokenType::Question]);
+    f.check_tokens(b"|", &[TokenType::Pipe]);
 }
 
 #[test]
 fn lex_multi_character_symbols() {
     let mut f = Fixture::new();
-    f.check_tokens("<=", &[TokenType::LessEqual]);
-    f.check_tokens(">=", &[TokenType::GreaterEqual]);
-    f.check_tokens("==", &[TokenType::EqualEqual]);
-    f.check_tokens("===", &[TokenType::EqualEqualEqual]);
-    f.check_tokens("!=", &[TokenType::BangEqual]);
-    f.check_tokens("!==", &[TokenType::BangEqualEqual]);
-    f.check_tokens("**", &[TokenType::StarStar]);
-    f.check_tokens("++", &[TokenType::PlusPlus]);
-    f.check_tokens("--", &[TokenType::MinusMinus]);
-    f.check_tokens("<<", &[TokenType::LessLess]);
-    f.check_tokens(">>", &[TokenType::GreaterGreater]);
-    f.check_tokens(">>>", &[TokenType::GreaterGreaterGreater]);
-    f.check_tokens("&&", &[TokenType::AmpersandAmpersand]);
-    f.check_tokens("||", &[TokenType::PipePipe]);
-    f.check_tokens("+=", &[TokenType::PlusEqual]);
-    f.check_tokens("-=", &[TokenType::MinusEqual]);
-    f.check_tokens("*=", &[TokenType::StarEqual]);
-    f.check_tokens("/=", &[TokenType::SlashEqual]);
-    f.check_tokens("%=", &[TokenType::PercentEqual]);
-    f.check_tokens("**=", &[TokenType::StarStarEqual]);
-    f.check_tokens("&&=", &[TokenType::AmpersandAmpersandEqual]);
-    f.check_tokens("&=", &[TokenType::AmpersandEqual]);
-    f.check_tokens("?.", &[TokenType::QuestionDot]);
-    f.check_tokens("??", &[TokenType::QuestionQuestion]);
-    f.check_tokens("??=", &[TokenType::QuestionQuestionEqual]);
-    f.check_tokens("^=", &[TokenType::CircumflexEqual]);
-    f.check_tokens("|=", &[TokenType::PipeEqual]);
-    f.check_tokens("||=", &[TokenType::PipePipeEqual]);
-    f.check_tokens("<<=", &[TokenType::LessLessEqual]);
-    f.check_tokens(">>=", &[TokenType::GreaterGreaterEqual]);
-    f.check_tokens(">>>=", &[TokenType::GreaterGreaterGreaterEqual]);
-    f.check_tokens("=>", &[TokenType::EqualGreater]);
-    f.check_tokens("...", &[TokenType::DotDotDot]);
+    f.check_tokens(b"<=", &[TokenType::LessEqual]);
+    f.check_tokens(b">=", &[TokenType::GreaterEqual]);
+    f.check_tokens(b"==", &[TokenType::EqualEqual]);
+    f.check_tokens(b"===", &[TokenType::EqualEqualEqual]);
+    f.check_tokens(b"!=", &[TokenType::BangEqual]);
+    f.check_tokens(b"!==", &[TokenType::BangEqualEqual]);
+    f.check_tokens(b"**", &[TokenType::StarStar]);
+    f.check_tokens(b"++", &[TokenType::PlusPlus]);
+    f.check_tokens(b"--", &[TokenType::MinusMinus]);
+    f.check_tokens(b"<<", &[TokenType::LessLess]);
+    f.check_tokens(b">>", &[TokenType::GreaterGreater]);
+    f.check_tokens(b">>>", &[TokenType::GreaterGreaterGreater]);
+    f.check_tokens(b"&&", &[TokenType::AmpersandAmpersand]);
+    f.check_tokens(b"||", &[TokenType::PipePipe]);
+    f.check_tokens(b"+=", &[TokenType::PlusEqual]);
+    f.check_tokens(b"-=", &[TokenType::MinusEqual]);
+    f.check_tokens(b"*=", &[TokenType::StarEqual]);
+    f.check_tokens(b"/=", &[TokenType::SlashEqual]);
+    f.check_tokens(b"%=", &[TokenType::PercentEqual]);
+    f.check_tokens(b"**=", &[TokenType::StarStarEqual]);
+    f.check_tokens(b"&&=", &[TokenType::AmpersandAmpersandEqual]);
+    f.check_tokens(b"&=", &[TokenType::AmpersandEqual]);
+    f.check_tokens(b"?.", &[TokenType::QuestionDot]);
+    f.check_tokens(b"??", &[TokenType::QuestionQuestion]);
+    f.check_tokens(b"??=", &[TokenType::QuestionQuestionEqual]);
+    f.check_tokens(b"^=", &[TokenType::CircumflexEqual]);
+    f.check_tokens(b"|=", &[TokenType::PipeEqual]);
+    f.check_tokens(b"||=", &[TokenType::PipePipeEqual]);
+    f.check_tokens(b"<<=", &[TokenType::LessLessEqual]);
+    f.check_tokens(b">>=", &[TokenType::GreaterGreaterEqual]);
+    f.check_tokens(b">>>=", &[TokenType::GreaterGreaterGreaterEqual]);
+    f.check_tokens(b"=>", &[TokenType::EqualGreater]);
+    f.check_tokens(b"...", &[TokenType::DotDotDot]);
 }
 
 #[test]
 fn lex_adjacent_symbols() {
     let mut f = Fixture::new();
-    f.check_tokens("{}", &[TokenType::LeftCurly, TokenType::RightCurly]);
-    f.check_tokens("[]", &[TokenType::LeftSquare, TokenType::RightSquare]);
-    f.check_tokens("/!", &[TokenType::Slash, TokenType::Bang]);
-    f.check_tokens("*==", &[TokenType::StarEqual, TokenType::Equal]);
-    f.check_tokens("^>>", &[TokenType::Circumflex, TokenType::GreaterGreater]);
+    f.check_tokens(b"{}", &[TokenType::LeftCurly, TokenType::RightCurly]);
+    f.check_tokens(b"[]", &[TokenType::LeftSquare, TokenType::RightSquare]);
+    f.check_tokens(b"/!", &[TokenType::Slash, TokenType::Bang]);
+    f.check_tokens(b"*==", &[TokenType::StarEqual, TokenType::Equal]);
+    f.check_tokens(b"^>>", &[TokenType::Circumflex, TokenType::GreaterGreater]);
 }
 
 #[test]
 fn lex_symbols_separated_by_whitespace() {
     let mut f = Fixture::new();
-    f.check_tokens("{ }", &[TokenType::LeftCurly, TokenType::RightCurly]);
-    f.check_tokens("< =", &[TokenType::Less, TokenType::Equal]);
-    f.check_tokens("? .", &[TokenType::Question, TokenType::Dot]);
-    f.check_tokens(". . .", &[TokenType::Dot, TokenType::Dot, TokenType::Dot]);
+    f.check_tokens(b"{ }", &[TokenType::LeftCurly, TokenType::RightCurly]);
+    f.check_tokens(b"< =", &[TokenType::Less, TokenType::Equal]);
+    f.check_tokens(b"? .", &[TokenType::Question, TokenType::Dot]);
+    f.check_tokens(b". . .", &[TokenType::Dot, TokenType::Dot, TokenType::Dot]);
 }
 
 // TODO(port): question_followed_by_number_is_not_question_dot
@@ -784,19 +787,22 @@ fn lex_whitespace() {
         {
             let input: String = format!("a{whitespace}b");
             scoped_trace!(input);
-            f.check_tokens(&input, &[TokenType::Identifier, TokenType::Identifier]);
+            f.check_tokens(
+                input.as_bytes(),
+                &[TokenType::Identifier, TokenType::Identifier],
+            );
         }
 
         {
             let input: String = format!("{whitespace}10{whitespace}'hi'{whitespace}");
             scoped_trace!(input);
-            // TODO(port): f.check_tokens(&input, &[TokenType::Number, TokenType::String]);
+            // TODO(port): f.check_tokens(input.as_bytes(), &[TokenType::Number, TokenType::String]);
         }
 
         {
             let input: String = format!("async{whitespace}function{whitespace}");
             scoped_trace!(input);
-            // f.check_tokens(&input, &[TokenType::KWAsync, TokenType::KWFunction]);
+            // TODO(port): f.check_tokens(input.as_bytes(), &[TokenType::KWAsync, TokenType::KWFunction]);
         }
     }
 }
@@ -847,7 +853,7 @@ impl Fixture {
         }
     }
 
-    fn check_single_token(&mut self, input: &str, expected_identifier_name: &str) {
+    fn check_single_token(&mut self, input: &[u8], expected_identifier_name: &str) {
         self.check_single_token_with_errors(
             input,
             expected_identifier_name,
@@ -859,11 +865,11 @@ impl Fixture {
 
     fn check_single_token_with_errors(
         &mut self,
-        input: &str,
+        input: &[u8],
         expected_identifier_name: &str,
         check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
     ) {
-        let code = PaddedString::from_str(input);
+        let code = PaddedString::from_slice(input);
         let errors = DiagCollector::new();
         self.lex_to_eof(code.view(), &errors, |lexed_tokens: &Vec<Token>| {
             assert_matches!(lexed_tokens.as_slice(),
@@ -876,7 +882,7 @@ impl Fixture {
         });
     }
 
-    fn check_tokens(&mut self, input: &str, expected_token_types: &[TokenType]) {
+    fn check_tokens(&mut self, input: &[u8], expected_token_types: &[TokenType]) {
         self.check_tokens_with_errors(
             input,
             expected_token_types,
@@ -886,14 +892,13 @@ impl Fixture {
         );
     }
 
-    // TODO(port): Accept &[u8], not &str.
     fn check_tokens_with_errors(
         &mut self,
-        input: &str,
+        input: &[u8],
         expected_token_types: &[TokenType],
         check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
     ) {
-        let input = PaddedString::from_str(input);
+        let input = PaddedString::from_slice(input);
         let errors = DiagCollector::new();
         self.lex_to_eof(input.view(), &errors, |lexed_tokens: &Vec<Token>| {
             let lexed_token_types: Vec<TokenType> = lexed_tokens.iter().map(|t| t.type_).collect();
