@@ -360,10 +360,100 @@ fn fail_lex_modern_octal_numbers() {
     );
 }
 
-// TODO(port): lex_legacy_octal_numbers_strict
-// TODO(port): lex_legacy_octal_numbers_lax
-// TODO(port): fail_lex_legacy_octal_numbers
-// TODO(port): legacy_octal_numbers_cannot_contain_underscores
+#[test]
+fn lex_legacy_octal_numbers_strict() {
+    let mut f = Fixture::new();
+    f.check_tokens("000", &[TokenType::Number]);
+    f.check_tokens("001", &[TokenType::Number]);
+    f.check_tokens("00010101010101010", &[TokenType::Number]);
+    f.check_tokens("051", &[TokenType::Number]);
+
+    // Legacy octal number literals which ended up actually being octal support
+    // method calls with '.'.
+    f.check_tokens(
+        "0123.toString",
+        &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
+    );
+    f.check_tokens(
+        "00.toString",
+        &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
+    );
+}
+
+#[test]
+fn lex_legacy_octal_numbers_lax() {
+    let mut f = Fixture::new();
+    f.check_tokens("058", &[TokenType::Number]);
+    f.check_tokens("058.9", &[TokenType::Number]);
+    f.check_tokens("08", &[TokenType::Number]);
+}
+
+#[test]
+fn fail_lex_legacy_octal_numbers() {
+    let mut f = Fixture::new();
+
+    f.check_tokens_with_errors(
+        "0123n",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagLegacyOctalLiteralMayNotBeBigInt {
+                    characters: b"0123"..b"n",
+                }
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        "052.2",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagOctalLiteralMayNotHaveDecimal {
+                    characters: b"052"..b".",
+                }
+            );
+        },
+    );
+}
+
+#[test]
+fn legacy_octal_numbers_cannot_contain_underscores() {
+    let mut f = Fixture::new();
+
+    f.check_tokens_with_errors(
+        "0775_775",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagLegacyOctalLiteralMayNotContainUnderscores {
+                    underscores: b"0775"..b"_",
+                }
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        "0775____775",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagLegacyOctalLiteralMayNotContainUnderscores {
+                    underscores: b"0775"..b"____",
+                }
+            );
+        },
+    );
+}
+
 // TODO(port): lex_hex_numbers
 // TODO(port): fail_lex_hex_number_no_digits
 // TODO(port): fail_lex_hex_number

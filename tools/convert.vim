@@ -45,3 +45,5 @@
 %s/\<if (\(.*\)) {$/if \1 {/
 
 %s/\.type\>/.type_/g
+
+%s/\[\](padded_string_view input, const auto& errors) {/|input: PaddedStringView, errors: \&Vec<AnyDiag>| {/

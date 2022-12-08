@@ -552,7 +552,76 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     // 0775, 09999, 08.24
     fn parse_legacy_octal_number(&mut self) {
-        todo!();
+        let mut input: InputPointer = self.input;
+
+        loop {
+            input = InputPointer(self.parse_octal_digits(input.0));
+            if input[0] == b'_' {
+                let underscores_start: *const u8 = input.0;
+                while input[0] == b'_' {
+                    input += 1;
+                }
+                report(
+                    self.diag_reporter,
+                    DiagLegacyOctalLiteralMayNotContainUnderscores {
+                        underscores: unsafe { SourceCodeSpan::new(underscores_start, input.0) },
+                    },
+                );
+                continue;
+            }
+
+            break;
+        }
+
+        if is_digit(input[0]) {
+            self.input = input;
+            self.parse_number();
+            return;
+        }
+
+        let garbage_begin: *const u8 = input.0;
+        let has_decimal_point: bool = input[0] == b'.' && is_digit(input[1]);
+        if has_decimal_point {
+            input += 1;
+            report(
+                self.diag_reporter,
+                DiagOctalLiteralMayNotHaveDecimal {
+                    characters: unsafe { SourceCodeSpan::new(garbage_begin, input.0) },
+                },
+            );
+            input = InputPointer(self.parse_octal_digits(input.0));
+        }
+        let has_exponent: bool = input[0] == b'e' || input[0] == b'E';
+        if has_exponent {
+            input += 1;
+            if input[0] == b'-' || input[0] == b'+' {
+                input += 1;
+            }
+            report(
+                self.diag_reporter,
+                DiagOctalLiteralMayNotHaveExponent {
+                    characters: unsafe { SourceCodeSpan::new(garbage_begin, input.0) },
+                },
+            );
+            input = InputPointer(self.parse_octal_digits(input.0));
+        }
+        let is_bigint: bool = input[0] == b'n';
+        if is_bigint {
+            input += 1;
+            report(
+                self.diag_reporter,
+                DiagLegacyOctalLiteralMayNotBeBigInt {
+                    characters: unsafe { SourceCodeSpan::new(garbage_begin, input.0) },
+                },
+            );
+            input = InputPointer(self.parse_octal_digits(input.0));
+        }
+
+        self.input = InputPointer(
+            self.check_garbage_in_number_literal(input.0, |span: SourceCodeSpan| {
+                DiagUnexpectedCharactersInOctalNumber { characters: span }
+            }),
+        );
     }
 
     // 0o775, 0o111_555
@@ -825,7 +894,11 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn parse_octal_digits(&mut self, input: *const u8) -> *const u8 {
-        todo!();
+        let mut input = InputPointer(input);
+        while is_octal_digit(input[0]) {
+            input += 1;
+        }
+        input.0
     }
 
     fn parse_decimal_digits_and_underscores(&mut self, input: *const u8) -> *const u8 {
