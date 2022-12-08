@@ -45,10 +45,9 @@ fn lex_line_comments() {
 fn lex_line_comments_with_control_characters() {
     let mut f = Fixture::new();
     for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
-        // TODO(port): Change this back to "42.0".
-        let input: String = format!("// hello {control_character} world\nident");
+        let input: String = format!("// hello {control_character} world\n42.0");
         scoped_trace!(input);
-        f.check_tokens(&input, &[TokenType::Identifier]);
+        f.check_tokens(&input, &[TokenType::Number]);
     }
 }
 
@@ -83,7 +82,7 @@ fn lex_numbers() {
     f.check_tokens("123. 456", &[TokenType::Number, TokenType::Number]);
 
     f.check_tokens("1.2.3", &[TokenType::Number, TokenType::Number]);
-    // TODO(port): f.check_tokens(".2.3", &[TokenType::Number, TokenType::Number]);
+    f.check_tokens(".2.3", &[TokenType::Number, TokenType::Number]);
     f.check_tokens("0.3", &[TokenType::Number]);
 }
 
