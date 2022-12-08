@@ -655,7 +655,30 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn parse_hexadecimal_number(&mut self) {
-        todo!();
+        let mut input: InputPointer = self.input;
+
+        input = InputPointer(self.parse_hex_digits_and_underscores(input.0));
+        let found_digits: bool = input != self.input;
+        let is_bigint: bool = input[0] == b'n';
+        if is_bigint {
+            input += 1;
+        }
+
+        if found_digits {
+            self.input = InputPointer(
+                self.check_garbage_in_number_literal(input.0, |span: SourceCodeSpan| {
+                    DiagUnexpectedCharactersInHexNumber { characters: span }
+                }),
+            );
+        } else {
+            report(
+                self.diag_reporter,
+                DiagNoDigitsInHexNumber {
+                    characters: unsafe { SourceCodeSpan::new(self.last_token.begin, input.0) },
+                },
+            );
+            self.input = input;
+        }
     }
 
     fn check_garbage_in_number_literal<
@@ -906,7 +929,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn parse_hex_digits_and_underscores(&mut self, input: *const u8) -> *const u8 {
-        todo!();
+        self.parse_digits_and_underscores(
+            |character: u8| -> bool { is_hex_digit(character) },
+            input,
+        )
     }
 
     fn parse_identifier(
@@ -1265,6 +1291,13 @@ fn is_octal_digit(c: u8) -> bool {
 
 fn is_digit(c: u8) -> bool {
     matches!(c, qljs_case_decimal_digit!())
+}
+
+fn is_hex_digit(c: u8) -> bool {
+    matches!(c, 
+  qljs_case_decimal_digit!() |
+  b'a'..=b'f' |
+  b'A'..=b'F')
 }
 
 fn is_initial_identifier_byte(byte: u8) -> bool {

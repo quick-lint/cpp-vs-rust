@@ -48,3 +48,5 @@
 %s/\.type\>/.type_/g
 
 %s/\[\](padded_string_view input, const auto& errors) {/|input: PaddedStringView, errors: \&Vec<AnyDiag>| {/
+
+%s/\<self\.diag_reporter->report(/report(self.diag_reporter, /

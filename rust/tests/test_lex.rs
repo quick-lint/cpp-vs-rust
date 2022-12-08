@@ -457,9 +457,107 @@ fn legacy_octal_numbers_cannot_contain_underscores() {
     );
 }
 
-// TODO(port): lex_hex_numbers
-// TODO(port): fail_lex_hex_number_no_digits
-// TODO(port): fail_lex_hex_number
+#[test]
+fn lex_hex_numbers() {
+    let mut f = Fixture::new();
+
+    f.check_tokens(b"0x0", &[TokenType::Number]);
+    f.check_tokens(b"0x123456789abcdef", &[TokenType::Number]);
+    f.check_tokens(b"0X123456789ABCDEF", &[TokenType::Number]);
+    f.check_tokens(b"0X123_4567_89AB_CDEF", &[TokenType::Number]);
+    f.check_tokens(b"0x1n", &[TokenType::Number]);
+    f.check_tokens(b"0xfn", &[TokenType::Number]);
+
+    f.check_tokens(
+        b"0x0.toString",
+        &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
+    );
+    f.check_tokens(
+        b"0xe.toString",
+        &[TokenType::Number, TokenType::Dot, TokenType::Identifier],
+    );
+}
+
+#[test]
+fn fail_lex_hex_number_no_digits() {
+    let mut f = Fixture::new();
+
+    f.check_tokens_with_errors(
+        b"0x",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInHexNumber {
+                    characters: 0..b"0x",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"0xn",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInHexNumber {
+                    characters: 0..b"0xn",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"0x;",
+        &[TokenType::Number, TokenType::Semicolon],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInHexNumber {
+                    characters: 0..b"0x",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"[0x]",
+        &[
+            TokenType::LeftSquare,
+            TokenType::Number,
+            TokenType::RightSquare,
+        ],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInHexNumber {
+                    characters: b"["..b"0x",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn fail_lex_hex_number() {
+    let mut f = Fixture::new();
+
+    f.check_tokens_with_errors(
+        b"0xfqqn",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInHexNumber {
+                    characters: b"0xf"..b"qqn",
+                },
+            );
+        },
+    );
+}
 
 #[test]
 fn lex_number_with_trailing_garbage() {
@@ -530,22 +628,19 @@ fn lex_number_with_trailing_garbage() {
             );
         },
     );
-    if false {
-        // TODO(port)
-        f.check_tokens_with_errors(
-            b"0xabjjw",
-            &[TokenType::Number],
-            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-                qljs_assert_diags!(
-                    errors,
-                    input,
-                    DiagUnexpectedCharactersInHexNumber {
-                        characters: b"0xab"..b"jjw",
-                    }
-                );
-            },
-        );
-    }
+    f.check_tokens_with_errors(
+        b"0xabjjw",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInHexNumber {
+                    characters: b"0xab"..b"jjw",
+                }
+            );
+        },
+    );
     f.check_tokens_with_errors(
         b"0o69",
         &[TokenType::Number],
