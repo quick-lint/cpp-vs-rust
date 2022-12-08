@@ -1038,8 +1038,17 @@ fn lex_symbols_separated_by_whitespace() {
     f.check_tokens(b". . .", &[TokenType::Dot, TokenType::Dot, TokenType::Dot]);
 }
 
-// TODO(port): question_followed_by_number_is_not_question_dot
-// TODO(port): question_dot_followed_by_non_digit_is_question_dot
+#[test]
+fn question_followed_by_number_is_not_question_dot() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"?.3", &[TokenType::Question, TokenType::Number]);
+}
+
+#[test]
+fn question_dot_followed_by_non_digit_is_question_dot() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"?.e", &[TokenType::QuestionDot, TokenType::Identifier]);
+}
 
 #[test]
 #[allow(unused_mut, unused_variables)] // TODO(port): Delete.
