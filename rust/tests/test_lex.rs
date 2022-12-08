@@ -23,11 +23,11 @@ macro_rules! scoped_trace {
 fn lex_line_comments() {
     let mut f = Fixture::new();
 
-    assert_matches!(f.lex_to_eof_types("// hello"), ts if ts.is_empty());
+    assert_eq!(f.lex_to_eof_types("// hello"), vec![]);
     for line_terminator in LINE_TERMINATORS {
         f.check_single_token(&format!("// hello{line_terminator}world"), "world");
     }
-    assert_matches!(f.lex_to_eof_types("// hello\n// world"), ts if ts.is_empty());
+    assert_eq!(f.lex_to_eof_types("// hello\n// world"), vec![]);
     f.check_tokens(
         "hello//*/\n \n \nworld",
         &[TokenType::Identifier, TokenType::Identifier],
@@ -40,7 +40,7 @@ fn lex_line_comments() {
      *  > U+2029 Paragraph Separator (0xe280a9)
      *  > U+2030 Per Mille Sign      (0xe280b0)
      */
-    assert_matches!(f.lex_to_eof_types("// 123‰"), ts if ts.is_empty());
+    assert_eq!(f.lex_to_eof_types("// 123‰"), vec![]);
 }
 
 #[test]
@@ -866,10 +866,12 @@ impl Fixture {
         let code = PaddedString::from_str(input);
         let errors = DiagCollector::new();
         self.lex_to_eof(code.view(), &errors, |lexed_tokens: &Vec<Token>| {
-            assert_matches!(lexed_tokens, ts if ts.len() == 1);
-            assert_matches!(lexed_tokens[0],
-                ref t if t.type_ == TokenType::Identifier || t.type_ == TokenType::PrivateIdentifier);
-            assert_eq!(lexed_tokens[0].identifier_name().normalized_name(), expected_identifier_name.as_bytes());
+            assert_matches!(lexed_tokens.as_slice(),
+                [t] if t.type_ == TokenType::Identifier || t.type_ == TokenType::PrivateIdentifier);
+            assert_eq!(
+                lexed_tokens[0].identifier_name().normalized_name(),
+                expected_identifier_name.as_bytes()
+            );
             check_errors(code.view(), &errors.clone_errors());
         });
     }
