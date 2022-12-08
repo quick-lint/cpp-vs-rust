@@ -457,8 +457,148 @@ fn legacy_octal_numbers_cannot_contain_underscores() {
 // TODO(port): lex_hex_numbers
 // TODO(port): fail_lex_hex_number_no_digits
 // TODO(port): fail_lex_hex_number
-// TODO(port): lex_number_with_trailing_garbage
-// TODO(port): lex_decimal_number_with_dot_method_call_is_invalid
+
+#[test]
+fn lex_number_with_trailing_garbage() {
+    let mut f = Fixture::new();
+
+    f.check_tokens_with_errors(
+        "123abcd",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInNumber {
+                    characters: b"123"..b"abcd",
+                }
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "123e f",
+        &[TokenType::Number, TokenType::Identifier],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInNumber {
+                    characters: b"123"..b"e",
+                }
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "123e-f",
+        &[TokenType::Number, TokenType::Minus, TokenType::Identifier],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInNumber {
+                    characters: b"123"..b"e",
+                }
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "0b01234",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInBinaryNumber {
+                    characters: b"0b01"..b"234",
+                }
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "0b0h0lla",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInBinaryNumber {
+                    characters: b"0b0"..b"h0lla",
+                }
+            );
+        },
+    );
+    if false {
+        // TODO(port)
+        f.check_tokens_with_errors(
+            "0xabjjw",
+            &[TokenType::Number],
+            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+                qljs_assert_diags!(
+                    errors,
+                    input,
+                    DiagUnexpectedCharactersInHexNumber {
+                        characters: b"0xab"..b"jjw",
+                    }
+                );
+            },
+        );
+    }
+    f.check_tokens_with_errors(
+        "0o69",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInOctalNumber {
+                    characters: b"0o6"..b"9",
+                }
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_decimal_number_with_dot_method_call_is_invalid() {
+    let mut f = Fixture::new();
+
+    // TODO(strager): Perhaps a better diagnostic would suggest adding parentheses
+    // or another '.' to make a valid method call.
+    f.check_tokens_with_errors(
+        "0.toString()",
+        &[
+            TokenType::Number,
+            TokenType::LeftParen,
+            TokenType::RightParen,
+        ],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInNumber {
+                    characters: b"0."..b"toString",
+                }
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "09.toString",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInNumber {
+                    characters: b"09."..b"toString",
+                }
+            );
+        },
+    );
+
+    // NOTE(strager): Other numbers with leading zeroes, like '00' and '012345',
+    // are legacy octal literals and *can* have a dot method call.
+}
+
 // TODO(port): lex_invalid_big_int_number
 // TODO(port): lex_number_with_double_underscore
 // TODO(port): lex_number_with_many_underscores

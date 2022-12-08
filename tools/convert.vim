@@ -41,6 +41,7 @@
 %s/\<u8"\([^"]*\)"\>/"\1"/
 
 %s/\<self\.check_tokens(\(.*\), {\(.*\)})/f.check_tokens(\1, \&[\2])/
+%s/\<self\.check_tokens_with_errors(\_\s*\(.*\),\_\s*{\(.*\)},/f.check_tokens_with_errors(\1, \&[\2],/
 
 %s/\<if (\(.*\)) {$/if \1 {/
 
