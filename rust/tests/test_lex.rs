@@ -897,8 +897,293 @@ fn lex_number_with_trailing_underscores() {
     );
 }
 
-// TODO(port): lex_strings
-// TODO(port): lex_string_with_ascii_control_characters
+#[test]
+fn lex_strings() {
+    let mut f = Fixture::new();
+
+    f.check_tokens(br#"'hello'"#, &[TokenType::String]);
+    f.check_tokens(br#""hello""#, &[TokenType::String]);
+    f.check_tokens(br#""hello\"world""#, &[TokenType::String]);
+    f.check_tokens(br#"'hello\'world'"#, &[TokenType::String]);
+    f.check_tokens(br#"'hello"world'"#, &[TokenType::String]);
+    f.check_tokens(br#""hello'world""#, &[TokenType::String]);
+    f.check_tokens(b"'hello\\\nworld'", &[TokenType::String]);
+    f.check_tokens(b"\"hello\\\nworld\"", &[TokenType::String]);
+    f.check_tokens(b"'hello\\x0aworld'", &[TokenType::String]);
+    f.check_tokens(br#"'\x68\x65\x6c\x6C\x6f'"#, &[TokenType::String]);
+    f.check_tokens(br#"'\uabcd'"#, &[TokenType::String]);
+    f.check_tokens(br#"'\u{abcd}'"#, &[TokenType::String]);
+
+    f.check_tokens_with_errors(
+        br#""unterminated"#,
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedStringLiteral {
+                    string_literal: 0..br#""unterminated"#,
+                },
+            );
+        },
+    );
+
+    for line_terminator in LINE_TERMINATORS {
+        for quotation_mark in &["'", "\""] {
+            let input: String =
+                format!("{quotation_mark}line1\\{line_terminator}line2{quotation_mark}");
+            f.check_tokens(input.as_bytes(), &[TokenType::String]);
+        }
+    }
+
+    for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_string(format!("'unterminated{line_terminator}hello"));
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::String);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"hello");
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnclosedStringLiteral {
+                string_literal: 0..b"'unterminated",
+            },
+        );
+    }
+
+    for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_string(format!("'separated{line_terminator}hello'"));
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::String);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnclosedStringLiteral {
+                string_literal: 0..(input.slice()),
+            },
+        );
+    }
+
+    for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_string(format!(
+            "'separated{line_terminator}{line_terminator}hello'"
+        ));
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::String);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::String);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnclosedStringLiteral {
+                string_literal: 0..b"'separated",
+            },
+            DiagUnclosedStringLiteral {
+                string_literal: (b"'separatedhello".len() + 2 * line_terminator.as_bytes().len())
+                    ..b"'",
+            },
+        );
+    }
+
+    if false {
+        // TODO(port)
+        for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
+            let v = DiagCollector::new();
+            let input = PaddedString::from_string(format!(
+                "let x = 'hello{line_terminator}let y = 'world'"
+            ));
+            let mut l = Lexer::new(input.view(), &v);
+            assert_eq!(l.peek().type_, TokenType::KWLet);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::Identifier);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::Equal);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::String);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::KWLet);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::Identifier);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::Equal);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::String);
+            l.skip();
+            assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+            qljs_assert_diags!(
+                v.clone_errors(),
+                input.view(),
+                DiagUnclosedStringLiteral {
+                    string_literal: b"let x = "..b"'hello",
+                },
+            );
+        }
+    }
+
+    f.check_tokens_with_errors(
+        b"'unterminated\\",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedStringLiteral {
+                    string_literal: 0..b"'unterminated\\",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'\\x",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'"..b"\\x",
+                },
+                DiagUnclosedStringLiteral {
+                    string_literal: 0..b"'\\x",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'\\x1",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'"..b"\\x",
+                },
+                DiagUnclosedStringLiteral {
+                    string_literal: 0..b"'\\x1",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'\\x'",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'"..b"\\x",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'\\x\\xyz'",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'"..b"\\x",
+                },
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'\\x"..b"\\x",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'\\x1 \\xff \\xg '",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'"..b"\\x",
+                },
+                DiagInvalidHexEscapeSequence {
+                    escape_sequence: b"'\\x1 \\xff "..b"\\x",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'hello\\u'",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"'hello"..b"\\u'",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"'hello\\u{110000}'",
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCodePointInUnicodeOutOfRange {
+                    escape_sequence: b"'hello"..b"\\u{110000}",
+                },
+            );
+        },
+    );
+
+    // TODO(#187): Report octal escape sequences in strict mode.
+    // TODO(#187): Report invalid octal escape sequences in non-strict mode.
+}
+
+#[test]
+fn lex_string_with_ascii_control_characters() {
+    let mut f = Fixture::new();
+
+    for control_character in [
+        CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS.as_slice(),
+        LS_AND_PS.as_slice(),
+    ]
+    .concat()
+    {
+        let input: String = format!("'hello{control_character}world'");
+        scoped_trace!(input);
+        f.check_tokens(input.as_bytes(), &[TokenType::String]);
+    }
+
+    for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
+        let input: String = format!("'hello\\{control_character}world'");
+        scoped_trace!(input);
+        f.check_tokens(input.as_bytes(), &[TokenType::String]);
+    }
+}
+
 // TODO(port): string_with_curly_quotes
 // TODO(port): lex_templates
 // TODO(port): templates_buffer_unicode_escape_errors

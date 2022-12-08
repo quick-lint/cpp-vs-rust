@@ -112,6 +112,26 @@ macro_rules! qljs_match_diag_fields {
         $diag:expr,   // (any Diag struct)
         $input:expr,  // PaddedStringView
         {
+            $field_0:ident: $field_0_begin:literal..$field_0_end:tt $(,)?
+        } $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field_0: $field_0_begin..$field_0_end)
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        {
+            $field_0:ident: $field_0_begin:tt..$field_0_end:literal $(,)?
+        } $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field_0: $field_0_begin..$field_0_end)
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        {
             $field_0:ident: $field_0_begin:literal..$field_0_end:literal $(,)?
             $field_1:ident: $field_1_value:literal $(,)?
         } $(,)?
@@ -127,6 +147,30 @@ macro_rules! qljs_match_diag_field {
         $diag:expr,   // (any Diag struct)
         $input:expr,  // PaddedStringView
         $field:ident: $begin:literal..$end:literal $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field: ($begin)..($end))
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        $field:ident: $begin:literal..$end:tt $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field: ($begin)..$end)
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        $field:ident: $begin:tt..$end:literal $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field: $begin..($end))
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        $field:ident: $begin:tt..$end:tt $(,)?
     ) => {{
         let expected_begin_offset: usize =
             $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($begin);

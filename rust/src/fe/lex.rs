@@ -500,7 +500,12 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 self.last_token.end = self.input.0;
             }
 
-            // TODO(port): case '"': case '\'':
+            b'"' | b'\'' => {
+                self.input = self.parse_string_literal();
+                self.last_token.type_ = TokenType::String;
+                self.last_token.end = self.input.0;
+            }
+
             // TODO(port): case '`':
             // TODO(port): case '#':
             b'\0' => {
@@ -519,6 +524,133 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         }
 
         true
+    }
+
+    fn parse_string_literal(&mut self) -> InputPointer {
+        let opening_quote: u8 = self.input[0];
+
+        let mut c: InputPointer = self.input + 1;
+        loop {
+            match c[0] {
+                b'\0' => {
+                    if self.is_eof(c.0) {
+                        report(
+                            self.diag_reporter,
+                            DiagUnclosedStringLiteral {
+                                string_literal: unsafe { SourceCodeSpan::new(self.input.0, c.0) },
+                            },
+                        );
+                        return c;
+                    } else {
+                        c += 1;
+                    }
+                }
+
+                b'\n' | b'\r' => {
+                    let mut matching_quote: *const u8 = std::ptr::null();
+                    let mut current_c: InputPointer = c;
+                    if current_c[0] == b'\r' && current_c[1] == b'\n' {
+                        current_c += 2;
+                    } else {
+                        current_c += 1;
+                    }
+                    loop {
+                        if current_c[0] == opening_quote {
+                            if !matching_quote.is_null() {
+                                break;
+                            }
+                            matching_quote = current_c.0;
+                            current_c += 1;
+                        } else if current_c[0] == b'\r'
+                            || current_c[0] == b'\n'
+                            || (current_c[0] == b'\0' && self.is_eof(current_c.0))
+                        {
+                            if !matching_quote.is_null() {
+                                c = InputPointer(matching_quote) + 1;
+                            }
+                            break;
+                        } else {
+                            current_c += 1;
+                        }
+                    }
+                    report(
+                        self.diag_reporter,
+                        DiagUnclosedStringLiteral {
+                            string_literal: unsafe { SourceCodeSpan::new(self.input.0, c.0) },
+                        },
+                    );
+                    return c;
+                }
+
+                b'\\' => {
+                    let escape_sequence_start: *const u8 = c.0;
+                    c += 1;
+                    match c[0] {
+                        b'\0' => {
+                            if self.is_eof(c.0) {
+                                report(
+                                    self.diag_reporter,
+                                    DiagUnclosedStringLiteral {
+                                        string_literal: unsafe {
+                                            SourceCodeSpan::new(self.input.0, c.0)
+                                        },
+                                    },
+                                );
+                                return c;
+                            } else {
+                                c += 1;
+                            }
+                        }
+                        b'\r' => {
+                            c += 1;
+                            if c[0] == b'\n' {
+                                c += 1;
+                            }
+                        }
+                        b'x' => {
+                            c += 1;
+                            for i in 0..2 {
+                                if !is_hex_digit(c[i]) {
+                                    report(
+                                        self.diag_reporter,
+                                        DiagInvalidHexEscapeSequence {
+                                            escape_sequence: unsafe {
+                                                SourceCodeSpan::new(escape_sequence_start, c.0)
+                                            },
+                                        },
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+                        b'u' => {
+                            c = InputPointer(
+                                self.parse_unicode_escape(
+                                    escape_sequence_start,
+                                    self.diag_reporter,
+                                )
+                                .end,
+                            );
+                        }
+                        _ => {
+                            c += 1;
+                        }
+                    }
+                }
+
+                b'"' | b'\'' => {
+                    if c[0] == opening_quote {
+                        c += 1;
+                        return c;
+                    }
+                    c += 1;
+                }
+
+                _ => {
+                    c += 1;
+                }
+            }
+        }
     }
 
     fn parse_binary_number(&mut self) {
@@ -935,6 +1067,117 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         )
     }
 
+    fn parse_unicode_escape(
+        &mut self,
+        input: *const u8,
+        reporter: &dyn DiagReporter,
+    ) -> ParsedUnicodeEscape {
+        let mut input = InputPointer(input);
+        let escape_sequence_begin: *const u8 = input.0;
+        let get_escape_span =
+            |input: InputPointer| unsafe { SourceCodeSpan::new(escape_sequence_begin, input.0) };
+
+        let code_point_hex_begin: *const u8;
+        let code_point_hex_end: *const u8;
+        if input[2] == b'{' {
+            code_point_hex_begin = (input + 3).0;
+            input += 3; // Skip "\u{".
+            let mut found_non_hex_digit: bool = false;
+            while input[0] != b'}' {
+                if !is_identifier_byte(input[0]) {
+                    // TODO: Add an enum to DiagUnclosedIdentifierEscapeSequence to
+                    // indicate whether the token is a template literal, a string literal
+                    // or an identifier.
+                    report(
+                        reporter,
+                        DiagUnclosedIdentifierEscapeSequence {
+                            escape_sequence: get_escape_span(input),
+                        },
+                    );
+                    return ParsedUnicodeEscape {
+                        end: input.0,
+                        code_point: None,
+                    };
+                }
+                if !is_hex_digit(input[0]) {
+                    found_non_hex_digit = true;
+                }
+                input += 1;
+            }
+            code_point_hex_end = input.0;
+            input += 1; // Skip "}".
+            if found_non_hex_digit || code_point_hex_begin == code_point_hex_end {
+                report(
+                    reporter,
+                    DiagExpectedHexDigitsInUnicodeEscape {
+                        escape_sequence: get_escape_span(input),
+                    },
+                );
+                return ParsedUnicodeEscape {
+                    end: input.0,
+                    code_point: None,
+                };
+            }
+        } else {
+            input += 2; // Skip "\u".
+            code_point_hex_begin = input.0;
+            for i in 0..4 {
+                if input[0] == b'\0' && self.is_eof(input.0) {
+                    // TODO: Add an enum to DiagExpectedHexDigitsInUnicodeEscape to
+                    // indicate whether the token is a template literal, a string literal
+                    // or an identifier.
+                    report(
+                        reporter,
+                        DiagExpectedHexDigitsInUnicodeEscape {
+                            escape_sequence: get_escape_span(input),
+                        },
+                    );
+                    return ParsedUnicodeEscape {
+                        end: input.0,
+                        code_point: None,
+                    };
+                }
+                if !is_hex_digit(input[0]) {
+                    report(
+                        reporter,
+                        DiagExpectedHexDigitsInUnicodeEscape {
+                            escape_sequence: unsafe {
+                                SourceCodeSpan::new(escape_sequence_begin, (input + 1).0)
+                            },
+                        },
+                    );
+                    return ParsedUnicodeEscape {
+                        end: input.0,
+                        code_point: None,
+                    };
+                }
+                input += 1;
+            }
+            code_point_hex_end = input.0;
+        }
+        let code_point_hex: &[u8] = unsafe {
+            std::slice::from_raw_parts(
+                code_point_hex_begin,
+                code_point_hex_end.offset_from(code_point_hex_begin) as usize,
+            )
+        };
+        let code_point_hex: &str = unsafe { std::str::from_utf8_unchecked(code_point_hex) };
+
+        let code_point: u32 = u32::from_str_radix(code_point_hex, 16).unwrap_or(0x110000u32);
+        if code_point >= 0x110000 {
+            report(
+                reporter,
+                DiagEscapedCodePointInUnicodeOutOfRange {
+                    escape_sequence: get_escape_span(input),
+                },
+            );
+        }
+        ParsedUnicodeEscape {
+            end: input.0,
+            code_point: Some(code_point),
+        }
+    }
+
     fn parse_identifier(
         &mut self,
         input: *const u8,
@@ -1251,6 +1494,11 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 }
 
+struct ParsedUnicodeEscape {
+    end: *const u8,
+    code_point: Option<u32>,
+}
+
 // The result of parsing an identifier.
 //
 // Typically, .normalized is default-constructed. However, if an identifier
@@ -1265,7 +1513,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 //                    .end
 //
 // In this case, .end points to the ')' character which follows the
-// identifier, and .normalized points to a heap-allocated string u8"wat".
+// identifier, and .normalized points to a heap-allocated string b"wat".
 //
 // If any escape sequences were parsed, .escape_sequences points to a list of
 // escape squence spans.

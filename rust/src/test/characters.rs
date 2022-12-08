@@ -2,7 +2,7 @@
 
 use crate::test::array::*;
 
-const LINE_TERMINATORS_EXCEPT_LS_PS: [&'static str; 3] = ["\n", "\r", "\r\n"];
+pub const LINE_TERMINATORS_EXCEPT_LS_PS: [&'static str; 3] = ["\n", "\r", "\r\n"];
 
 pub const LS_AND_PS: [&'static str; 2] = [
     "\u{2028}", // 0xe2 0x80 0xa8 Line Separator
