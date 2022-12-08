@@ -3,6 +3,7 @@ use cpp_vs_rust::container::padded_string::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
 use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::token::*;
+use cpp_vs_rust::qljs_assert_diags;
 use cpp_vs_rust::test::characters::*;
 use cpp_vs_rust::test::diag_collector::*;
 use cpp_vs_rust::test::diag_matcher::*;
@@ -115,12 +116,13 @@ fn fail_lex_integer_loses_precision() {
         "9007199254740993",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            // TODO(port): Better error messages on test failure.
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagIntegerLiteralWillLosePrecision(diag)]
-                    if offsets_match(&diag.characters, input, 0, b"9007199254740993")
-                        && diag.rounded_val == b"9007199254740992",
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: 0..b"9007199254740993",
+                    rounded_val: b"9007199254740992",
+                },
             );
         },
     );
@@ -132,11 +134,13 @@ fn fail_lex_integer_loses_precision() {
         &format!("1{}", "0".repeat(309)),
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagIntegerLiteralWillLosePrecision(diag)]
-                    if offsets_match_begin_end(&diag.characters, input, 0, 310)
-                        && diag.rounded_val == b"inf",
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: 0..310,
+                    rounded_val: b"inf",
+                },
             );
         },
     );
@@ -144,11 +148,13 @@ fn fail_lex_integer_loses_precision() {
         "179769313486231580000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagIntegerLiteralWillLosePrecision(diag)]
-                    if offsets_match_begin_end(&diag.characters, input, 0, 309)
-                        && diag.rounded_val == b"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368",
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: 0..309,
+                    rounded_val: b"179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368",
+                },
             );
         },
     );
@@ -156,11 +162,13 @@ fn fail_lex_integer_loses_precision() {
         "179769313486231589999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagIntegerLiteralWillLosePrecision(diag)]
-                    if offsets_match_begin_end(&diag.characters, input, 0, 309)
-                        && diag.rounded_val == b"inf",
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: 0..309,
+                    rounded_val: b"inf",
+                },
             );
         },
     );
@@ -168,11 +176,13 @@ fn fail_lex_integer_loses_precision() {
         "18014398509481986",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagIntegerLiteralWillLosePrecision(diag)]
-                    if offsets_match(&diag.characters, input, 0, b"18014398509481986")
-                        && diag.rounded_val == b"18014398509481984",
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: 0..b"18014398509481986",
+                    rounded_val: b"18014398509481984",
+                },
             );
         },
     );
@@ -185,11 +195,12 @@ fn fail_lex_binary_number_no_digits() {
         "0b",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            // TODO(port): Better error messages on failure.
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
-                    if offsets_match(&diag.characters, input, 0, b"0b")
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInBinaryNumber {
+                    characters: 0..b"0b",
+                },
             );
         },
     );
@@ -197,10 +208,12 @@ fn fail_lex_binary_number_no_digits() {
         "0bn",
         &[TokenType::Number],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
-                    if offsets_match(&diag.characters, input, 0, b"0bn")
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInBinaryNumber {
+                    characters: 0..b"0bn",
+                },
             );
         },
     );
@@ -208,10 +221,12 @@ fn fail_lex_binary_number_no_digits() {
         "0b;",
         &[TokenType::Number, TokenType::Semicolon],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
-                    if offsets_match(&diag.characters, input, 0, b"0b")
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInBinaryNumber {
+                    characters: 0..b"0b",
+                },
             );
         },
     );
@@ -223,10 +238,12 @@ fn fail_lex_binary_number_no_digits() {
             TokenType::RightSquare,
         ],
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-            assert_matches!(
-                &errors[..],
-                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
-                    if offsets_match(&diag.characters, input, b"[".len(), b"0b")
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInBinaryNumber {
+                    characters: b"["..b"0b",
+                },
             );
         },
     );
