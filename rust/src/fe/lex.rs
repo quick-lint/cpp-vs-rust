@@ -1,10 +1,13 @@
+use crate::container::linked_bump_allocator::*;
 use crate::container::monotonic_allocator::*;
 use crate::container::padded_string::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
 use crate::fe::source_code_span::*;
 use crate::fe::token::*;
+use crate::port::maybe_uninit::*;
 use crate::port::simd::*;
+use crate::qljs_always_assert;
 use crate::qljs_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
@@ -567,7 +570,66 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn check_integer_precision_loss(&mut self, number_literal: &[u8]) {
-        // TODO(port)
+        // Any integer which is 15 or fewer digits is guaranteed to be able to be
+        // represented accurately without precision loss. This is because Numbers have
+        // 53 bits of precision, which is equal to 53 log10(2) ≈ 15.955 decimal digits
+        // of precision.
+        const GUARANTEED_ACC_LENGTH: usize = 15;
+        // There is no integer which can be represented accurately that is greater
+        // than 309 digits long. This is because the largest representable Number is
+        // equal to 2^1023 × (1 + (1 − 2^−52)) ≈ 1.7976931348623157 × 10^308, which is
+        // 309 digits long.
+        const MAX_ACC_LENGTH: usize = 309;
+        if number_literal.len() <= GUARANTEED_ACC_LENGTH {
+            return;
+        }
+        let mut cleaned_string: Vec<u8> = Vec::new();
+        for c in number_literal {
+            if *c != b'_' {
+                cleaned_string.push(*c);
+            }
+        }
+        if cleaned_string.len() <= GUARANTEED_ACC_LENGTH {
+            return;
+        }
+        if cleaned_string.len() > MAX_ACC_LENGTH {
+            report(
+                self.diag_reporter,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: SourceCodeSpan::from_slice(number_literal),
+                    rounded_val: b"inf",
+                },
+            );
+            return;
+        }
+        let cleaned_string: &str =
+            unsafe { std::str::from_utf8_unchecked(cleaned_string.as_slice()) };
+        let num: Result<f64, std::num::ParseFloatError> = cleaned_string.parse::<f64>();
+        let num: f64 = match num {
+            Ok(num) => num,
+            Err(_) => {
+                // TODO(port)
+                todo!();
+            }
+        };
+        // TODO(port): Avoid this heap allocation to make this similar to the C++ code. (Really, we
+        // should redesign this code anyway...)
+        let result_string: String = format!("{num:.0}");
+        qljs_always_assert!(result_string.len() <= MAX_ACC_LENGTH);
+        if cleaned_string != result_string {
+            let result_string_bytes: &[u8] = result_string.as_bytes();
+            let rounded_val: &mut [std::mem::MaybeUninit<u8>] = self
+                .allocator
+                .allocate_uninitialized_array::<u8>(result_string_bytes.len());
+            write_slice(rounded_val, result_string_bytes);
+            report(
+                self.diag_reporter,
+                DiagIntegerLiteralWillLosePrecision {
+                    characters: SourceCodeSpan::from_slice(number_literal),
+                    rounded_val: unsafe { slice_assume_init_ref(rounded_val) },
+                },
+            );
+        }
     }
 
     fn parse_number(&mut self) {

@@ -21,8 +21,8 @@
 %s/linked_bump_allocator<\(.*\)> alloc(/let mut alloc = LinkedBumpAllocator::<\1>::new(/g
 
 " Method syntax:
-%s/^\s\+\(\(const \)\?\<\(fn\|if\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) const \(noexcept \)\?{/pub fn \5(\&self, \6) -> \1 {/
-%s/^\s\+\(\(const \)\?\<\(fn\|if\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) \(noexcept \)\?{/pub fn \5(\&mut self, \6) -> \1 {/
+%s/^\s\+\(\(const \)\?\<\(fn\|if\|while\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) const \(noexcept \)\?{/pub fn \5(\&self, \6) -> \1 {/
+%s/^\s\+\(\(const \)\?\<\(fn\|if\|while\)\@!\(\k\|:\)\+ [&*]\?\)\(\k\+\)(\(.*\)) \(noexcept \)\?{/pub fn \5(\&mut self, \6) -> \1 {/
 %s/\<this->\(\k\+\)_\>/self.\1/g
 %s/\<this->/self./g
 
