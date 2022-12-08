@@ -178,7 +178,60 @@ fn fail_lex_integer_loses_precision() {
     );
 }
 
-// TODO(port): fail_lex_binary_number_no_digits
+#[test]
+fn fail_lex_binary_number_no_digits() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        "0b",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            // TODO(port): Better error messages on failure.
+            assert_matches!(
+                &errors[..],
+                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
+                    if offsets_match(&diag.characters, input, 0, b"0b")
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "0bn",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            assert_matches!(
+                &errors[..],
+                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
+                    if offsets_match(&diag.characters, input, 0, b"0bn")
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "0b;",
+        &[TokenType::Number, TokenType::Semicolon],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            assert_matches!(
+                &errors[..],
+                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
+                    if offsets_match(&diag.characters, input, 0, b"0b")
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "[0b]",
+        &[
+            TokenType::LeftSquare,
+            TokenType::Number,
+            TokenType::RightSquare,
+        ],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            assert_matches!(
+                &errors[..],
+                [AnyDiag::DiagNoDigitsInBinaryNumber(diag)]
+                    if offsets_match(&diag.characters, input, b"[".len(), b"0b")
+            );
+        },
+    );
+}
+
 // TODO(port): fail_lex_binary_number
 // TODO(port): lex_modern_octal_numbers
 // TODO(port): fail_lex_modern_octal_number_no_digits
