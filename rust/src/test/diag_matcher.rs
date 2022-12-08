@@ -34,6 +34,30 @@ pub fn offsets_match_begin_end(
 macro_rules! qljs_assert_diags {
     (
         $errors:expr, // &Vec<AnyDiag>
+        $diag_0_name:ident $(,)?
+    ) => {
+        assert_matches!(&$errors[..], [AnyDiag::$diag_0_name(_)]);
+    };
+
+    (
+        $errors:expr, // &Vec<AnyDiag>
+        $diag_0_name:ident,
+        $diag_1_name:ident $(,)?
+    ) => {
+        assert_matches!(&$errors[..], [AnyDiag::$diag_0_name(_), AnyDiag::$diag_1_name(_)]);
+    };
+
+    (
+        $errors:expr, // &Vec<AnyDiag>
+        $diag_0_name:ident,
+        $diag_1_name:ident,
+        $diag_2_name:ident $(,)?
+    ) => {
+        assert_matches!(&$errors[..], [AnyDiag::$diag_0_name(_), AnyDiag::$diag_1_name(_), AnyDiag::$diag_2_name(_)]);
+    };
+
+    (
+        $errors:expr, // &Vec<AnyDiag>
         $input:expr,  // PaddedStringView
         $diag_0_name:ident $diag_0_fields:tt $(,)?
     ) => {
@@ -49,6 +73,27 @@ macro_rules! qljs_assert_diags {
         );
     };
 
+    (
+        $errors:expr, // &Vec<AnyDiag>
+        $input:expr,  // PaddedStringView
+        $diag_0_name:ident $diag_0_fields:tt,
+        $diag_1_name:ident $diag_1_fields:tt $(,)?
+    ) => {
+        // TODO(port): Better error messages on failure.
+        assert_matches!(
+            &$errors[..],
+            [AnyDiag::$diag_0_name(diag_0), AnyDiag::$diag_1_name(diag_1)]
+                if $crate::qljs_match_diag_fields!(
+                    diag_0,
+                    $input,
+                    $diag_0_fields,
+                ) && $crate::qljs_match_diag_fields!(
+                    diag_1,
+                    $input,
+                    $diag_1_fields,
+                )
+        );
+    };
 }
 
 #[macro_export]

@@ -36,9 +36,9 @@
 %s/\<token_type::\([a-z]\+\)_\([a-z]\+\)\>/TokenType::\u\1\u\2/g
 %s/\<token_type::\([a-z]\+\)\>/TokenType::\u\1/g
 
-%s/\<u8"\([^"]*\)"_sv\>/"\1"/
-%s/\<u8"\([^"]*\)"sv\>/"\1"/
-%s/\<u8"\([^"]*\)"\>/"\1"/
+%s/\<u8"\([^"\\]*\)"_sv\>/b"\1"/
+%s/\<u8"\([^"\\]*\)"sv\>/b"\1"/
+%s/\<u8"\([^"\\]*\)"/b"\1"/
 
 %s/\<self\.check_tokens(\(.*\), {\(.*\)})/f.check_tokens(\1, \&[\2])/
 %s/\<self\.check_tokens_with_errors(\_\s*\(.*\),\_\s*{\(.*\)},/f.check_tokens_with_errors(\1, \&[\2],/
@@ -50,3 +50,11 @@
 %s/\[\](padded_string_view input, const auto& errors) {/|input: PaddedStringView, errors: \&Vec<AnyDiag>| {/
 
 %s/\<self\.diag_reporter->report(/report(self.diag_reporter, /
+
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2\u\3\u\4\u\5\u\6\u\7\u\8/g
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2\u\3\u\4\u\5\u\6\u\7/g
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2\u\3\u\4\u\5\u\6/g
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2\u\3\u\4\u\5/g
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2\u\3\u\4/g
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2\u\3/g
+%s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2/g

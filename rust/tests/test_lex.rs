@@ -697,12 +697,206 @@ fn lex_decimal_number_with_dot_method_call_is_invalid() {
     // are legacy octal literals and *can* have a dot method call.
 }
 
-// TODO(port): lex_invalid_big_int_number
-// TODO(port): lex_number_with_double_underscore
-// TODO(port): lex_number_with_many_underscores
-// TODO(port): lex_number_with_multiple_groups_of_consecutive_underscores
-// TODO(port): lex_number_with_trailing_underscore
-// TODO(port): lex_number_with_trailing_underscores
+#[test]
+fn lex_invalid_big_int_number() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        b"12.34n",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagBigIntLiteralContainsDecimalPoint {
+                    where_: 0..b"12.34n",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"1e3n",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagBigIntLiteralContainsExponent { where_: 0..b"1e3n" },
+            );
+        },
+    );
+
+    // Only complain about the decimal point, not the leading 0 digit.
+    f.check_tokens_with_errors(
+        b"0.1n",
+        &[TokenType::Number],
+        |_input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(errors, DiagBigIntLiteralContainsDecimalPoint,);
+        },
+    );
+
+    // Complain about both the decimal point and the leading 0 digit.
+    f.check_tokens_with_errors(
+        b"01.2n",
+        &[TokenType::Number],
+        |_input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                DiagOctalLiteralMayNotHaveDecimal,
+                DiagLegacyOctalLiteralMayNotBeBigInt,
+            );
+        },
+    );
+
+    // Complain about everything. What a disaster.
+    f.check_tokens_with_errors(
+        b"01.2e+3n",
+        &[TokenType::Number],
+        |_input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                DiagOctalLiteralMayNotHaveDecimal,
+                DiagOctalLiteralMayNotHaveExponent,
+                DiagLegacyOctalLiteralMayNotBeBigInt,
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_number_with_double_underscore() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        b"123__000",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsConsecutiveUnderscores {
+                    underscores: b"123"..b"__",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_number_with_many_underscores() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        b"123_____000",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsConsecutiveUnderscores {
+                    underscores: b"123"..b"_____",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"0xfee_____eed",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsConsecutiveUnderscores {
+                    underscores: b"0xfee"..b"_____",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"0o777_____000",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsConsecutiveUnderscores {
+                    underscores: b"0o777"..b"_____",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"0b111_____000",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsConsecutiveUnderscores {
+                    underscores: b"0b111"..b"_____",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_number_with_multiple_groups_of_consecutive_underscores() {
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"123__45___6");
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Number);
+        assert_eq!(unsafe { *l.peek().begin }, b'1');
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagNumberLiteralContainsConsecutiveUnderscores {
+                underscores: b"123"..b"__",
+            },
+            DiagNumberLiteralContainsConsecutiveUnderscores {
+                underscores: b"123__45"..b"___",
+            },
+        );
+    }
+}
+
+#[test]
+fn lex_number_with_trailing_underscore() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        b"123456_",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsTrailingUnderscores {
+                    underscores: b"123456"..b"_",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_number_with_trailing_underscores() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        b"123456___",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNumberLiteralContainsTrailingUnderscores {
+                    underscores: b"123456"..b"___",
+                },
+            );
+        },
+    );
+}
+
 // TODO(port): lex_strings
 // TODO(port): lex_string_with_ascii_control_characters
 // TODO(port): string_with_curly_quotes
