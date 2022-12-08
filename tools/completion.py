@@ -181,11 +181,6 @@ def is_generated(path: pathlib.Path) -> bool:
     return "generated" in str(path) and "lex-keyword-generated.cpp" not in str(path)
 
 
-def is_test(path: pathlib.Path) -> bool:
-    print(path)
-    return True
-
-
 def sloc(files: typing.Iterable[pathlib.Path]) -> None:
     output = subprocess.check_output(
         ["cloc", "--json", "--"] + list(files), encoding="utf-8"
