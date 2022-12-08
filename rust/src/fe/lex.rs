@@ -557,7 +557,32 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     // 0o775, 0o111_555
     fn parse_modern_octal_number(&mut self) {
-        todo!();
+        // TODO(strager): Why does this look different from parse_binary_number and
+        // parse_hexadecimal_number? We should probably make them look the same and
+        // factor the common structure.
+
+        let mut input: InputPointer = self.input;
+        input = InputPointer(self.parse_digits_and_underscores(
+            |character: u8| -> bool { is_octal_digit(character) },
+            input.0,
+        ));
+        if input == self.input {
+            report(
+                self.diag_reporter,
+                DiagNoDigitsInOctalNumber {
+                    characters: unsafe { SourceCodeSpan::new(self.last_token.begin, input.0) },
+                },
+            );
+            return;
+        }
+        if input[0] == b'n' {
+            input += 1;
+        }
+        self.input = InputPointer(
+            self.check_garbage_in_number_literal(input.0, |span: SourceCodeSpan| {
+                DiagUnexpectedCharactersInOctalNumber { characters: span }
+            }),
+        );
     }
 
     fn parse_hexadecimal_number(&mut self) {
@@ -1159,6 +1184,10 @@ struct ParsedIdentifier<'alloc, 'code> {
 
 fn is_binary_digit(c: u8) -> bool {
     c == b'0' || c == b'1'
+}
+
+fn is_octal_digit(c: u8) -> bool {
+    matches!(c, qljs_case_octal_digit!())
 }
 
 fn is_digit(c: u8) -> bool {

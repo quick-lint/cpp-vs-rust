@@ -267,9 +267,99 @@ fn fail_lex_binary_number() {
     );
 }
 
-// TODO(port): lex_modern_octal_numbers
-// TODO(port): fail_lex_modern_octal_number_no_digits
-// TODO(port): fail_lex_modern_octal_numbers
+#[test]
+fn lex_modern_octal_numbers() {
+    let mut f = Fixture::new();
+    f.check_tokens("0o51", &[TokenType::Number]);
+    f.check_tokens("0o0", &[TokenType::Number]);
+    f.check_tokens("0O0", &[TokenType::Number]);
+    f.check_tokens("0O12345670", &[TokenType::Number]);
+    f.check_tokens("0o775_775", &[TokenType::Number]);
+    f.check_tokens("0o0n", &[TokenType::Number]);
+    f.check_tokens("0o01", &[TokenType::Number]);
+    f.check_tokens("0o123n", &[TokenType::Number]);
+}
+
+#[test]
+fn fail_lex_modern_octal_number_no_digits() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        "0o",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInOctalNumber {
+                    characters: 0..b"0o",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "0o;",
+        &[TokenType::Number, TokenType::Semicolon],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInOctalNumber {
+                    characters: 0..b"0o",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "[0o]",
+        &[
+            TokenType::LeftSquare,
+            TokenType::Number,
+            TokenType::RightSquare,
+        ],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagNoDigitsInOctalNumber {
+                    characters: b"["..b"0o",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn fail_lex_modern_octal_numbers() {
+    let mut f = Fixture::new();
+    f.check_tokens_with_errors(
+        "0o58",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInOctalNumber {
+                    characters: b"0o5"..b"8",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        "0o58.2",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedCharactersInOctalNumber {
+                    characters: b"0o5"..b"8.2",
+                },
+            );
+        },
+    );
+}
+
 // TODO(port): lex_legacy_octal_numbers_strict
 // TODO(port): lex_legacy_octal_numbers_lax
 // TODO(port): fail_lex_legacy_octal_numbers
