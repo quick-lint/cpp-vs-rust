@@ -35,49 +35,72 @@ macro_rules! qljs_assert_diags {
     (
         $errors:expr, // &Vec<AnyDiag>
         $input:expr,  // PaddedStringView
-        $diag_0_name:ident {
-            $diag_0_field_0:ident: $diag_0_field_0_begin:literal..$diag_0_field_0_end:literal $(,)?
-        } $(,)?
+        $diag_0_name:ident $diag_0_fields:tt $(,)?
     ) => {
         // TODO(port): Better error messages on failure.
         assert_matches!(
             &$errors[..],
             [AnyDiag::$diag_0_name(diag)]
-                if offsets_match_begin_end(
-                    &diag.$diag_0_field_0,
+                if $crate::qljs_match_diag_fields!(
+                    diag,
                     $input,
-                    $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($diag_0_field_0_begin),
-                    $crate::test::diag_matcher::EndOffsetLike::to_end_offset(
-                        $diag_0_field_0_end,
-                        $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($diag_0_field_0_begin),
-                    ),
+                    $diag_0_fields,
                 )
         );
     };
 
+}
+
+#[macro_export]
+macro_rules! qljs_match_diag_fields {
     (
-        $errors:expr, // &Vec<AnyDiag>
+        $diag:expr,   // (any Diag struct)
         $input:expr,  // PaddedStringView
-        $diag_0_name:ident {
-            $diag_0_field_0:ident: $diag_0_field_0_begin:literal..$diag_0_field_0_end:literal,
-            $diag_0_field_1:ident: $diag_0_field_1_value:literal $(,)?
+        {
+            $field_0:ident: $field_0_begin:literal..$field_0_end:literal $(,)?
         } $(,)?
     ) => {
-        // TODO(port): Better error messages on failure.
-        assert_matches!(
-            &$errors[..],
-            [AnyDiag::$diag_0_name(diag)]
-                if offsets_match_begin_end(
-                    &diag.$diag_0_field_0,
-                    $input,
-                    $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($diag_0_field_0_begin),
-                    $crate::test::diag_matcher::EndOffsetLike::to_end_offset(
-                        $diag_0_field_0_end,
-                        $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($diag_0_field_0_begin),
-                    ),
-                )
-                    && diag.$diag_0_field_1 == $diag_0_field_1_value
-        );
+        $crate::qljs_match_diag_field!($diag, $input, $field_0: $field_0_begin..$field_0_end)
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        {
+            $field_0:ident: $field_0_begin:literal..$field_0_end:literal $(,)?
+            $field_1:ident: $field_1_value:literal $(,)?
+        } $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field_0: $field_0_begin..$field_0_end)
+            && $crate::qljs_match_diag_field!($diag, $input, $field_1: $field_1_value)
+    };
+}
+
+#[macro_export]
+macro_rules! qljs_match_diag_field {
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        $field:ident: $begin:literal..$end:literal $(,)?
+    ) => {{
+        let expected_begin_offset: usize =
+            $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($begin);
+        let expected_end_offset: usize =
+            $crate::test::diag_matcher::EndOffsetLike::to_end_offset($end, expected_begin_offset);
+        offsets_match_begin_end(
+            &$diag.$field,
+            $input,
+            expected_begin_offset,
+            expected_end_offset,
+        )
+    }};
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        $field:ident: $value:literal $(,)?
+    ) => {
+        $diag.$field == $value
     };
 }
 
