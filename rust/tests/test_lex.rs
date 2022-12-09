@@ -2025,7 +2025,7 @@ fn lex_whitespace() {
         {
             let input: String = format!("{whitespace}10{whitespace}'hi'{whitespace}");
             scoped_trace!(input);
-            // TODO(port): f.check_tokens(input.as_bytes(), &[TokenType::Number, TokenType::String]);
+            f.check_tokens(input.as_bytes(), &[TokenType::Number, TokenType::String]);
         }
 
         {
