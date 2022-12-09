@@ -197,11 +197,13 @@ function writeRust(
 
 type UnicodeTableChunkIndexType = ${chunkIndexType};
 
+pub const UNICODE_TABLE_CHUNK_SIZE: usize = ${chunkSize};
+
 `
   );
 
   output.write(`#[rustfmt::skip]
-const UNICODE_TABLES_CHUNKS: [u8; ${allChunks.length / 8}] = [\n`);
+pub const UNICODE_TABLES_CHUNKS: [u8; ${allChunks.length / 8}] = [\n`);
   output.write(dumpBitTableToString(allChunks, { indentation: "    " }));
   output.write("\n];\n\n");
 
@@ -212,7 +214,7 @@ const UNICODE_TABLES_CHUNKS: [u8; ${allChunks.length / 8}] = [\n`);
     chunkIndexes = rstripArray(chunkIndexes, zerosChunkIndex);
     output.write(
       `#[rustfmt::skip]
-const ${name}: [UnicodeTableChunkIndexType; ${chunkIndexes.length}] = [\n`
+pub const ${name}: [UnicodeTableChunkIndexType; ${chunkIndexes.length}] = [\n`
     );
     output.write(
       dumpIntegerTableToString(chunkIndexes, { indentation: "    " })

@@ -1245,8 +1245,8 @@ fn ascii_identifier_with_escape_sequence() {
     // $, ZWNJ, ZWJ in IdentifierPart, even though they aren't in
     // UnicodeIDContinue.
     f.check_single_token(b"wakka\\u{24}", "wakka$");
-    // TODO(port): f.check_single_token(b"wak\\u200cka", "wak\u{200c}ka");
-    // TODO(port): f.check_single_token(b"wak\\u200dka", "wak\u{200d}ka");
+    f.check_single_token(b"wak\\u200cka", "wak\u{200c}ka");
+    f.check_single_token(b"wak\\u200dka", "wak\u{200d}ka");
 }
 
 // TODO(port): non_ascii_identifier

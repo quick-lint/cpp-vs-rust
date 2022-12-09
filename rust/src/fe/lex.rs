@@ -4,6 +4,7 @@ use crate::container::padded_string::*;
 use crate::container::vector::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
+use crate::fe::lex_unicode_generated::*;
 use crate::fe::source_code_span::*;
 use crate::fe::token::*;
 use crate::port::maybe_uninit::*;
@@ -38,6 +39,26 @@ macro_rules! qljs_case_decimal_digit {
     () => {
         qljs_case_octal_digit!() | b'8'..=b'9'
     };
+}
+
+fn look_up_in_unicode_table(table: &[u8], code_point: u32) -> bool {
+    const BITS_PER_BYTE: usize = 8;
+    const MAX_CODE_POINT: u32 = '\u{10ffff}' as u32;
+    const BITS_PER_CHUNK: usize = UNICODE_TABLE_CHUNK_SIZE;
+    const BYTES_PER_CHUNK: usize = BITS_PER_CHUNK / BITS_PER_BYTE;
+    type ChunkIndexType = u8;
+
+    qljs_assert!(code_point <= MAX_CODE_POINT);
+    let chunk_index_index: usize = (code_point as usize) / BITS_PER_CHUNK;
+    if chunk_index_index >= table.len() {
+        return false;
+    }
+    let chunk_index: ChunkIndexType = table[chunk_index_index];
+
+    let bit_in_chunk: usize = (code_point as usize) % BITS_PER_CHUNK;
+    let slot: u8 = UNICODE_TABLES_CHUNKS
+        [(chunk_index as usize) * BYTES_PER_CHUNK + bit_in_chunk / BITS_PER_BYTE];
+    (slot & (1 << (bit_in_chunk % BITS_PER_BYTE))) != 0
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -1748,34 +1769,14 @@ fn is_identifier_byte(byte: u8) -> bool {
 }
 
 fn is_initial_identifier_character(code_point: u32) -> bool {
-    /* TODO(port)
-    look_up_in_unicode_table(
-        identifier_start_chunk_indexes,
-        identifier_start_chunk_indexes_size,
-        code_point,
-    )
-    */
-    // HACK(port): Temporary implementation.
-    is_identifier_character(code_point, IdentifierKind::JavaScript)
+    look_up_in_unicode_table(&IDENTIFIER_START_CHUNK_INDEXES, code_point)
 }
 
 fn is_identifier_character(code_point: u32, kind: IdentifierKind) -> bool {
     if kind == IdentifierKind::JSX && code_point == (b'-' as u32) {
         return true;
     }
-    /* TODO(port)
-    look_up_in_unicode_table(identifier_part_chunk_indexes,
-                                    identifier_part_chunk_indexes_size,
-                                    code_point)
-    */
-    // HACK(port): Temporary implementation.
-    if code_point >= 0x80 {
-        return false;
-    }
-    matches!(
-        code_point as u8,
-        qljs_case_identifier_start!() | b'0'..=b'9'
-    )
+    look_up_in_unicode_table(&IDENTIFIER_PART_CHUNK_INDEXES, code_point)
 }
 
 fn is_non_ascii_whitespace_character(code_point: u32) -> bool {
