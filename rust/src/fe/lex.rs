@@ -1736,10 +1736,7 @@ fn is_digit(c: u8) -> bool {
 }
 
 fn is_hex_digit(c: u8) -> bool {
-    matches!(c, 
-  qljs_case_decimal_digit!() |
-  b'a'..=b'f' |
-  b'A'..=b'F')
+    matches!(c, qljs_case_decimal_digit!() | b'a'..=b'f' | b'A'..=b'F')
 }
 
 fn is_initial_identifier_byte(byte: u8) -> bool {
