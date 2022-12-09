@@ -537,7 +537,44 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             }
 
             // TODO(port): case '`':
-            // TODO(port): case '#':
+            b'#' => {
+                if self.input[1] == b'!' && self.input.0 == self.original_input.c_str() {
+                    self.input += 2;
+                    self.skip_line_comment_body();
+                    return false;
+                } else if is_initial_identifier_byte(self.input[1]) {
+                    // Private identifier: #alphaNumeric
+                    let mut ident: ParsedIdentifier =
+                        self.parse_identifier((self.input + 1).0, IdentifierKind::JavaScript);
+                    if ident.normalized.as_ptr() == (self.input + 1).0 {
+                        // Include the '#'.
+                        ident.normalized = unsafe {
+                            std::slice::from_raw_parts(self.input.0, ident.normalized.len() + 1)
+                        };
+                    } else {
+                        // parse_identifier called parse_identifier_slow, and it included the
+                        // '#' already in normalized_name.
+                        qljs_assert!(ident.normalized[0] == b'#');
+                    }
+                    self.input = InputPointer(ident.after);
+                    self.last_token.normalized_identifier = ident.normalized;
+                    self.last_token.end = ident.after;
+                    self.last_token.type_ = TokenType::PrivateIdentifier;
+                } else {
+                    report(
+                        self.diag_reporter,
+                        DiagUnexpectedHashCharacter {
+                            where_: unsafe {
+                                SourceCodeSpan::new(self.input.0, (self.input + 1).0)
+                            },
+                        },
+                    );
+                    self.input += 1;
+                    self.skip_whitespace();
+                    return false;
+                }
+            }
+
             b'\0' => {
                 if self.is_eof(self.input.0) {
                     self.last_token.type_ = TokenType::EndOfFile;

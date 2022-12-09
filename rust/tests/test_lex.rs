@@ -2,6 +2,7 @@ use cpp_vs_rust::assert_matches;
 use cpp_vs_rust::container::padded_string::*;
 use cpp_vs_rust::fe::diag_reporter::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
+use cpp_vs_rust::fe::identifier::*;
 use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::fe::token::*;
@@ -1757,9 +1758,125 @@ fn lex_identifier_with_disallowed_initial_character_as_subsequent_character() {
 }
 
 // TODO(port): lex_identifiers_which_look_like_keywords
-// TODO(port): private_identifier
-// TODO(port): private_identifier_with_disallowed_non_ascii_initial_character
-// TODO(port): private_identifier_with_disallowed_escaped_initial_character
+
+#[test]
+fn private_identifier() {
+    let mut f = Fixture::new();
+
+    f.check_tokens(b"#i", &[TokenType::PrivateIdentifier]);
+    f.check_tokens(b"#_", &[TokenType::PrivateIdentifier]);
+    f.check_tokens(b"#$", &[TokenType::PrivateIdentifier]);
+    f.check_tokens(
+        b"#Mixed_Case_With_Underscores",
+        &[TokenType::PrivateIdentifier],
+    );
+    f.check_tokens(b"#digits0123456789", &[TokenType::PrivateIdentifier]);
+
+    {
+        let code = PaddedString::from_slice(b" #id ");
+        let errors = DiagCollector::new();
+        f.lex_to_eof(code.view(), &errors, |tokens: &Vec<Token>| {
+            assert_eq!(tokens.len(), 1);
+            let ident: Identifier = tokens[0].identifier_name();
+            assert_eq!(ident.span().as_slice(), b"#id");
+            assert_eq!(ident.normalized_name(), b"#id");
+        });
+        assert_matches!(errors.clone_errors(), e if e.is_empty());
+    }
+
+    f.check_single_token("#\u{00b5}".as_bytes(), "#\u{00b5}".as_bytes()); // 2 UTF-8 bytes
+    f.check_single_token("#\u{05d0}".as_bytes(), "#\u{05d0}".as_bytes()); // 2 UTF-8 bytes
+    f.check_single_token("#a\u{0816}".as_bytes(), "#a\u{0816}".as_bytes()); // 3 UTF-8 bytes
+    f.check_single_token("#\u{01e93f}".as_bytes(), "#\u{01e93f}".as_bytes()); // 4 UTF-8 bytes
+
+    f.check_single_token(b"#\\u{b5}", "#\u{00b5}".as_bytes());
+    f.check_single_token(b"#a\\u0816", "#a\u{0816}".as_bytes());
+    f.check_single_token(b"#\\u{0001e93f}", "#\u{01e93f}".as_bytes());
+
+    {
+        let code = PaddedString::from_slice(b" #\\u{78} ");
+        let errors = DiagCollector::new();
+        f.lex_to_eof(code.view(), &errors, |tokens: &Vec<Token>| {
+            assert_eq!(tokens.len(), 1);
+            let ident: Identifier = tokens[0].identifier_name();
+            assert_eq!(ident.span().as_slice(), b"#\\u{78}");
+            assert_eq!(ident.normalized_name(), b"#x");
+        });
+        assert_matches!(errors.clone_errors(), e if e.is_empty());
+    }
+
+    // Keywords are allowed.
+    f.check_tokens(b"#async", &[TokenType::PrivateIdentifier]);
+    f.check_tokens(b"#for", &[TokenType::PrivateIdentifier]);
+    f.check_tokens(b"#function", &[TokenType::PrivateIdentifier]);
+    f.check_tokens(b"#let", &[TokenType::PrivateIdentifier]);
+}
+
+#[test]
+fn private_identifier_with_disallowed_non_ascii_initial_character() {
+    let mut f = Fixture::new();
+
+    f.check_single_token_with_errors(
+        "#\u{0816}illegal".as_bytes(),
+        "#\u{0816}illegal".as_bytes(),
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagCharacterDisallowedInIdentifiers {
+                    character: b"#"..("\u{0816}".as_bytes()),
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"#123",
+        &[TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedHashCharacter { where_: 0..b"#" },
+            );
+        },
+    );
+}
+
+#[test]
+fn private_identifier_with_disallowed_escaped_initial_character() {
+    let mut f = Fixture::new();
+
+    // Private identifiers cannot start with a digit.
+    f.check_single_token_with_errors(
+        b"#\\u{30}illegal",
+        b"#\\u{30}illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: b"#"..b"\\u{30}",
+                },
+            );
+        },
+    );
+
+    f.check_single_token_with_errors(
+        b"#\\u0816illegal",
+        b"#\\u0816illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: b"#"..b"\\u0816",
+                },
+            );
+        },
+    );
+}
+
 // TODO(port): lex_reserved_keywords
 // TODO(port): lex_contextual_keywords
 // TODO(port): lex_typescript_contextual_keywords
