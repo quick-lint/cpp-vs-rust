@@ -6,5 +6,6 @@ pub mod diagnostic_types;
 pub mod identifier;
 pub mod language;
 pub mod lex;
+pub mod lex_unicode_generated;
 pub mod source_code_span;
 pub mod token;
