@@ -41,6 +41,13 @@ macro_rules! qljs_case_decimal_digit {
     };
 }
 
+const LINE_SEPARATOR_PARAGRAPH_SEPARATOR_FIRST_BYTE: u8 = 0xe2;
+
+const LEFT_SINGLE_QUOTE: u32 = '\u{2018}' as u32;
+const LEFT_DOUBLE_QUOTE: u32 = '\u{201c}' as u32;
+const RIGHT_SINGLE_QUOTE: u32 = '\u{2019}' as u32;
+const RIGHT_DOUBLE_QUOTE: u32 = '\u{201d}' as u32;
+
 fn look_up_in_unicode_table(table: &[u8], code_point: u32) -> bool {
     const BITS_PER_BYTE: usize = 8;
     const MAX_CODE_POINT: u32 = '\u{10ffff}' as u32;
@@ -230,7 +237,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 */
             }
 
-            // TODO(port): default:
+            // Non-ASCII or control character.
             b'(' | b')' | b',' | b':' | b';' | b'[' | b']' | b'{' | b'}' | b'~' => {
                 self.last_token.type_ = unsafe { std::mem::transmute(self.input[0]) };
                 self.input += 1;
@@ -542,7 +549,31 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             // TODO(port): case '\x01' ... case '\x7f':
             // TODO(port): case '@':
             _ => {
-                todo!();
+                let character: DecodeUTF8Result = decode_utf_8(unsafe {
+                    PaddedStringView::from_begin_end(
+                        self.input.0,
+                        self.original_input.null_terminator(),
+                    )
+                });
+                if character.code_point == LEFT_SINGLE_QUOTE
+                    || character.code_point == RIGHT_SINGLE_QUOTE
+                    || character.code_point == LEFT_DOUBLE_QUOTE
+                    || character.code_point == RIGHT_DOUBLE_QUOTE
+                {
+                    self.input = InputPointer(self.parse_smart_quote_string_literal(&character));
+                    self.last_token.type_ = TokenType::String;
+                    self.last_token.end = self.input.0;
+                } else {
+                    let ident: ParsedIdentifier = self.parse_identifier_slow(
+                        self.input.0,
+                        self.input.0,
+                        IdentifierKind::JavaScript,
+                    );
+                    self.input = InputPointer(ident.after);
+                    self.last_token.normalized_identifier = ident.normalized;
+                    self.last_token.end = ident.after;
+                    self.last_token.type_ = TokenType::Identifier;
+                }
             }
         }
 
@@ -674,6 +705,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 }
             }
         }
+    }
+
+    fn parse_smart_quote_string_literal(&mut self, opening_quote: &DecodeUTF8Result) -> *const u8 {
+        todo!();
     }
 
     fn parse_binary_number(&mut self) {

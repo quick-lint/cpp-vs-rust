@@ -1,7 +1,9 @@
 use cpp_vs_rust::assert_matches;
 use cpp_vs_rust::container::padded_string::*;
+use cpp_vs_rust::fe::diag_reporter::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
 use cpp_vs_rust::fe::lex::*;
+use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::fe::token::*;
 use cpp_vs_rust::qljs_assert_diags;
 use cpp_vs_rust::test::characters::*;
@@ -1249,9 +1251,42 @@ fn ascii_identifier_with_escape_sequence() {
     f.check_single_token(b"wak\\u200dka", "wak\u{200d}ka");
 }
 
-// TODO(port): non_ascii_identifier
-// TODO(port): non_ascii_identifier_with_escape_sequence
-// TODO(port): identifier_with_escape_sequences_source_code_span_is_in_place
+#[test]
+fn non_ascii_identifier() {
+    let mut f = Fixture::new();
+
+    f.check_single_token("\u{013337}".as_bytes(), "\u{013337}");
+
+    f.check_single_token("\u{00b5}".as_bytes(), "\u{00b5}"); // 2 UTF-8 bytes
+    f.check_single_token("\u{05d0}".as_bytes(), "\u{05d0}"); // 3 UTF-8 bytes
+    f.check_single_token("a\u{0816}".as_bytes(), "a\u{0816}"); // 3 UTF-8 bytes
+    f.check_single_token("\u{01e93f}".as_bytes(), "\u{01e93f}"); // 4 UTF-8 bytes
+
+    // KHOJKI LETTER QA, introduced in Unicode 15.
+    f.check_single_token("\u{01123f}".as_bytes(), "\u{01123f}");
+}
+
+#[test]
+fn non_ascii_identifier_with_escape_sequence() {
+    let mut f = Fixture::new();
+
+    f.check_single_token(b"\\u{013337}", "\u{013337}");
+
+    f.check_single_token(b"\\u{b5}", "\u{00b5}"); // 2 UTF-8 bytes
+    f.check_single_token(b"a\\u{816}", "a\u{0816}"); // 3 UTF-8 bytes
+    f.check_single_token(b"a\\u0816", "a\u{0816}"); // 3 UTF-8 bytes
+    f.check_single_token(b"\\u{1e93f}", "\u{01e93f}"); // 4 UTF-8 bytes
+}
+
+#[test]
+fn identifier_with_escape_sequences_source_code_span_is_in_place() {
+    let input: PaddedString = PaddedString::from_slice(b"\\u{77}a\\u{74}");
+    let l = Lexer::new(input.view(), null_diag_reporter());
+    let span: SourceCodeSpan = l.peek().identifier_name().span();
+    assert_eq!(span.begin_ptr(), input.c_str());
+    assert_eq!(span.end_ptr(), input.null_terminator());
+}
+
 // TODO(port): lex_identifier_with_malformed_escape_sequence
 // TODO(port): lex_identifier_with_out_of_range_escaped_character
 // TODO(port): lex_identifier_with_out_of_range_utf_8_sequence
