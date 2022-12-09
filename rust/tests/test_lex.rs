@@ -1287,15 +1287,481 @@ fn identifier_with_escape_sequences_source_code_span_is_in_place() {
     assert_eq!(span.end_ptr(), input.null_terminator());
 }
 
-// TODO(port): lex_identifier_with_malformed_escape_sequence
-// TODO(port): lex_identifier_with_out_of_range_escaped_character
-// TODO(port): lex_identifier_with_out_of_range_utf_8_sequence
-// TODO(port): lex_identifier_with_malformed_utf_8_sequence
-// TODO(port): lex_identifier_with_disallowed_character_escape_sequence
-// TODO(port): lex_identifier_with_disallowed_non_ascii_character
-// TODO(port): lex_identifier_with_disallowed_escaped_initial_character
-// TODO(port): lex_identifier_with_disallowed_non_ascii_initial_character
-// TODO(port): lex_identifier_with_disallowed_initial_character_as_subsequent_character
+#[test]
+fn lex_identifier_with_malformed_escape_sequence() {
+    let mut f = Fixture::new();
+
+    f.check_single_token_with_errors(
+        b" are\\ufriendly ",
+        "are\\ufriendly",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b" are"..b"\\ufr",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"are\\uf riendly",
+        &[TokenType::Identifier, TokenType::Identifier],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"are"..b"\\uf ",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"stray\\backslash",
+        "stray\\backslash",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedBackslashInIdentifier {
+                    backslash: b"stray"..b"\\",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"stray\\",
+        "stray\\",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnexpectedBackslashInIdentifier {
+                    backslash: b"stray"..b"\\",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"hello\\u}world",
+        &[
+            TokenType::Identifier,
+            TokenType::RightCurly,
+            TokenType::Identifier,
+        ],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"hello"..b"\\u}",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"negative\\u-0041",
+        &[TokenType::Identifier, TokenType::Minus, TokenType::Number],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"negative"..b"\\u-",
+                },
+            );
+        },
+    );
+
+    f.check_single_token_with_errors(
+        b"a\\u{}b",
+        "a\\u{}b",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"a"..b"\\u{}",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"a\\u{q}b",
+        "a\\u{q}b",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"a"..b"\\u{q}",
+                },
+            );
+        },
+    );
+
+    f.check_single_token_with_errors(
+        b"unterminated\\u",
+        "unterminated\\u",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"unterminated"..b"\\u",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"unterminated\\u012",
+        "unterminated\\u012",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagExpectedHexDigitsInUnicodeEscape {
+                    escape_sequence: b"unterminated"..b"\\u012",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"unterminated\\u{",
+        "unterminated\\u{",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedIdentifierEscapeSequence {
+                    escape_sequence: b"unterminated"..b"\\u{",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"unterminated\\u{0123",
+        "unterminated\\u{0123",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedIdentifierEscapeSequence {
+                    escape_sequence: b"unterminated"..b"\\u{0123",
+                },
+            );
+        },
+    );
+
+    f.check_tokens_with_errors(
+        b"unclosed\\u{0123 'string'",
+        &[TokenType::Identifier, TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedIdentifierEscapeSequence {
+                    escape_sequence: b"unclosed"..b"\\u{0123",
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        b"unclosed\\u{+=42",
+        &[
+            TokenType::Identifier,
+            TokenType::PlusEqual,
+            TokenType::Number,
+        ],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedIdentifierEscapeSequence {
+                    escape_sequence: b"unclosed"..b"\\u{",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_identifier_with_out_of_range_escaped_character() {
+    let mut f = Fixture::new();
+
+    f.check_single_token_with_errors(
+        b"too\\u{110000}big",
+        "too\\u{110000}big",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCodePointInUnicodeOutOfRange {
+                    escape_sequence: b"too"..b"\\u{110000}",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"waytoo\\u{100000000000000}big",
+        "waytoo\\u{100000000000000}big",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCodePointInUnicodeOutOfRange {
+                    escape_sequence: b"waytoo"..b"\\u{100000000000000}",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_identifier_with_out_of_range_utf_8_sequence() {
+    let mut f = Fixture::new();
+
+    // f4 90 80 80 is U+110000
+    if false {
+        // TODO(port)
+        f.check_single_token_with_errors(
+            b"too\xf4\x90\x80\x80\x62ig",
+            std::str::from_utf8(b"too\xf4\x90\x80\x80\x62ig").unwrap(),
+            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+                qljs_assert_diags!(
+                    errors,
+                    input,
+                    DiagInvalidUTF8Sequence {
+                        sequence: b"too"..b"\xf4\x90\x80\x80",
+                    },
+                );
+            },
+        );
+    }
+}
+
+#[test]
+fn lex_identifier_with_malformed_utf_8_sequence() {
+    let mut f = Fixture::new();
+
+    if false {
+        // TODO(port)
+        f.check_single_token_with_errors(
+            b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
+            std::str::from_utf8(b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff").unwrap(),
+            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+                qljs_assert_diags!(
+                    errors,
+                    input,
+                    DiagInvalidUTF8Sequence {
+                        sequence: b"illegal"..b"\xc0\xc1\xc2\xc3\xc4",
+                    },
+                    DiagInvalidUTF8Sequence {
+                        sequence: b"illegal\xc0\xc1\xc2\xc3\xc4utf8"..b"\xfe\xff",
+                    },
+                );
+            },
+        );
+    }
+}
+
+#[test]
+fn lex_identifier_with_disallowed_character_escape_sequence() {
+    let mut f = Fixture::new();
+
+    f.check_single_token_with_errors(
+        b"illegal\\u0020",
+        "illegal\\u0020",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: b"illegal"..b"\\u0020",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"illegal\\u{0020}",
+        "illegal\\u{0020}",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: b"illegal"..b"\\u{0020}",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"\\u{20}illegal",
+        "\\u{20}illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: 0..b"\\u{20}",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"illegal\\u{10ffff}",
+        "illegal\\u{10ffff}",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: b"illegal"..b"\\u{10ffff}",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"\\u{10ffff}illegal",
+        "\\u{10ffff}illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: 0..b"\\u{10ffff}",
+                },
+            );
+        },
+    );
+
+    // U+005c is \ (backslash)
+    f.check_single_token_with_errors(
+        b"\\u{5c}u0061illegal",
+        "\\u{5c}u0061illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: 0..b"\\u{5c}",
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        b"illegal\\u{5c}u0061",
+        "illegal\\u{5c}u0061",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: b"illegal"..b"\\u{5c}",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_identifier_with_disallowed_non_ascii_character() {
+    let mut f = Fixture::new();
+
+    f.check_single_token_with_errors(
+        "illegal\u{10ffff}".as_bytes(),
+        "illegal\u{10ffff}",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagCharacterDisallowedInIdentifiers {
+                    character: b"illegal"..("\u{10ffff}".as_bytes()),
+                },
+            );
+        },
+    );
+    f.check_single_token_with_errors(
+        "\u{10ffff}illegal".as_bytes(),
+        "\u{10ffff}illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagCharacterDisallowedInIdentifiers {
+                    character: 0..("\u{10ffff}".as_bytes()),
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_identifier_with_disallowed_escaped_initial_character() {
+    let mut f = Fixture::new();
+
+    // Identifiers cannot start with a digit.
+    f.check_single_token_with_errors(
+        b"\\u{30}illegal",
+        "\\u{30}illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: 0..b"\\u{30}",
+                },
+            );
+        },
+    );
+
+    f.check_single_token_with_errors(
+        b"\\u0816illegal",
+        "\\u0816illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedCharacterDisallowedInIdentifiers {
+                    escape_sequence: 0..b"\\u0816",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_identifier_with_disallowed_non_ascii_initial_character() {
+    let mut f = Fixture::new();
+
+    f.check_single_token_with_errors(
+        "\u{0816}illegal".as_bytes(),
+        "\u{0816}illegal",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagCharacterDisallowedInIdentifiers {
+                    character: 0..("\u{0816}".as_bytes()),
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn lex_identifier_with_disallowed_initial_character_as_subsequent_character() {
+    let mut f = Fixture::new();
+
+    // Identifiers can contain a digit.
+    f.check_single_token(b"legal0", "legal0");
+    f.check_single_token(b"legal\\u{30}", "legal0");
+
+    f.check_single_token(b"legal\\u0816", "legal\u{0816}");
+    f.check_single_token("legal\u{0816}".as_bytes(), "legal\u{0816}");
+}
+
 // TODO(port): lex_identifiers_which_look_like_keywords
 // TODO(port): private_identifier
 // TODO(port): private_identifier_with_disallowed_non_ascii_initial_character
