@@ -29,7 +29,7 @@ fn lex_line_comments() {
     for line_terminator in LINE_TERMINATORS {
         f.check_single_token(
             format!("// hello{line_terminator}world").as_bytes(),
-            "world",
+            b"world",
         );
     }
     assert_eq!(f.lex_to_eof_types("// hello\n// world"), vec![]);
@@ -1208,74 +1208,74 @@ fn lex_identifiers() {
     f.check_tokens(b"i", &[TokenType::Identifier]);
     f.check_tokens(b"_", &[TokenType::Identifier]);
     f.check_tokens(b"$", &[TokenType::Identifier]);
-    f.check_single_token(b"id", "id");
-    f.check_single_token(b"id ", "id");
-    f.check_single_token(b"this_is_an_identifier", "this_is_an_identifier");
-    f.check_single_token(b"MixedCaseIsAllowed", "MixedCaseIsAllowed");
-    f.check_single_token(b"ident$with$dollars", "ident$with$dollars");
-    f.check_single_token(b"digits0123456789", "digits0123456789");
+    f.check_single_token(b"id", b"id");
+    f.check_single_token(b"id ", b"id");
+    f.check_single_token(b"this_is_an_identifier", b"this_is_an_identifier");
+    f.check_single_token(b"MixedCaseIsAllowed", b"MixedCaseIsAllowed");
+    f.check_single_token(b"ident$with$dollars", b"ident$with$dollars");
+    f.check_single_token(b"digits0123456789", b"digits0123456789");
 }
 
 #[test]
 fn ascii_identifier_with_escape_sequence() {
     let mut f = Fixture::new();
 
-    f.check_single_token(b"\\u0061", "a");
-    f.check_single_token(b"\\u0041", "A");
-    f.check_single_token(b"\\u004E", "N");
-    f.check_single_token(b"\\u004e", "N");
+    f.check_single_token(b"\\u0061", b"a");
+    f.check_single_token(b"\\u0041", b"A");
+    f.check_single_token(b"\\u004E", b"N");
+    f.check_single_token(b"\\u004e", b"N");
 
-    f.check_single_token(b"\\u{41}", "A");
-    f.check_single_token(b"\\u{0041}", "A");
-    f.check_single_token(b"\\u{00000000000000000000041}", "A");
-    f.check_single_token(b"\\u{004E}", "N");
-    f.check_single_token(b"\\u{004e}", "N");
+    f.check_single_token(b"\\u{41}", b"A");
+    f.check_single_token(b"\\u{0041}", b"A");
+    f.check_single_token(b"\\u{00000000000000000000041}", b"A");
+    f.check_single_token(b"\\u{004E}", b"N");
+    f.check_single_token(b"\\u{004e}", b"N");
 
-    f.check_single_token(b"hell\\u006f", "hello");
-    f.check_single_token(b"\\u0068ello", "hello");
-    f.check_single_token(b"w\\u0061t", "wat");
+    f.check_single_token(b"hell\\u006f", b"hello");
+    f.check_single_token(b"\\u0068ello", b"hello");
+    f.check_single_token(b"w\\u0061t", b"wat");
 
-    f.check_single_token(b"hel\\u006c0", "hell0");
+    f.check_single_token(b"hel\\u006c0", b"hell0");
 
-    f.check_single_token(b"\\u0077\\u0061\\u0074", "wat");
-    f.check_single_token(b"\\u{77}\\u{61}\\u{74}", "wat");
+    f.check_single_token(b"\\u0077\\u0061\\u0074", b"wat");
+    f.check_single_token(b"\\u{77}\\u{61}\\u{74}", b"wat");
 
     // _ and $ are in IdentifierStart, even though they aren't in UnicodeIDStart.
-    f.check_single_token(b"\\u{5f}wakka", "_wakka");
-    f.check_single_token(b"\\u{24}wakka", "$wakka");
+    f.check_single_token(b"\\u{5f}wakka", b"_wakka");
+    f.check_single_token(b"\\u{24}wakka", b"$wakka");
 
     // $, ZWNJ, ZWJ in IdentifierPart, even though they aren't in
     // UnicodeIDContinue.
-    f.check_single_token(b"wakka\\u{24}", "wakka$");
-    f.check_single_token(b"wak\\u200cka", "wak\u{200c}ka");
-    f.check_single_token(b"wak\\u200dka", "wak\u{200d}ka");
+    f.check_single_token(b"wakka\\u{24}", b"wakka$");
+    f.check_single_token(b"wak\\u200cka", "wak\u{200c}ka".as_bytes());
+    f.check_single_token(b"wak\\u200dka", "wak\u{200d}ka".as_bytes());
 }
 
 #[test]
 fn non_ascii_identifier() {
     let mut f = Fixture::new();
 
-    f.check_single_token("\u{013337}".as_bytes(), "\u{013337}");
+    f.check_single_token("\u{013337}".as_bytes(), "\u{013337}".as_bytes());
 
-    f.check_single_token("\u{00b5}".as_bytes(), "\u{00b5}"); // 2 UTF-8 bytes
-    f.check_single_token("\u{05d0}".as_bytes(), "\u{05d0}"); // 3 UTF-8 bytes
-    f.check_single_token("a\u{0816}".as_bytes(), "a\u{0816}"); // 3 UTF-8 bytes
-    f.check_single_token("\u{01e93f}".as_bytes(), "\u{01e93f}"); // 4 UTF-8 bytes
+    f.check_single_token("\u{00b5}".as_bytes(), "\u{00b5}".as_bytes()); // 2 UTF-8 bytes
+    f.check_single_token("\u{05d0}".as_bytes(), "\u{05d0}".as_bytes()); // 3 UTF-8 bytes
+    f.check_single_token("a\u{0816}".as_bytes(), "a\u{0816}".as_bytes()); // 3 UTF-8 bytes
+    f.check_single_token("\u{01e93f}".as_bytes(), "\u{01e93f}".as_bytes()); // 4 UTF-8 bytes
 
     // KHOJKI LETTER QA, introduced in Unicode 15.
-    f.check_single_token("\u{01123f}".as_bytes(), "\u{01123f}");
+    f.check_single_token("\u{01123f}".as_bytes(), "\u{01123f}".as_bytes());
 }
 
 #[test]
 fn non_ascii_identifier_with_escape_sequence() {
     let mut f = Fixture::new();
 
-    f.check_single_token(b"\\u{013337}", "\u{013337}");
+    f.check_single_token(b"\\u{013337}", "\u{013337}".as_bytes());
 
-    f.check_single_token(b"\\u{b5}", "\u{00b5}"); // 2 UTF-8 bytes
-    f.check_single_token(b"a\\u{816}", "a\u{0816}"); // 3 UTF-8 bytes
-    f.check_single_token(b"a\\u0816", "a\u{0816}"); // 3 UTF-8 bytes
-    f.check_single_token(b"\\u{1e93f}", "\u{01e93f}"); // 4 UTF-8 bytes
+    f.check_single_token(b"\\u{b5}", "\u{00b5}".as_bytes()); // 2 UTF-8 bytes
+    f.check_single_token(b"a\\u{816}", "a\u{0816}".as_bytes()); // 3 UTF-8 bytes
+    f.check_single_token(b"a\\u0816", "a\u{0816}".as_bytes()); // 3 UTF-8 bytes
+    f.check_single_token(b"\\u{1e93f}", "\u{01e93f}".as_bytes()); // 4 UTF-8 bytes
 }
 
 #[test]
@@ -1293,7 +1293,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
 
     f.check_single_token_with_errors(
         b" are\\ufriendly ",
-        "are\\ufriendly",
+        b"are\\ufriendly",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1319,7 +1319,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"stray\\backslash",
-        "stray\\backslash",
+        b"stray\\backslash",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1332,7 +1332,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"stray\\",
-        "stray\\",
+        b"stray\\",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1376,7 +1376,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
 
     f.check_single_token_with_errors(
         b"a\\u{}b",
-        "a\\u{}b",
+        b"a\\u{}b",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1389,7 +1389,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"a\\u{q}b",
-        "a\\u{q}b",
+        b"a\\u{q}b",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1403,7 +1403,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
 
     f.check_single_token_with_errors(
         b"unterminated\\u",
-        "unterminated\\u",
+        b"unterminated\\u",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1416,7 +1416,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"unterminated\\u012",
-        "unterminated\\u012",
+        b"unterminated\\u012",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1429,7 +1429,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"unterminated\\u{",
-        "unterminated\\u{",
+        b"unterminated\\u{",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1442,7 +1442,7 @@ fn lex_identifier_with_malformed_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"unterminated\\u{0123",
-        "unterminated\\u{0123",
+        b"unterminated\\u{0123",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1492,7 +1492,7 @@ fn lex_identifier_with_out_of_range_escaped_character() {
 
     f.check_single_token_with_errors(
         b"too\\u{110000}big",
-        "too\\u{110000}big",
+        b"too\\u{110000}big",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1505,7 +1505,7 @@ fn lex_identifier_with_out_of_range_escaped_character() {
     );
     f.check_single_token_with_errors(
         b"waytoo\\u{100000000000000}big",
-        "waytoo\\u{100000000000000}big",
+        b"waytoo\\u{100000000000000}big",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1527,7 +1527,7 @@ fn lex_identifier_with_out_of_range_utf_8_sequence() {
         // TODO(port)
         f.check_single_token_with_errors(
             b"too\xf4\x90\x80\x80\x62ig",
-            std::str::from_utf8(b"too\xf4\x90\x80\x80\x62ig").unwrap(),
+            b"too\xf4\x90\x80\x80\x62ig",
             |input: PaddedStringView, errors: &Vec<AnyDiag>| {
                 qljs_assert_diags!(
                     errors,
@@ -1549,7 +1549,7 @@ fn lex_identifier_with_malformed_utf_8_sequence() {
         // TODO(port)
         f.check_single_token_with_errors(
             b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
-            std::str::from_utf8(b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff").unwrap(),
+            b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
             |input: PaddedStringView, errors: &Vec<AnyDiag>| {
                 qljs_assert_diags!(
                     errors,
@@ -1572,7 +1572,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
 
     f.check_single_token_with_errors(
         b"illegal\\u0020",
-        "illegal\\u0020",
+        b"illegal\\u0020",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1585,7 +1585,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"illegal\\u{0020}",
-        "illegal\\u{0020}",
+        b"illegal\\u{0020}",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1598,7 +1598,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"\\u{20}illegal",
-        "\\u{20}illegal",
+        b"\\u{20}illegal",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1611,7 +1611,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"illegal\\u{10ffff}",
-        "illegal\\u{10ffff}",
+        b"illegal\\u{10ffff}",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1624,7 +1624,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"\\u{10ffff}illegal",
-        "\\u{10ffff}illegal",
+        b"\\u{10ffff}illegal",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1639,7 +1639,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
     // U+005c is \ (backslash)
     f.check_single_token_with_errors(
         b"\\u{5c}u0061illegal",
-        "\\u{5c}u0061illegal",
+        b"\\u{5c}u0061illegal",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1652,7 +1652,7 @@ fn lex_identifier_with_disallowed_character_escape_sequence() {
     );
     f.check_single_token_with_errors(
         b"illegal\\u{5c}u0061",
-        "illegal\\u{5c}u0061",
+        b"illegal\\u{5c}u0061",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1671,7 +1671,7 @@ fn lex_identifier_with_disallowed_non_ascii_character() {
 
     f.check_single_token_with_errors(
         "illegal\u{10ffff}".as_bytes(),
-        "illegal\u{10ffff}",
+        "illegal\u{10ffff}".as_bytes(),
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1684,7 +1684,7 @@ fn lex_identifier_with_disallowed_non_ascii_character() {
     );
     f.check_single_token_with_errors(
         "\u{10ffff}illegal".as_bytes(),
-        "\u{10ffff}illegal",
+        "\u{10ffff}illegal".as_bytes(),
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1704,7 +1704,7 @@ fn lex_identifier_with_disallowed_escaped_initial_character() {
     // Identifiers cannot start with a digit.
     f.check_single_token_with_errors(
         b"\\u{30}illegal",
-        "\\u{30}illegal",
+        b"\\u{30}illegal",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1718,7 +1718,7 @@ fn lex_identifier_with_disallowed_escaped_initial_character() {
 
     f.check_single_token_with_errors(
         b"\\u0816illegal",
-        "\\u0816illegal",
+        b"\\u0816illegal",
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1737,7 +1737,7 @@ fn lex_identifier_with_disallowed_non_ascii_initial_character() {
 
     f.check_single_token_with_errors(
         "\u{0816}illegal".as_bytes(),
-        "\u{0816}illegal",
+        "\u{0816}illegal".as_bytes(),
         |input: PaddedStringView, errors: &Vec<AnyDiag>| {
             qljs_assert_diags!(
                 errors,
@@ -1755,11 +1755,11 @@ fn lex_identifier_with_disallowed_initial_character_as_subsequent_character() {
     let mut f = Fixture::new();
 
     // Identifiers can contain a digit.
-    f.check_single_token(b"legal0", "legal0");
-    f.check_single_token(b"legal\\u{30}", "legal0");
+    f.check_single_token(b"legal0", b"legal0");
+    f.check_single_token(b"legal\\u{30}", b"legal0");
 
-    f.check_single_token(b"legal\\u0816", "legal\u{0816}");
-    f.check_single_token("legal\u{0816}".as_bytes(), "legal\u{0816}");
+    f.check_single_token(b"legal\\u0816", "legal\u{0816}".as_bytes());
+    f.check_single_token("legal\u{0816}".as_bytes(), "legal\u{0816}".as_bytes());
 }
 
 // TODO(port): lex_identifiers_which_look_like_keywords
@@ -1971,7 +1971,7 @@ impl Fixture {
         }
     }
 
-    fn check_single_token(&mut self, input: &[u8], expected_identifier_name: &str) {
+    fn check_single_token(&mut self, input: &[u8], expected_identifier_name: &[u8]) {
         self.check_single_token_with_errors(
             input,
             expected_identifier_name,
@@ -1984,7 +1984,7 @@ impl Fixture {
     fn check_single_token_with_errors(
         &mut self,
         input: &[u8],
-        expected_identifier_name: &str,
+        expected_identifier_name: &[u8],
         check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
     ) {
         let code = PaddedString::from_slice(input);
@@ -1994,7 +1994,7 @@ impl Fixture {
                 [t] if t.type_ == TokenType::Identifier || t.type_ == TokenType::PrivateIdentifier);
             assert_eq!(
                 lexed_tokens[0].identifier_name().normalized_name(),
-                expected_identifier_name.as_bytes()
+                expected_identifier_name,
             );
             check_errors(code.view(), &errors.clone_errors());
         });
