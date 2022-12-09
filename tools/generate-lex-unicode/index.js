@@ -16,12 +16,35 @@ function main() {
   testDumpBitTable();
   testRstripArray();
 
-  let maxCodePoint = 0x10ffff;
+  let identifierStartData = [];
+  let identifierPartData = [];
+  for (let codePoint = 0; codePoint <= maxCodePoint; ++codePoint) {
+    identifierStartData.push(isJSIdentifierStart(codePoint));
+    identifierPartData.push(isJSIdentifierPart(codePoint));
+  }
 
-  let chunkSize = 256; // Arbitrary. Found to produce the smallest tables.
+  let chunkDataToIndex /*: Map<BigInt, number> */ = new Map();
+  let allChunks = [];
 
-  let chunkIndexType = "std::uint8_t";
-  let maxChunkIndex = (1 << 8) - 1;
+  function seeChunk(chunkData /*: Array<bool> */) {
+    let key = boolsToBigInt(chunkData);
+    let chunkIndex = chunkDataToIndex.get(key);
+    if (chunkIndex === undefined) {
+      chunkIndex = chunkDataToIndex.size;
+      chunkDataToIndex.set(key, chunkIndex);
+      allChunks.push(...chunkData);
+    }
+    return chunkIndex;
+  }
+
+  for (let data of [identifierStartData, identifierPartData]) {
+    for (let c of chunk(data, chunkSize)) {
+      seeChunk(c);
+    }
+  }
+  let zerosChunkIndex = seeChunk([]);
+
+  assert.ok(chunkDataToIndex.size <= maxChunkIndex);
 
   let outputPath = path.join(
     __dirname,
@@ -34,7 +57,33 @@ function main() {
     "lex-unicode-generated.cpp"
   );
   console.log(`Creating ${outputPath} ...`);
-  let output = fs.createWriteStream(outputPath);
+  writeCPlusPlus(fs.createWriteStream(outputPath), {
+    allChunks,
+    chunkDataToIndex,
+    zerosChunkIndex,
+    identifierStartData,
+    identifierPartData,
+  });
+}
+
+let maxCodePoint = 0x10ffff;
+
+let chunkSize = 256; // Arbitrary. Found to produce the smallest tables.
+
+let maxChunkIndex = (1 << 8) - 1;
+
+function writeCPlusPlus(
+  output,
+  {
+    allChunks,
+    chunkDataToIndex,
+    zerosChunkIndex,
+    identifierStartData,
+    identifierPartData,
+  }
+) {
+  let chunkIndexType = "std::uint8_t";
+
   output.write(
     `\
 // Copyright (C) 2020  Matthew "strager" Glazar
@@ -58,46 +107,6 @@ static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, ${chunkIndex
 
 `
   );
-
-  let identifierStartData = [];
-  let identifierPartData = [];
-  for (let codePoint = 0; codePoint <= maxCodePoint; ++codePoint) {
-    identifierStartData.push(isJSIdentifierStart(codePoint));
-    identifierPartData.push(isJSIdentifierPart(codePoint));
-  }
-
-  let chunkDataToIndex /*: Map<BigInt, number> */ = new Map();
-  let allChunks = [];
-
-  function boolsToBigInt(bools /*: Array<bool> */) /*: BigInt */ {
-    return BigInt(
-      "0b0" +
-        bools
-          .map((b) => (b ? "1" : "0"))
-          .reverse()
-          .join("")
-    );
-  }
-
-  function seeChunk(chunkData /*: Array<bool> */) {
-    let key = boolsToBigInt(chunkData);
-    let chunkIndex = chunkDataToIndex.get(key);
-    if (chunkIndex === undefined) {
-      chunkIndex = chunkDataToIndex.size;
-      chunkDataToIndex.set(key, chunkIndex);
-      allChunks.push(...chunkData);
-    }
-    return chunkIndex;
-  }
-
-  for (let data of [identifierStartData, identifierPartData]) {
-    for (let c of chunk(data, chunkSize)) {
-      seeChunk(c);
-    }
-  }
-  let zerosChunkIndex = seeChunk([]);
-
-  assert.ok(chunkDataToIndex.size <= maxChunkIndex);
 
   output.write("const std::uint8_t lexer::unicode_tables_chunks[] = {\n");
   output.write(dumpBitTableToString(allChunks, { indentation: "  " }));
@@ -146,6 +155,16 @@ static_assert(std::is_same_v<lexer::unicode_table_chunk_index_type, ${chunkIndex
 // You should have received a copy of the GNU General Public License
 // along with quick-lint-js.  If not, see <https://www.gnu.org/licenses/>.
 `
+  );
+}
+
+function boolsToBigInt(bools /*: Array<bool> */) /*: BigInt */ {
+  return BigInt(
+    "0b0" +
+      bools
+        .map((b) => (b ? "1" : "0"))
+        .reverse()
+        .join("")
   );
 }
 
