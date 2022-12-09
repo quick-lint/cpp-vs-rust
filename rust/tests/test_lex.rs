@@ -1523,47 +1523,41 @@ fn lex_identifier_with_out_of_range_utf_8_sequence() {
     let mut f = Fixture::new();
 
     // f4 90 80 80 is U+110000
-    if false {
-        // TODO(port)
-        f.check_single_token_with_errors(
-            b"too\xf4\x90\x80\x80\x62ig",
-            b"too\xf4\x90\x80\x80\x62ig",
-            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-                qljs_assert_diags!(
-                    errors,
-                    input,
-                    DiagInvalidUTF8Sequence {
-                        sequence: b"too"..b"\xf4\x90\x80\x80",
-                    },
-                );
-            },
-        );
-    }
+    f.check_single_token_with_errors(
+        b"too\xf4\x90\x80\x80\x62ig",
+        b"too\xf4\x90\x80\x80\x62ig",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidUTF8Sequence {
+                    sequence: b"too"..b"\xf4\x90\x80\x80",
+                },
+            );
+        },
+    );
 }
 
 #[test]
 fn lex_identifier_with_malformed_utf_8_sequence() {
     let mut f = Fixture::new();
 
-    if false {
-        // TODO(port)
-        f.check_single_token_with_errors(
-            b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
-            b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
-            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
-                qljs_assert_diags!(
-                    errors,
-                    input,
-                    DiagInvalidUTF8Sequence {
-                        sequence: b"illegal"..b"\xc0\xc1\xc2\xc3\xc4",
-                    },
-                    DiagInvalidUTF8Sequence {
-                        sequence: b"illegal\xc0\xc1\xc2\xc3\xc4utf8"..b"\xfe\xff",
-                    },
-                );
-            },
-        );
-    }
+    f.check_single_token_with_errors(
+        b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
+        b"illegal\xc0\xc1\xc2\xc3\xc4utf8\xfe\xff",
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidUTF8Sequence {
+                    sequence: b"illegal"..b"\xc0\xc1\xc2\xc3\xc4",
+                },
+                DiagInvalidUTF8Sequence {
+                    sequence: b"illegal\xc0\xc1\xc2\xc3\xc4utf8"..b"\xfe\xff",
+                },
+            );
+        },
+    );
 }
 
 #[test]
