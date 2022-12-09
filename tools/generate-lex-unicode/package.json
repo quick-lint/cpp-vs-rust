@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "fmt": "prettier --write '*.js' '*.json'"
+  },
+  "dependencies": {
+    "@unicode/unicode-15.0.0": "*"
+  },
+  "devDependencies": {
+    "prettier": "^2.5.0"
+  }
+}
