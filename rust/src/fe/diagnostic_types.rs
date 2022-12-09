@@ -55,6 +55,14 @@ pub struct DiagEscapedCodePointInUnicodeOutOfRange<'code> {
 }
 
 #[qljs_diagnostic(
+    "E0019", DiagnosticSeverity::Error,
+    (qljs_translatable!("escaping '-' is not allowed in tag names; write '-' instead"), escape_sequence),
+)]
+pub struct DiagEscapedHyphenNotAllowedInJSXTag<'code> {
+    pub escape_sequence: SourceCodeSpan<'code>,
+}
+
+#[qljs_diagnostic(
     "E0016", DiagnosticSeverity::Error,
     (qljs_translatable!("expected hexadecimal digits in Unicode escape sequence"), escape_sequence),
 )]
@@ -196,7 +204,7 @@ pub struct DiagUnclosedStringLiteral<'code> {
     "E0181", DiagnosticSeverity::Error,
     (qljs_translatable!("unclosed string literal"), string_literal_begin),
 )]
-pub struct DiagUnclosedJsxStringLiteral<'code> {
+pub struct DiagUnclosedJSXStringLiteral<'code> {
     pub string_literal_begin: SourceCodeSpan<'code>,
 }
 
@@ -268,7 +276,7 @@ pub struct DiagUnexpectedCharactersInHexNumber<'code> {
     "E0182", DiagnosticSeverity::Error,
     (qljs_translatable!("'>' is not allowed directly in JSX text; write {{'>'} or &gt; instead"), greater),
 )]
-pub struct DiagUnexpectedGreaterInJsxText<'code> {
+pub struct DiagUnexpectedGreaterInJSXText<'code> {
     pub greater: SourceCodeSpan<'code>,
 }
 
@@ -276,7 +284,7 @@ pub struct DiagUnexpectedGreaterInJsxText<'code> {
     "E0183", DiagnosticSeverity::Error,
     (qljs_translatable!("'}' is not allowed directly in JSX text; write {{'}'} instead"), right_curly),
 )]
-pub struct DiagUnexpectedRightCurlyInJsxText<'code> {
+pub struct DiagUnexpectedRightCurlyInJSXText<'code> {
     pub right_curly: SourceCodeSpan<'code>,
 }
 

@@ -23,12 +23,25 @@ pub trait VectorLike {
     fn size(&self) -> usize;
     fn capacity(&self) -> usize;
     fn as_slice(&self) -> &[Self::T];
+    fn as_mut_slice(&mut self) -> &mut [Self::T];
     fn reserve(&mut self, size: usize);
     fn push_back(&mut self, value: Self::T);
     fn pop_back(&mut self);
     fn resize(&mut self, new_size: usize)
     where
         Self::T: Default;
+    // Similar to std::basic_string::append.
+    // TODO(port): Rename to extend_from_slice.
+    fn append(&mut self, data: &[Self::T])
+    where
+        Self::T: Clone;
+    // Similar to std::basic_string::append.
+    fn append_count(&mut self, count: usize, value: Self::T)
+    where
+        Self::T: Clone;
+    // Like clear(), but doesn't touch the allocated memory. Objects remain alive
+    // and valid.
+    fn release(&mut self) -> *mut [Self::T];
 }
 
 impl<Vector: VectorLike> UninstrumentedVector<Vector> {
@@ -51,6 +64,9 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
     pub fn as_slice(&self) -> &[Vector::T] {
         self.0.as_slice()
     }
+    pub fn as_mut_slice(&mut self) -> &mut [Vector::T] {
+        self.0.as_mut_slice()
+    }
     pub fn reserve(&mut self, size: usize) {
         self.0.reserve(size);
     }
@@ -60,11 +76,26 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
     pub fn pop_back(&mut self) {
         self.0.pop_back();
     }
+    pub fn append(&mut self, data: &[Vector::T])
+    where
+        Vector::T: Clone,
+    {
+        self.0.append(data);
+    }
+    pub fn append_count(&mut self, count: usize, value: Vector::T)
+    where
+        Vector::T: Clone,
+    {
+        self.0.append_count(count, value);
+    }
     pub fn resize(&mut self, new_size: usize)
     where
         Vector::T: Default,
     {
         self.0.resize(new_size);
+    }
+    pub fn release(&mut self) -> *mut [Vector::T] {
+        self.0.release()
     }
 
     // TODO(port): Expose more RawBumpVector functions.
@@ -109,6 +140,10 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
         unsafe { std::slice::from_raw_parts(self.data as *const T, self.size()) }
     }
 
+    fn as_mut_slice(&mut self) -> &mut [T] {
+        unsafe { std::slice::from_raw_parts_mut(self.data as *mut T, self.size()) }
+    }
+
     fn reserve(&mut self, new_capacity: usize) {
         if self.capacity() < new_capacity {
             self.reserve_grow(new_capacity);
@@ -122,6 +157,27 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
         unsafe {
             (*self.data_end).write(value);
             self.data_end = self.data_end.offset(1);
+        }
+    }
+
+    fn append(&mut self, data: &[T])
+    where
+        T: Clone,
+    {
+        // TODO(strager): Make this more efficient.
+        for x in data {
+            self.push_back(x.clone());
+        }
+    }
+
+    // Similar to std::basic_string::append.
+    fn append_count(&mut self, count: usize, value: T)
+    where
+        T: Clone,
+    {
+        // TODO(strager): Make this more efficient.
+        for _ in 0..count {
+            self.push_back(value.clone());
         }
     }
 
@@ -157,6 +213,14 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
                 self.data_end = new_end;
             }
         }
+    }
+
+    fn release(&mut self) -> *mut [T] {
+        let result: *mut [T] = self.as_mut_slice();
+        self.data = std::ptr::null_mut();
+        self.data_end = std::ptr::null_mut();
+        self.capacity_end = std::ptr::null_mut();
+        result
     }
 }
 
@@ -225,36 +289,6 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
                 }
             }
         }
-    }
-
-    // Similar to std::basic_string::append.
-    pub fn append(&mut self, data: &[T])
-    where
-        T: Clone,
-    {
-        // TODO(strager): Make this more efficient.
-        for x in data {
-            self.push_back(x.clone());
-        }
-    }
-
-    // Similar to std::basic_string::append.
-    pub fn append_count(&mut self, count: usize, value: T)
-    where
-        T: Clone,
-    {
-        // TODO(strager): Make this more efficient.
-        for _ in 0..count {
-            self.push_back(value.clone());
-        }
-    }
-
-    // Like clear(), but doesn't touch the allocated memory. Objects remain alive
-    // and valid.
-    pub fn release(&mut self) {
-        self.data = std::ptr::null_mut();
-        self.data_end = std::ptr::null_mut();
-        self.capacity_end = std::ptr::null_mut();
     }
 
     pub fn clear(&mut self) {

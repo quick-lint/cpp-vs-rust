@@ -191,6 +191,14 @@ impl<'a> PaddedStringView<'a> {
         }
     }
 
+    pub unsafe fn from_begin_end(begin: *const u8, end: *const u8) -> PaddedStringView<'a> {
+        PaddedStringView {
+            data: begin,
+            length: narrow_cast(end.offset_from(begin)),
+            phantom: std::marker::PhantomData,
+        }
+    }
+
     pub fn c_str(&self) -> *const u8 {
         self.data
     }

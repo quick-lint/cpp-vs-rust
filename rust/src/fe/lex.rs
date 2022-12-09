@@ -1,6 +1,7 @@
 use crate::container::linked_bump_allocator::*;
 use crate::container::monotonic_allocator::*;
 use crate::container::padded_string::*;
+use crate::container::vector::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
 use crate::fe::source_code_span::*;
@@ -11,6 +12,7 @@ use crate::qljs_always_assert;
 use crate::qljs_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
+use crate::util::utf_8::*;
 
 macro_rules! qljs_case_identifier_start {
     () => {
@@ -1291,13 +1293,197 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         &mut self,
         input: *const u8,
         identifier_begin: *const u8,
-        _kind: IdentifierKind,
+        kind: IdentifierKind,
     ) -> ParsedIdentifier</* HACK(strager) */ 'code, 'code> {
-        // TODO(port)
+        let mut input = InputPointer(input);
+        let is_private_identifier: bool = identifier_begin != self.original_input.c_str()
+            && unsafe { *identifier_begin.offset(-1) } == b'#';
+        let private_identifier_begin: *const u8 = if is_private_identifier {
+            unsafe { identifier_begin.offset(-1) }
+        } else {
+            identifier_begin
+        };
+
+        let mut normalized: BumpVector<u8, MonotonicAllocator> =
+            BumpVector::new("parse_identifier_slow normalized", self.get_allocator());
+        normalized
+            .append(unsafe { SourceCodeSpan::new(private_identifier_begin, input.0) }.as_slice());
+
+        let escape_sequences: &mut EscapeSequenceList = unsafe {
+            &mut *self.allocator.new_object(EscapeSequenceList::new(
+                "parse_identifier_slow escape_sequences",
+                &self.get_allocator(),
+            ))
+        };
+
+        fn parse_unicode_escape<Alloc: BumpAllocatorLike>(
+            this: &mut Lexer,
+            input: &mut InputPointer,
+            identifier_begin: *const u8,
+            normalized: &mut BumpVector<u8, Alloc>,
+            kind: IdentifierKind,
+            escape_sequences: &mut EscapeSequenceList,
+        ) {
+            let escape_begin: InputPointer = *input;
+            let escape: ParsedUnicodeEscape =
+                this.parse_unicode_escape(escape_begin.0, this.diag_reporter);
+            let escape_span: SourceCodeSpan =
+                unsafe { SourceCodeSpan::new(escape_begin.0, escape.end) };
+
+            match escape.code_point {
+                Some(code_point) => {
+                    let is_identifier_initial: bool = escape_begin.0 == identifier_begin;
+                    if code_point >= 0x110000 {
+                        // parse_unicode_escape reported
+                        // DiagEscapedCodePointInIdentifierOutOfRange already.
+                        normalized.append(escape_span.as_slice());
+                    } else if !is_identifier_initial
+                        && kind == IdentifierKind::JSX
+                        && code_point == ('-' as u32)
+                    {
+                        report(
+                            this.diag_reporter,
+                            DiagEscapedHyphenNotAllowedInJSXTag {
+                                escape_sequence: escape_span,
+                            },
+                        );
+                        normalized.append(escape_span.as_slice());
+                    } else if !(if is_identifier_initial {
+                        is_initial_identifier_character(code_point)
+                    } else {
+                        is_identifier_character(code_point, IdentifierKind::JavaScript)
+                    }) {
+                        report(
+                            this.diag_reporter,
+                            DiagEscapedCharacterDisallowedInIdentifiers {
+                                escape_sequence: escape_span,
+                            },
+                        );
+                        normalized.append(escape_span.as_slice());
+                    } else {
+                        let normalized_len_before: usize = normalized.size();
+                        normalized.append_count(4, b'\0');
+                        let encoded: &mut [u8] =
+                            &mut normalized.as_mut_slice()[normalized_len_before..];
+                        // TODO(port): Change encode_utf_8's interface so this is less awkward.
+                        let encoded_remainder_len: usize = encode_utf_8(code_point, encoded).len();
+                        normalized.resize(normalized.size() - encoded_remainder_len);
+                        escape_sequences.push_back(escape_span);
+                    }
+                }
+
+                None => {
+                    normalized.append(escape_span.as_slice());
+                }
+            }
+
+            qljs_assert!(input.0 != escape.end);
+            *input = InputPointer(escape.end);
+        }
+
+        loop {
+            let mut decode_result: DecodeUTF8Result = decode_utf_8(unsafe {
+                PaddedStringView::from_begin_end(input.0, self.original_input.null_terminator())
+            });
+            if decode_result.size == 0 {
+                qljs_assert!(self.is_eof(input.0));
+                break;
+            }
+            if !decode_result.ok {
+                let errors_begin: InputPointer = input;
+                input += narrow_cast::<isize, _>(decode_result.size);
+                loop {
+                    decode_result = decode_utf_8(unsafe {
+                        PaddedStringView::from_begin_end(
+                            input.0,
+                            self.original_input.null_terminator(),
+                        )
+                    });
+                    if decode_result.ok || decode_result.size == 0 {
+                        break;
+                    }
+                    input += narrow_cast::<isize, _>(decode_result.size);
+                }
+                let sequence_span: SourceCodeSpan =
+                    unsafe { SourceCodeSpan::new(errors_begin.0, input.0) };
+                report(
+                    self.diag_reporter,
+                    DiagInvalidUTF8Sequence {
+                        sequence: sequence_span,
+                    },
+                );
+                normalized.append(sequence_span.as_slice());
+                continue;
+            }
+
+            if input[0] == b'\\' {
+                if input[1] == b'u' {
+                    parse_unicode_escape(
+                        self,
+                        &mut input,
+                        identifier_begin,
+                        &mut normalized,
+                        kind,
+                        escape_sequences,
+                    );
+                } else {
+                    let backslash_begin: InputPointer = input;
+                    input += 1;
+                    let backslash_end: InputPointer = input;
+                    let backslash_span: SourceCodeSpan =
+                        unsafe { SourceCodeSpan::new(backslash_begin.0, backslash_end.0) };
+                    report(
+                        self.diag_reporter,
+                        DiagUnexpectedBackslashInIdentifier {
+                            backslash: backslash_span,
+                        },
+                    );
+                    normalized.append(backslash_span.as_slice());
+                }
+            } else {
+                qljs_assert!(decode_result.size >= 1);
+                let character_begin: InputPointer = input;
+                let character_end: InputPointer =
+                    input + narrow_cast::<isize, _>(decode_result.size);
+                let code_point: u32 = decode_result.code_point;
+
+                let is_identifier_initial: bool = character_begin.0 == identifier_begin;
+                let is_legal_character: bool = if is_identifier_initial {
+                    is_initial_identifier_character(code_point)
+                } else {
+                    is_identifier_character(code_point, kind)
+                };
+                let character_span: SourceCodeSpan =
+                    unsafe { SourceCodeSpan::new(character_begin.0, character_end.0) };
+                if !is_legal_character {
+                    if is_ascii_code_point(code_point)
+                        || is_non_ascii_whitespace_character(code_point)
+                    {
+                        break;
+                    } else {
+                        report(
+                            self.diag_reporter,
+                            DiagCharacterDisallowedInIdentifiers {
+                                character: character_span,
+                            },
+                        );
+                        // Allow non-ASCII characters in the identifier. Otherwise, we'd try
+                        // parsing the invalid character as an identifier character again,
+                        // causing an infinite loop.
+                    }
+                }
+
+                normalized.append(character_span.as_slice());
+                input = character_end;
+            }
+        }
+
+        let normalized_slice: &[u8] = unsafe { &*normalized.release() };
+
         ParsedIdentifier {
-            after: input,
-            normalized: unsafe { slice_from_begin_end(identifier_begin, input) },
-            escape_sequences: None,
+            after: input.0,
+            normalized: normalized_slice,
+            escape_sequences: Some(escape_sequences),
         }
     }
 
@@ -1492,6 +1678,14 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.has_leading_newline
             || self.last_last_token_end == self.original_input.c_str()
     }
+
+    // HACK(port): Hack lifetimes to prevent Rust getting confused by code like the following:
+    //
+    //   let thing = alloc_something(&self.allocator);  // shared borrow of self
+    //   self.mut_method();                             // mutable borrow of self (error!)
+    fn get_allocator(&self) -> &'code MonotonicAllocator {
+        unsafe { std::mem::transmute(&self.allocator) }
+    }
 }
 
 struct ParsedUnicodeEscape {
@@ -1556,6 +1750,18 @@ fn is_identifier_byte(byte: u8) -> bool {
     matches!(byte, qljs_case_decimal_digit!() | qljs_case_identifier_start!() | 0xc2..=0xed | 0xef..=0xf0 | 0xf3)
 }
 
+fn is_initial_identifier_character(code_point: u32) -> bool {
+    /* TODO(port)
+    look_up_in_unicode_table(
+        identifier_start_chunk_indexes,
+        identifier_start_chunk_indexes_size,
+        code_point,
+    )
+    */
+    // HACK(port): Temporary implementation.
+    is_identifier_character(code_point, IdentifierKind::JavaScript)
+}
+
 fn is_identifier_character(code_point: u32, kind: IdentifierKind) -> bool {
     if kind == IdentifierKind::JSX && code_point == (b'-' as u32) {
         return true;
@@ -1566,10 +1772,45 @@ fn is_identifier_character(code_point: u32, kind: IdentifierKind) -> bool {
                                     code_point)
     */
     // HACK(port): Temporary implementation.
+    if code_point >= 0x80 {
+        return false;
+    }
     matches!(
         code_point as u8,
         qljs_case_identifier_start!() | b'0'..=b'9'
     )
+}
+
+fn is_non_ascii_whitespace_character(code_point: u32) -> bool {
+    qljs_assert!(code_point >= 0x80);
+    const NON_ASCII_WHITESPACE_CODE_POINTS: &[u16] = &[
+        0x00a0, // 0xc2 0xa0      No-Break Space (NBSP)
+        0x1680, // 0xe1 0x9a 0x80 Ogham Space Mark
+        0x2000, // 0xe2 0x80 0x80 En Quad
+        0x2001, // 0xe2 0x80 0x81 Em Quad
+        0x2002, // 0xe2 0x80 0x82 En Space
+        0x2003, // 0xe2 0x80 0x83 Em Space
+        0x2004, // 0xe2 0x80 0x84 Three-Per-Em Space
+        0x2005, // 0xe2 0x80 0x85 Four-Per-Em Space
+        0x2006, // 0xe2 0x80 0x86 Six-Per-Em Space
+        0x2007, // 0xe2 0x80 0x87 Figure Space
+        0x2008, // 0xe2 0x80 0x88 Punctuation Space
+        0x2009, // 0xe2 0x80 0x89 Thin Space
+        0x200a, // 0xe2 0x80 0x8a Hair Space
+        0x2028, // 0xe2 0x80 0xa8 Line Separator
+        0x2029, // 0xe2 0x80 0xa9 Paragraph Separator
+        0x202f, // 0xe2 0x80 0xaf Narrow No-Break Space (NNBSP)
+        0x205f, // 0xe2 0x81 0x9f Medium Mathematical Space (MMSP)
+        0x3000, // 0xe3 0x80 0x80 Ideographic Space
+        0xfeff, // 0xef 0xbb 0xbf Zero Width No-Break Space (BOM, ZWNBSP)
+    ];
+    if code_point >= 0x10000 {
+        false
+    } else {
+        NON_ASCII_WHITESPACE_CODE_POINTS
+            .binary_search(&narrow_cast::<u16, _>(code_point))
+            .is_ok()
+    }
 }
 
 fn is_ascii_code_unit(code_unit: u8) -> bool {

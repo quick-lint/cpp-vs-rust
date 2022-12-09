@@ -1214,7 +1214,41 @@ fn lex_identifiers() {
     f.check_single_token(b"digits0123456789", "digits0123456789");
 }
 
-// TODO(port): ascii_identifier_with_escape_sequence
+#[test]
+fn ascii_identifier_with_escape_sequence() {
+    let mut f = Fixture::new();
+
+    f.check_single_token(b"\\u0061", "a");
+    f.check_single_token(b"\\u0041", "A");
+    f.check_single_token(b"\\u004E", "N");
+    f.check_single_token(b"\\u004e", "N");
+
+    f.check_single_token(b"\\u{41}", "A");
+    f.check_single_token(b"\\u{0041}", "A");
+    f.check_single_token(b"\\u{00000000000000000000041}", "A");
+    f.check_single_token(b"\\u{004E}", "N");
+    f.check_single_token(b"\\u{004e}", "N");
+
+    f.check_single_token(b"hell\\u006f", "hello");
+    f.check_single_token(b"\\u0068ello", "hello");
+    f.check_single_token(b"w\\u0061t", "wat");
+
+    f.check_single_token(b"hel\\u006c0", "hell0");
+
+    f.check_single_token(b"\\u0077\\u0061\\u0074", "wat");
+    f.check_single_token(b"\\u{77}\\u{61}\\u{74}", "wat");
+
+    // _ and $ are in IdentifierStart, even though they aren't in UnicodeIDStart.
+    f.check_single_token(b"\\u{5f}wakka", "_wakka");
+    f.check_single_token(b"\\u{24}wakka", "$wakka");
+
+    // $, ZWNJ, ZWJ in IdentifierPart, even though they aren't in
+    // UnicodeIDContinue.
+    f.check_single_token(b"wakka\\u{24}", "wakka$");
+    // TODO(port): f.check_single_token(b"wak\\u200cka", "wak\u{200c}ka");
+    // TODO(port): f.check_single_token(b"wak\\u200dka", "wak\u{200d}ka");
+}
+
 // TODO(port): non_ascii_identifier
 // TODO(port): non_ascii_identifier_with_escape_sequence
 // TODO(port): identifier_with_escape_sequences_source_code_span_is_in_place
