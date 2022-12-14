@@ -611,11 +611,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         self.original_input.null_terminator(),
                     )
                 });
-                // TODO(port): Clean up this casting.
-                if character.code_point == (LEFT_SINGLE_QUOTE as u32)
-                    || character.code_point == (RIGHT_SINGLE_QUOTE as u32)
-                    || character.code_point == (LEFT_DOUBLE_QUOTE as u32)
-                    || character.code_point == (RIGHT_DOUBLE_QUOTE as u32)
+                if character.code_point == LEFT_SINGLE_QUOTE
+                    || character.code_point == RIGHT_SINGLE_QUOTE
+                    || character.code_point == LEFT_DOUBLE_QUOTE
+                    || character.code_point == RIGHT_DOUBLE_QUOTE
                 {
                     self.input = InputPointer(self.parse_smart_quote_string_literal(&character));
                     self.last_token.type_ = TokenType::String;
@@ -766,20 +765,18 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     fn parse_smart_quote_string_literal(&mut self, opening_quote: &DecodeUTF8Result) -> *const u8 {
         qljs_assert!(opening_quote.ok);
-        // TODO(port): Clean up this casting.
         qljs_assert!(
-            opening_quote.code_point == (LEFT_SINGLE_QUOTE as u32)
-                || opening_quote.code_point == (RIGHT_SINGLE_QUOTE as u32)
-                || opening_quote.code_point == (LEFT_DOUBLE_QUOTE as u32)
-                || opening_quote.code_point == (RIGHT_DOUBLE_QUOTE as u32)
+            opening_quote.code_point == LEFT_SINGLE_QUOTE
+                || opening_quote.code_point == RIGHT_SINGLE_QUOTE
+                || opening_quote.code_point == LEFT_DOUBLE_QUOTE
+                || opening_quote.code_point == RIGHT_DOUBLE_QUOTE
         );
         let opening_quote_begin: InputPointer = self.input;
         let opening_quote_end: InputPointer =
             opening_quote_begin + narrow_cast::<isize, _>(opening_quote.size);
 
-        // TODO(port): Clean up this casting.
-        let is_double_quote: bool = opening_quote.code_point == (LEFT_DOUBLE_QUOTE as u32)
-            || opening_quote.code_point == (RIGHT_DOUBLE_QUOTE as u32);
+        let is_double_quote: bool = opening_quote.code_point == LEFT_DOUBLE_QUOTE
+            || opening_quote.code_point == RIGHT_DOUBLE_QUOTE;
         report(
             self.diag_reporter,
             DiagInvalidQuotesAroundStringLiteral {
@@ -808,11 +805,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 PaddedStringView::from_begin_end(c.0, self.original_input.null_terminator())
             });
             if decoded.ok {
-                // TODO(port): Clean up this casting.
-                if is_ending_quote(unsafe { std::char::from_u32_unchecked(decoded.code_point) }) {
+                if is_ending_quote(decoded.code_point) {
                     return (c + narrow_cast::<isize, _>(decoded.size)).0;
                 }
-                if is_newline_character(decoded.code_point) {
+                if is_newline_character(decoded.code_point as u32) {
                     report(
                         self.diag_reporter,
                         DiagUnclosedStringLiteral {
@@ -1936,7 +1932,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 let character_begin: InputPointer = input;
                 let character_end: InputPointer =
                     input + narrow_cast::<isize, _>(decode_result.size);
-                let code_point: u32 = decode_result.code_point;
+                let code_point: u32 = decode_result.code_point as u32;
 
                 let is_identifier_initial: bool = character_begin.0 == identifier_begin;
                 let is_legal_character: bool = if is_identifier_initial {

@@ -32,26 +32,31 @@ pub fn encode_utf_8<'a>(code_point: u32, out: &'a mut [u8]) -> &'a mut [u8] {
 
 pub struct DecodeUTF8Result {
     pub size: PaddedStringSizeType,
-    pub code_point: u32,
+    pub code_point: char,
     pub ok: bool,
 }
 
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
-    let is_continuation_byte = |byte: u8| (byte & 0b1100_0000) == 0b1000_0000;
+    fn make_char(data: u32) -> char {
+        unsafe { std::char::from_u32_unchecked(data) }
+    }
+    fn is_continuation_byte(byte: u8) -> bool {
+        (byte & 0b1100_0000) == 0b1000_0000
+    }
     let input_slice: &[u8] = input.slice_with_padding();
     let c = |index: usize| unsafe { *input_slice.get_unchecked(index) };
     if input.size() == 0 {
         DecodeUTF8Result {
             size: 0,
-            code_point: 0,
+            code_point: '\0',
             ok: false,
         }
     } else if c(0) <= 0x7f {
         // 1-byte sequence (0x00..0x7f, i.e. ASCII).
         DecodeUTF8Result {
             size: 1,
-            code_point: c(0) as u32,
+            code_point: make_char(c(0) as u32),
             ok: true,
         }
     } else if (c(0) & 0b1110_0000) == 0b1100_0000 {
@@ -62,13 +67,15 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         if byte_0_ok && byte_1_ok {
             DecodeUTF8Result {
                 size: 2,
-                code_point: (((c(0) & 0b0001_1111) as u32) << 6) | ((c(1) & 0b0011_1111) as u32),
+                code_point: make_char(
+                    (((c(0) & 0b0001_1111) as u32) << 6) | ((c(1) & 0b0011_1111) as u32),
+                ),
                 ok: true,
             }
         } else {
             DecodeUTF8Result {
                 size: 1,
-                code_point: 0,
+                code_point: '\0',
                 ok: false,
             }
         }
@@ -86,15 +93,17 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         if byte_1_ok && byte_2_ok {
             DecodeUTF8Result {
                 size: 3,
-                code_point: (((c(0) & 0b0000_1111) as u32) << 12)
-                    | (((c(1) & 0b0011_1111) as u32) << 6)
-                    | ((c(2) & 0b0011_1111) as u32),
+                code_point: make_char(
+                    (((c(0) & 0b0000_1111) as u32) << 12)
+                        | (((c(1) & 0b0011_1111) as u32) << 6)
+                        | ((c(2) & 0b0011_1111) as u32),
+                ),
                 ok: true,
             }
         } else {
             DecodeUTF8Result {
                 size: if byte_1_ok { 2 } else { 1 },
-                code_point: 0,
+                code_point: '\0',
                 ok: false,
             }
         }
@@ -114,10 +123,12 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         if byte_0_ok && byte_1_ok && byte_2_ok && byte_3_ok {
             DecodeUTF8Result {
                 size: 4,
-                code_point: (((c(0) & 0b0000_0111) as u32) << 18)
-                    | (((c(1) & 0b0011_1111) as u32) << 12)
-                    | (((c(2) & 0b0011_1111) as u32) << 6)
-                    | ((c(3) & 0b0011_1111) as u32),
+                code_point: make_char(
+                    (((c(0) & 0b0000_0111) as u32) << 18)
+                        | (((c(1) & 0b0011_1111) as u32) << 12)
+                        | (((c(2) & 0b0011_1111) as u32) << 6)
+                        | ((c(3) & 0b0011_1111) as u32),
+                ),
                 ok: true,
             }
         } else {
@@ -131,7 +142,7 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
                 } else {
                     1
                 },
-                code_point: 0,
+                code_point: '\0',
                 ok: false,
             }
         }
@@ -140,7 +151,7 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         // (0xf8..0xff).
         DecodeUTF8Result {
             size: 1,
-            code_point: 0,
+            code_point: '\0',
             ok: false,
         }
     }

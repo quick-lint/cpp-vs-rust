@@ -86,14 +86,14 @@ fn decode_ascii() {
         let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_str("a").view());
         assert_eq!(result.size, 1);
         assert!(result.ok);
-        assert_eq!(result.code_point, 'a' as u32);
+        assert_eq!(result.code_point, 'a');
     }
 
     {
         let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_str("12345").view());
         assert_eq!(result.size, 1);
         assert!(result.ok);
-        assert_eq!(result.code_point, '1' as u32);
+        assert_eq!(result.code_point, '1');
     }
 }
 
@@ -143,7 +143,7 @@ fn decode_always_invalid_code_unit_is_an_error() {
 
 #[test]
 fn decode_two_byte_character() {
-    expect_decode_utf_8_single_code_point(&[0xc2, 0xa2], 0x00a2);
+    expect_decode_utf_8_single_code_point(&[0xc2, 0xa2], '\u{00a2}');
 }
 
 #[test]
@@ -174,15 +174,15 @@ fn decode_two_byte_character_with_trailing_continuation_bytes() {
             decode_utf_8(PaddedString::from_slice(&[0xc2, 0xa2, 0xa2]).view());
         assert_eq!(result.size, 2);
         assert!(result.ok);
-        assert_eq!(result.code_point, 0x00a2);
+        assert_eq!(result.code_point, '\u{00a2}');
     }
 }
 
 #[test]
 fn decode_three_byte_character() {
-    expect_decode_utf_8_single_code_point(&[0xe0, 0xa4, 0xb9], 0x0939);
-    expect_decode_utf_8_single_code_point(&[0xe2, 0x82, 0xac], 0x20ac);
-    expect_decode_utf_8_single_code_point(&[0xed, 0x95, 0x9c], 0xd55c);
+    expect_decode_utf_8_single_code_point(&[0xe0, 0xa4, 0xb9], '\u{0939}');
+    expect_decode_utf_8_single_code_point(&[0xe2, 0x82, 0xac], '\u{20ac}');
+    expect_decode_utf_8_single_code_point(&[0xed, 0x95, 0x9c], '\u{d55c}');
 }
 
 #[test]
@@ -222,7 +222,7 @@ fn decode_truncated_three_byte_character() {
 
 #[test]
 fn decode_four_byte_character() {
-    expect_decode_utf_8_single_code_point(&[0xf0, 0x90, 0x8d, 0x88], 0x00010348);
+    expect_decode_utf_8_single_code_point(&[0xf0, 0x90, 0x8d, 0x88], '\u{010348}');
 }
 
 #[test]
@@ -346,7 +346,7 @@ fn decode_surrogate_sequences_are_an_error_for_each_code_unit() {
     }
 }
 
-fn expect_decode_utf_8_single_code_point(input: &[u8], expected: u32) {
+fn expect_decode_utf_8_single_code_point(input: &[u8], expected: char) {
     let input_string = PaddedString::from_slice(input);
     let result: DecodeUTF8Result = decode_utf_8(input_string.view());
     assert_eq!(result.size, input_string.size());
