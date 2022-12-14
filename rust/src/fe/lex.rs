@@ -43,10 +43,10 @@ macro_rules! qljs_case_decimal_digit {
 
 const LINE_SEPARATOR_PARAGRAPH_SEPARATOR_FIRST_BYTE: u8 = 0xe2;
 
-const LEFT_SINGLE_QUOTE: u32 = '\u{2018}' as u32;
-const LEFT_DOUBLE_QUOTE: u32 = '\u{201c}' as u32;
-const RIGHT_SINGLE_QUOTE: u32 = '\u{2019}' as u32;
-const RIGHT_DOUBLE_QUOTE: u32 = '\u{201d}' as u32;
+const LEFT_SINGLE_QUOTE: char = '\u{2018}';
+const LEFT_DOUBLE_QUOTE: char = '\u{201c}';
+const RIGHT_SINGLE_QUOTE: char = '\u{2019}';
+const RIGHT_DOUBLE_QUOTE: char = '\u{201d}';
 
 fn look_up_in_unicode_table(table: &[u8], code_point: u32) -> bool {
     const BITS_PER_BYTE: usize = 8;
@@ -592,10 +592,11 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         self.original_input.null_terminator(),
                     )
                 });
-                if character.code_point == LEFT_SINGLE_QUOTE
-                    || character.code_point == RIGHT_SINGLE_QUOTE
-                    || character.code_point == LEFT_DOUBLE_QUOTE
-                    || character.code_point == RIGHT_DOUBLE_QUOTE
+                // TODO(port): Clean up this casting.
+                if character.code_point == (LEFT_SINGLE_QUOTE as u32)
+                    || character.code_point == (RIGHT_SINGLE_QUOTE as u32)
+                    || character.code_point == (LEFT_DOUBLE_QUOTE as u32)
+                    || character.code_point == (RIGHT_DOUBLE_QUOTE as u32)
                 {
                     self.input = InputPointer(self.parse_smart_quote_string_literal(&character));
                     self.last_token.type_ = TokenType::String;
@@ -745,7 +746,79 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn parse_smart_quote_string_literal(&mut self, opening_quote: &DecodeUTF8Result) -> *const u8 {
-        todo!();
+        qljs_assert!(opening_quote.ok);
+        // TODO(port): Clean up this casting.
+        qljs_assert!(
+            opening_quote.code_point == (LEFT_SINGLE_QUOTE as u32)
+                || opening_quote.code_point == (RIGHT_SINGLE_QUOTE as u32)
+                || opening_quote.code_point == (LEFT_DOUBLE_QUOTE as u32)
+                || opening_quote.code_point == (RIGHT_DOUBLE_QUOTE as u32)
+        );
+        let opening_quote_begin: InputPointer = self.input;
+        let opening_quote_end: InputPointer =
+            opening_quote_begin + narrow_cast::<isize, _>(opening_quote.size);
+
+        // TODO(port): Clean up this casting.
+        let is_double_quote: bool = opening_quote.code_point == (LEFT_DOUBLE_QUOTE as u32)
+            || opening_quote.code_point == (RIGHT_DOUBLE_QUOTE as u32);
+        report(
+            self.diag_reporter,
+            DiagInvalidQuotesAroundStringLiteral {
+                opening_quote: unsafe {
+                    SourceCodeSpan::new(opening_quote_begin.0, opening_quote_end.0)
+                },
+                suggested_quote: if is_double_quote { b'"' } else { b'\'' },
+            },
+        );
+
+        const DOUBLE_ENDING_QUOTES: [char; 3] = ['"', LEFT_DOUBLE_QUOTE, RIGHT_DOUBLE_QUOTE];
+        const SINGLE_ENDING_QUOTES: [char; 3] = ['\'', LEFT_SINGLE_QUOTE, RIGHT_SINGLE_QUOTE];
+        let ending_quotes: &[char; 3] = if is_double_quote {
+            &DOUBLE_ENDING_QUOTES
+        } else {
+            &SINGLE_ENDING_QUOTES
+        };
+        let is_ending_quote = |code_point: char| -> bool {
+            /* TODO(port)
+            const_assert!(DOUBLE_ENDING_QUOTES.len() == SINGLE_ENDING_QUOTES.len());
+            */
+            ending_quotes.contains(&code_point)
+        };
+
+        let mut c: InputPointer = opening_quote_end;
+        loop {
+            let decoded: DecodeUTF8Result = decode_utf_8(unsafe {
+                PaddedStringView::from_begin_end(c.0, self.original_input.null_terminator())
+            });
+            if decoded.ok {
+                // TODO(port): Clean up this casting.
+                if is_ending_quote(unsafe { std::char::from_u32_unchecked(decoded.code_point) }) {
+                    return (c + narrow_cast::<isize, _>(decoded.size)).0;
+                }
+                if is_newline_character(decoded.code_point) {
+                    report(
+                        self.diag_reporter,
+                        DiagUnclosedStringLiteral {
+                            string_literal: unsafe {
+                                SourceCodeSpan::new(opening_quote_begin.0, c.0)
+                            },
+                        },
+                    );
+                    return c.0;
+                }
+            }
+            if c[0] == b'\0' && self.is_eof(c.0) {
+                report(
+                    self.diag_reporter,
+                    DiagUnclosedStringLiteral {
+                        string_literal: unsafe { SourceCodeSpan::new(opening_quote_begin.0, c.0) },
+                    },
+                );
+                return c.0;
+            }
+            c += narrow_cast::<isize, _>(decoded.size);
+            // Loop.
+        }
     }
 
     fn parse_binary_number(&mut self) {

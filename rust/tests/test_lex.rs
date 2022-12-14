@@ -1187,7 +1187,175 @@ fn lex_string_with_ascii_control_characters() {
     }
 }
 
-// TODO(port): string_with_curly_quotes
+#[test]
+fn string_with_curly_quotes() {
+    let mut f = Fixture::new();
+
+    // Curly single quotes:
+    f.check_tokens_with_errors(
+        "\u{2018}string here\u{2019}".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{2018}".as_bytes()),
+                    suggested_quote: b'\'',
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "\u{2019}string here\u{2018}".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{2019}".as_bytes()),
+                    suggested_quote: b'\'',
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "\u{2018}string \u{201c} \" \u{201d} here\u{2019}".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{2018}".as_bytes()),
+                    suggested_quote: b'\'',
+                },
+            );
+        },
+    );
+
+    // Curly double quotes:
+    f.check_tokens_with_errors(
+        "\u{201c}string here\u{201d}".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{201d}".as_bytes()),
+                    suggested_quote: b'"'
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "\u{201d}string here\u{201c}".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{201c}".as_bytes()),
+                    suggested_quote: b'"',
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "\u{201c}string \u{2018} ' \u{2019} here\u{201d}".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{201d}".as_bytes()),
+                    suggested_quote: b'"',
+                },
+            );
+        },
+    );
+
+    // Start with curly quote, but end with matching straight quote:
+    f.check_tokens_with_errors(
+        "\u{2018}string here'".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{2018}".as_bytes()),
+                    suggested_quote: b'\'',
+                },
+            );
+        },
+    );
+    f.check_tokens_with_errors(
+        "\u{201c}string here\"".as_bytes(),
+        &[TokenType::String],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagInvalidQuotesAroundStringLiteral {
+                    opening_quote: 0..("\u{201d}".as_bytes()),
+                    suggested_quote: b'"',
+                },
+            );
+        },
+    );
+
+    // Unclosed string:
+    for opening_quote in ["\u{2018}", "\u{201c}"] {
+        // HACK(strager): Use a static variable to avoid a closure in the lambda.
+        static mut OPENING_QUOTE_STATIC: &'static str = "";
+        unsafe {
+            OPENING_QUOTE_STATIC = opening_quote;
+        }
+
+        f.check_tokens_with_errors(
+            format!("{opening_quote}string here").as_bytes(),
+            &[TokenType::String],
+            |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+                qljs_assert_diags!(
+                    errors,
+                    input,
+                    DiagInvalidQuotesAroundStringLiteral,
+                    DiagUnclosedStringLiteral {
+                        string_literal: 0..(unsafe {
+                            format!("{OPENING_QUOTE_STATIC}string here")
+                        }
+                        .as_bytes()),
+                    },
+                );
+            },
+        );
+        for line_terminator in LINE_TERMINATORS {
+            f.check_tokens_with_errors(
+                format!("{opening_quote}string here{line_terminator}next_line").as_bytes(),
+                &[TokenType::String, TokenType::Identifier],
+                |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+                    qljs_assert_diags!(
+                        errors,
+                        input,
+                        DiagInvalidQuotesAroundStringLiteral,
+                        DiagUnclosedStringLiteral {
+                            string_literal: 0..(unsafe {
+                                format!("{OPENING_QUOTE_STATIC}string here")
+                            }
+                            .as_bytes()),
+                        },
+                    );
+                },
+            );
+        }
+    }
+}
+
 // TODO(port): lex_templates
 // TODO(port): templates_buffer_unicode_escape_errors
 // TODO(port): templates_do_not_buffer_valid_unicode_escapes

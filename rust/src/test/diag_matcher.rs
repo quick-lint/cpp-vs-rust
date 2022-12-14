@@ -94,6 +94,24 @@ macro_rules! qljs_assert_diags {
                 )
         );
     };
+
+    (
+        $errors:expr, // &Vec<AnyDiag>
+        $input:expr,  // PaddedStringView
+        $diag_0_name:ident,
+        $diag_1_name:ident $diag_1_fields:tt $(,)?
+    ) => {
+        // TODO(port): Better error messages on failure.
+        assert_matches!(
+            &$errors[..],
+            [AnyDiag::$diag_0_name(_), AnyDiag::$diag_1_name(diag)]
+                if $crate::qljs_match_diag_fields!(
+                    diag,
+                    $input,
+                    $diag_1_fields,
+                )
+        );
+    };
 }
 
 #[macro_export]
@@ -132,7 +150,29 @@ macro_rules! qljs_match_diag_fields {
         $diag:expr,   // (any Diag struct)
         $input:expr,  // PaddedStringView
         {
+            $field_0:ident: $field_0_value:literal $(,)?
+        } $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field_0: $field_0_value)
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        {
             $field_0:ident: $field_0_begin:literal..$field_0_end:literal $(,)?
+            $field_1:ident: $field_1_value:literal $(,)?
+        } $(,)?
+    ) => {
+        $crate::qljs_match_diag_field!($diag, $input, $field_0: $field_0_begin..$field_0_end)
+            && $crate::qljs_match_diag_field!($diag, $input, $field_1: $field_1_value)
+    };
+
+    (
+        $diag:expr,   // (any Diag struct)
+        $input:expr,  // PaddedStringView
+        {
+            $field_0:ident: $field_0_begin:literal..$field_0_end:tt $(,)?
             $field_1:ident: $field_1_value:literal $(,)?
         } $(,)?
     ) => {
