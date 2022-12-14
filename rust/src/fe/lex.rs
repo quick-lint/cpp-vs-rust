@@ -5,6 +5,7 @@ use crate::container::vector::*;
 use crate::fe::buffering_diag_reporter::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
+use crate::fe::lex_keyword::*;
 use crate::fe::lex_unicode_generated::*;
 use crate::fe::source_code_span::*;
 use crate::fe::token::*;
@@ -2310,11 +2311,6 @@ fn is_newline_character(code_point: u32) -> bool {
     code_point == ('\n' as u32) || code_point == ('\r' as u32) ||
          code_point == 0x2028 ||  // Line Separator
          code_point == 0x2029 // Paragraph Separator
-}
-
-// TODO(port)
-fn identifier_token_type(identifier: &[u8]) -> TokenType {
-    TokenType::Identifier
 }
 
 // NOTE(port): This is a transitioning struct to make it easier to port code.

@@ -36,6 +36,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/fe/identifier.h",
     "cpp/src/quick-lint-js/fe/language-debug.cpp",
     "cpp/src/quick-lint-js/fe/language.h",
+    "cpp/src/quick-lint-js/fe/lex-keyword-generated.cpp",
     "cpp/src/quick-lint-js/fe/source-code-span.cpp",
     "cpp/src/quick-lint-js/fe/source-code-span.h",
     "cpp/src/quick-lint-js/fe/token.h",
@@ -93,7 +94,6 @@ CONVERTED_CPP_FILES = [
 
 LEX_CPP_FILES = [
     "cpp/src/quick-lint-js/fe/lex-debug.cpp",
-    "cpp/src/quick-lint-js/fe/lex-keyword-generated.cpp",
     "cpp/src/quick-lint-js/fe/lex.cpp",
     "cpp/src/quick-lint-js/fe/lex.h",
     "cpp/test/test-lex.cpp",

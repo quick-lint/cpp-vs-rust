@@ -2568,9 +2568,101 @@ fn private_identifier_with_disallowed_escaped_initial_character() {
     );
 }
 
-// TODO(port): lex_reserved_keywords
-// TODO(port): lex_contextual_keywords
-// TODO(port): lex_typescript_contextual_keywords
+#[test]
+fn lex_reserved_keywords() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"await", &[TokenType::KWAwait]);
+    f.check_tokens(b"break", &[TokenType::KWBreak]);
+    f.check_tokens(b"case", &[TokenType::KWCase]);
+    f.check_tokens(b"catch", &[TokenType::KWCatch]);
+    f.check_tokens(b"class", &[TokenType::KWClass]);
+    f.check_tokens(b"const", &[TokenType::KWConst]);
+    f.check_tokens(b"continue", &[TokenType::KWContinue]);
+    f.check_tokens(b"debugger", &[TokenType::KWDebugger]);
+    f.check_tokens(b"default", &[TokenType::KWDefault]);
+    f.check_tokens(b"delete", &[TokenType::KWDelete]);
+    f.check_tokens(b"do", &[TokenType::KWDo]);
+    f.check_tokens(b"else", &[TokenType::KWElse]);
+    f.check_tokens(b"enum", &[TokenType::KWEnum]);
+    f.check_tokens(b"export", &[TokenType::KWExport]);
+    f.check_tokens(b"extends", &[TokenType::KWExtends]);
+    f.check_tokens(b"false", &[TokenType::KWFalse]);
+    f.check_tokens(b"finally", &[TokenType::KWFinally]);
+    f.check_tokens(b"for", &[TokenType::KWFor]);
+    f.check_tokens(b"function", &[TokenType::KWFunction]);
+    f.check_tokens(b"if", &[TokenType::KWIf]);
+    f.check_tokens(b"implements", &[TokenType::KWImplements]);
+    f.check_tokens(b"import", &[TokenType::KWImport]);
+    f.check_tokens(b"in", &[TokenType::KWIn]);
+    f.check_tokens(b"instanceof", &[TokenType::KWInstanceof]);
+    f.check_tokens(b"interface", &[TokenType::KWInterface]);
+    f.check_tokens(b"new", &[TokenType::KWNew]);
+    f.check_tokens(b"null", &[TokenType::KWNull]);
+    f.check_tokens(b"package", &[TokenType::KWPackage]);
+    f.check_tokens(b"private", &[TokenType::KWPrivate]);
+    f.check_tokens(b"protected", &[TokenType::KWProtected]);
+    f.check_tokens(b"public", &[TokenType::KWPublic]);
+    f.check_tokens(b"return", &[TokenType::KWReturn]);
+    f.check_tokens(b"super", &[TokenType::KWSuper]);
+    f.check_tokens(b"switch", &[TokenType::KWSwitch]);
+    f.check_tokens(b"this", &[TokenType::KWThis]);
+    f.check_tokens(b"throw", &[TokenType::KWThrow]);
+    f.check_tokens(b"true", &[TokenType::KWTrue]);
+    f.check_tokens(b"try", &[TokenType::KWTry]);
+    f.check_tokens(b"typeof", &[TokenType::KWTypeof]);
+    f.check_tokens(b"var", &[TokenType::KWVar]);
+    f.check_tokens(b"void", &[TokenType::KWVoid]);
+    f.check_tokens(b"while", &[TokenType::KWWhile]);
+    f.check_tokens(b"with", &[TokenType::KWWith]);
+    f.check_tokens(b"yield", &[TokenType::KWYield]);
+}
+
+#[test]
+fn lex_contextual_keywords() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"as", &[TokenType::KWAs]);
+    f.check_tokens(b"async", &[TokenType::KWAsync]);
+    f.check_tokens(b"from", &[TokenType::KWFrom]);
+    f.check_tokens(b"get", &[TokenType::KWGet]);
+    f.check_tokens(b"let", &[TokenType::KWLet]);
+    f.check_tokens(b"of", &[TokenType::KWOf]);
+    f.check_tokens(b"set", &[TokenType::KWSet]);
+    f.check_tokens(b"static", &[TokenType::KWStatic]);
+}
+
+#[test]
+fn lex_typescript_contextual_keywords() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"abstract", &[TokenType::KWAbstract]);
+    f.check_tokens(b"any", &[TokenType::KWAny]);
+    f.check_tokens(b"assert", &[TokenType::KWAssert]);
+    f.check_tokens(b"asserts", &[TokenType::KWAsserts]);
+    f.check_tokens(b"bigint", &[TokenType::KWBigint]);
+    f.check_tokens(b"boolean", &[TokenType::KWBoolean]);
+    f.check_tokens(b"constructor", &[TokenType::KWConstructor]);
+    f.check_tokens(b"declare", &[TokenType::KWDeclare]);
+    f.check_tokens(b"global", &[TokenType::KWGlobal]);
+    f.check_tokens(b"infer", &[TokenType::KWInfer]);
+    f.check_tokens(b"intrinsic", &[TokenType::KWIntrinsic]);
+    f.check_tokens(b"is", &[TokenType::KWIs]);
+    f.check_tokens(b"keyof", &[TokenType::KWKeyof]);
+    f.check_tokens(b"module", &[TokenType::KWModule]);
+    f.check_tokens(b"namespace", &[TokenType::KWNamespace]);
+    f.check_tokens(b"never", &[TokenType::KWNever]);
+    f.check_tokens(b"number", &[TokenType::KWNumber]);
+    f.check_tokens(b"object", &[TokenType::KWObject]);
+    f.check_tokens(b"out", &[TokenType::KWOut]);
+    f.check_tokens(b"override", &[TokenType::KWOverride]);
+    f.check_tokens(b"readonly", &[TokenType::KWReadonly]);
+    f.check_tokens(b"require", &[TokenType::KWRequire]);
+    f.check_tokens(b"string", &[TokenType::KWString]);
+    f.check_tokens(b"symbol", &[TokenType::KWSymbol]);
+    f.check_tokens(b"type", &[TokenType::KWType]);
+    f.check_tokens(b"undefined", &[TokenType::KWUndefined]);
+    f.check_tokens(b"unique", &[TokenType::KWUnique]);
+    f.check_tokens(b"unknown", &[TokenType::KWUnknown]);
+}
+
 // TODO(port): lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences
 // TODO(port): lex_contextual_keywords_and_await_and_yield_can_contain_escape_sequences
 
