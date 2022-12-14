@@ -10,7 +10,14 @@ struct GlobalAllocator;
 impl Allocator for GlobalAllocator {
     fn allocate(&self, layout: std::alloc::Layout) -> Result<std::ptr::NonNull<[u8]>, AllocError> {
         unsafe {
-            // TODO(port): Check for 0 input size. std::alloc::alloc disallows it.
+            if layout.size() == 0 {
+                // std::alloc::alloc is not guaranteed to support a zero size. Create a fake
+                // non-null pointer which is appropriately aligned.
+                let result: *mut u8 = layout.align() as *mut u8;
+                return Ok(std::ptr::NonNull::new_unchecked(
+                    std::ptr::slice_from_raw_parts_mut(result, 0),
+                ));
+            }
             let result: *mut u8 = std::alloc::alloc(layout);
             if result.is_null() {
                 return Err(AllocError);
@@ -22,7 +29,11 @@ impl Allocator for GlobalAllocator {
     }
 
     unsafe fn deallocate(&self, ptr: std::ptr::NonNull<u8>, layout: std::alloc::Layout) {
-        // TODO(port): Check for 0 input size. std::alloc::dealloc disallows it.
+        if layout.size() == 0 {
+            // std::alloc::dealloc is not guaranteed to support a zero size.
+            // TODO(strager): Assert that ptr came from self.allocate.
+            return;
+        }
         std::alloc::dealloc(ptr.as_ptr(), layout);
     }
 }
