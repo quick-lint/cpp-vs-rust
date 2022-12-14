@@ -23,8 +23,7 @@ pub fn find_locale(locales: &[u8], locale_name: &str) -> Option<i32> {
     found_entry
 }
 
-// TODO(port): Make this [u8; 3] to reduce casting?
-const LOCALE_PART_SEPARATORS: [char; 3] = ['_', '.', '@'];
+const LOCALE_PART_SEPARATORS: [u8; 3] = [b'_', b'.', b'@'];
 
 struct LocaleParts<'a> {
     // language, territory, codeset, modifier
@@ -50,15 +49,19 @@ fn parse_locale<'a>(locale_name: &'a str) -> LocaleParts<'a> {
     }
     const INVALID_WHICH_SEPARATOR: usize = -1_isize as usize;
 
-    let find_next_separator = |c: &str, separators: &[char]| -> FoundSeparator {
-        match c.find(separators) {
+    fn find_next_separator(s: &str, separators: &[u8]) -> FoundSeparator {
+        match s
+            .as_bytes()
+            .iter()
+            .position(|c: &u8| separators.contains(c))
+        {
             None => FoundSeparator {
-                length: c.len(),
+                length: s.len(),
                 which_separator: INVALID_WHICH_SEPARATOR,
             },
             Some(length) => {
-                let found_separator = unsafe { *c.as_bytes().get_unchecked(length) } as char;
-                match separators.iter().position(|c| *c == found_separator) {
+                let found_separator: u8 = unsafe { *s.as_bytes().get_unchecked(length) };
+                match separators.iter().position(|c: &u8| *c == found_separator) {
                     None => {
                         unreachable!();
                     }
@@ -69,11 +72,11 @@ fn parse_locale<'a>(locale_name: &'a str) -> LocaleParts<'a> {
                 }
             }
         }
-    };
+    }
 
     let mut parts: LocaleParts = LocaleParts { parts: [""; 4] };
 
-    let mut current_separators: &'static [char] = &LOCALE_PART_SEPARATORS;
+    let mut current_separators: &'static [u8] = &LOCALE_PART_SEPARATORS;
     let mut current_part: &mut [&str] = &mut parts.parts[..];
     let mut c: &str = locale_name;
     loop {
