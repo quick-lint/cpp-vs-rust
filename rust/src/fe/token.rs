@@ -300,7 +300,7 @@ pub enum TokenType {
     // is `if`.
     //
     // Such identifiers are sometimes legal and sometimes illegal depending on the
-    // parser's context, hence we distinguish them from token_type::identifier.
+    // parser's context, hence we distinguish them from TokenType::Identifier.
     ReservedKeywordWithEscapeSequence,
 
     // Reserved words, future reserved words, conditionally reserved words, and
@@ -644,7 +644,7 @@ impl<'alloc, 'code> Token<'alloc, 'code> {
         unsafe { SourceCodeSpan::new(self.begin, self.end) }
     }
 
-    // Report diag_keywords_cannot_contain_escape_sequences for each escape
+    // Report DiagKeywordsCannotContainEscapeSequences for each escape
     // sequence in the most recently parsed keyword-looking identifier.
     //
     // Precondition:
@@ -662,6 +662,18 @@ impl<'alloc, 'code> Token<'alloc, 'code> {
     //   self.type_ == TokenType::IncompleteTemplate
     // Precondition: This function was not previously called for the same token.
     pub fn report_errors_for_escape_sequences_in_template(&self, reporter: &dyn DiagReporter) {
-        todo!(); // TODO(port)
+        use std::ops::Deref;
+        qljs_assert!(
+            self.type_ == TokenType::CompleteTemplate
+                || self.type_ == TokenType::IncompleteTemplate
+        );
+        match unsafe { self.extras.template_escape_sequence_diagnostics.deref() } {
+            // NOTE(port): In the C++ code, this called move_into. We call copy_into to avoid const
+            // correctness issues.
+            Some(diags) => {
+                diags.copy_into(reporter);
+            }
+            None => {}
+        }
     }
 }

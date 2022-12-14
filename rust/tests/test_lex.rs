@@ -7,6 +7,7 @@ use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::fe::token::*;
 use cpp_vs_rust::qljs_assert_diags;
+use cpp_vs_rust::qljs_assert_no_diags;
 use cpp_vs_rust::test::characters::*;
 use cpp_vs_rust::test::diag_collector::*;
 use cpp_vs_rust::test::diag_matcher::*;
@@ -1484,7 +1485,72 @@ world`"#,
     );
 }
 
-// TODO(port): templates_buffer_unicode_escape_errors
+#[test]
+fn templates_buffer_unicode_escape_errors() {
+    {
+        let input = PaddedString::from_slice(b"`hello\\u`");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+        l.peek()
+            .report_errors_for_escape_sequences_in_template(&errors);
+        qljs_assert_diags!(
+            errors.clone_errors(),
+            input.view(),
+            DiagExpectedHexDigitsInUnicodeEscape {
+                escape_sequence: b"`hello"..b"\\u`",
+            },
+        );
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    {
+        let input = PaddedString::from_slice(b"`hello\\u{110000}`");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+        l.peek()
+            .report_errors_for_escape_sequences_in_template(&errors);
+        qljs_assert_diags!(
+            errors.clone_errors(),
+            input.view(),
+            DiagEscapedCodePointInUnicodeOutOfRange {
+                escape_sequence: b"`hello"..b"\\u{110000}",
+            },
+        );
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    {
+        let input = PaddedString::from_slice(b"`hello\\u${expr}`");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+        l.peek()
+            .report_errors_for_escape_sequences_in_template(&errors);
+        qljs_assert_diags!(
+            errors.clone_errors(),
+            input.view(),
+            DiagExpectedHexDigitsInUnicodeEscape {
+                escape_sequence: b"`hello"..b"\\u`",
+            },
+        );
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+    }
+}
+
 // TODO(port): templates_do_not_buffer_valid_unicode_escapes
 // TODO(port): lex_template_literal_with_ascii_control_characters
 // TODO(port): lex_regular_expression_literals

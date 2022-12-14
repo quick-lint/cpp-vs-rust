@@ -31,6 +31,17 @@ pub fn offsets_match_begin_end(
 }
 
 #[macro_export]
+macro_rules! qljs_assert_no_diags {
+    (
+        $errors:expr,      // &Vec<AnyDiag>
+        $input:expr $(,)?  // PaddedStringView
+    ) => {
+        // TODO(port): Better error messages on failure.
+        assert_matches!(&$errors[..], []);
+    };
+}
+
+#[macro_export]
 macro_rules! qljs_assert_diags {
     (
         $errors:expr, // &Vec<AnyDiag>
