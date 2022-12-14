@@ -1551,8 +1551,62 @@ fn templates_buffer_unicode_escape_errors() {
     }
 }
 
-// TODO(port): templates_do_not_buffer_valid_unicode_escapes
-// TODO(port): lex_template_literal_with_ascii_control_characters
+#[test]
+fn templates_do_not_buffer_valid_unicode_escapes() {
+    {
+        let input = PaddedString::from_slice(b"`hell\\u{6f}`");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+        l.peek()
+            .report_errors_for_escape_sequences_in_template(&errors);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    {
+        let input = PaddedString::from_slice(b"`hell\\u{6f}${expr}`");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+        l.peek()
+            .report_errors_for_escape_sequences_in_template(&errors);
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+    }
+}
+
+#[test]
+fn lex_template_literal_with_ascii_control_characters() {
+    let mut f = Fixture::new();
+
+    for control_character in [
+        CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS.as_slice(),
+        LINE_TERMINATORS.as_slice(),
+    ]
+    .concat()
+    {
+        let input = PaddedString::from_slice(format!("`hello{control_character}world`").as_bytes());
+        scoped_trace!(input);
+        f.check_tokens(input.slice(), &[TokenType::CompleteTemplate]);
+    }
+
+    for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
+        let input =
+            PaddedString::from_slice(format!("`hello\\{control_character}world`").as_bytes());
+        scoped_trace!(input);
+        f.check_tokens(input.slice(), &[TokenType::CompleteTemplate]);
+    }
+}
+
 // TODO(port): lex_regular_expression_literals
 // TODO(port): lex_regular_expression_literal_with_digit_flag
 // TODO(port): lex_unicode_escape_in_regular_expression_literal_flags
