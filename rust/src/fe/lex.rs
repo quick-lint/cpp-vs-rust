@@ -953,6 +953,43 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         }
     }
 
+    // After parsing a '<<' (less_less) token, call this function to reinterpret
+    // the token as two '<' (less) tokens, then skip the first token.
+    //
+    // Precondition:  self.peek().type_ == TokenType::LessLess
+    // Postcondition: self.peek().type_ == TokenType::Less
+    pub fn skip_less_less_as_less(&mut self) {
+        qljs_assert!(self.peek().type_ == TokenType::LessLess);
+        self.last_token.has_leading_newline = false;
+        self.last_token.type_ = TokenType::Less;
+        self.last_token.begin = unsafe { self.last_token.begin.add(1) };
+        self.last_last_token_end = self.last_token.begin;
+    }
+
+    // After parsing a '>>', or '>>>' token, call this function to
+    // reinterpret the token as a '>' (greater) token followed by another token,
+    // then skip the first token.
+    //
+    // Precondition:  self.peek().type_ == TokenType::GreaterGreater ||
+    //                self.peek().type_ == TokenType::GreaterGreaterGreater
+    // Postcondition: self.peek().type_ == TokenType::Greater
+    pub fn skip_as_greater(&mut self) {
+        match self.last_token.type_ {
+            TokenType::GreaterGreater => {
+                self.last_token.type_ = TokenType::Greater;
+            }
+            TokenType::GreaterGreaterGreater => {
+                self.last_token.type_ = TokenType::GreaterGreater;
+            }
+            _ => {
+                unreachable!();
+            }
+        }
+        self.last_token.has_leading_newline = false;
+        self.last_token.begin = unsafe { self.last_token.begin.add(1) };
+        self.last_last_token_end = self.last_token.begin;
+    }
+
     // Reparse a '/' or '/=' token as a regular expression literal.
     //
     // Precondition: self.peek().type_ == TokenType::Slash or
@@ -1096,6 +1133,16 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
         self.input = c;
         self.last_token.end = self.input.0;
+    }
+
+    // Do not call this after calling insert_semicolon, unless skip has been
+    // called after.
+    pub fn end_of_previous_token(&self) -> *const u8 {
+        let semicolon_was_inserted: bool = self.last_token.type_ == TokenType::Semicolon
+            && self.last_token.begin == self.last_token.end;
+        qljs_assert!(!semicolon_was_inserted);
+
+        self.last_last_token_end
     }
 
     fn parse_binary_number(&mut self) {

@@ -1823,10 +1823,76 @@ fn lex_regular_expression_literal_with_ascii_control_characters() {
     }
 }
 
-// TODO(port): split_less_less_into_two_tokens
-// TODO(port): split_less_less_has_no_leading_newline
-// TODO(port): split_greater_from_bigger_token
-// TODO(port): split_greater_from_bigger_token_has_no_leading_newline
+#[test]
+fn split_less_less_into_two_tokens() {
+    let input = PaddedString::from_slice(b"<<T>() => T>");
+
+    let mut l = Lexer::new(input.view(), null_diag_reporter());
+    assert_eq!(l.peek().type_, TokenType::LessLess);
+    l.skip_less_less_as_less();
+    assert_eq!(l.peek().type_, TokenType::Less);
+    assert_eq!(l.peek().begin, unsafe { input.c_str().add(1) });
+    assert_eq!(l.peek().end, unsafe { input.c_str().add(2) });
+    assert_eq!(l.end_of_previous_token(), unsafe { input.c_str().add(1) });
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier, "T");
+}
+
+#[test]
+fn split_less_less_has_no_leading_newline() {
+    let input = PaddedString::from_slice(b"\n<<");
+
+    let mut l = Lexer::new(input.view(), null_diag_reporter());
+    assert_eq!(l.peek().type_, TokenType::LessLess);
+    assert!(l.peek().has_leading_newline);
+    l.skip_less_less_as_less();
+    assert_eq!(l.peek().type_, TokenType::Less);
+    assert!(!(l.peek().has_leading_newline));
+}
+
+#[test]
+fn split_greater_from_bigger_token() {
+    {
+        let input = PaddedString::from_slice(b">>;");
+        let mut l = Lexer::new(input.view(), null_diag_reporter());
+        assert_eq!(l.peek().type_, TokenType::GreaterGreater);
+
+        l.skip_as_greater();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+        assert_eq!(l.peek().begin, unsafe { input.c_str().add(1) });
+        assert_eq!(l.peek().end, unsafe { input.c_str().add(2) });
+        assert_eq!(l.end_of_previous_token(), unsafe { input.c_str().add(1) });
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Semicolon);
+    }
+
+    {
+        let input = PaddedString::from_slice(b">>>;");
+        let mut l = Lexer::new(input.view(), null_diag_reporter());
+        assert_eq!(l.peek().type_, TokenType::GreaterGreaterGreater);
+
+        l.skip_as_greater();
+        assert_eq!(l.peek().type_, TokenType::GreaterGreater);
+        assert_eq!(l.peek().begin, unsafe { input.c_str().add(1) });
+        assert_eq!(l.peek().end, unsafe { input.c_str().add(3) });
+        assert_eq!(l.end_of_previous_token(), unsafe { input.c_str().add(1) });
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Semicolon);
+    }
+}
+
+#[test]
+fn split_greater_from_bigger_token_has_no_leading_newline() {
+    {
+        let input = PaddedString::from_slice(b"\n>>");
+        let mut l = Lexer::new(input.view(), null_diag_reporter());
+        assert_eq!(l.peek().type_, TokenType::GreaterGreater);
+        assert!(l.peek().has_leading_newline);
+        l.skip_as_greater();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+        assert!(!(l.peek().has_leading_newline));
+    }
+}
 
 #[test]
 fn lex_identifiers() {
