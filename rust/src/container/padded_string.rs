@@ -134,6 +134,7 @@ impl PaddedString {
         unsafe { self.data.offset(self.size() as isize) }
     }
 
+    // TODO(port): Rename to as_slice.
     pub fn slice(&self) -> &[u8] {
         unsafe {
             std::slice::from_raw_parts(self.data, narrow_cast(self.size_excluding_padding_bytes))

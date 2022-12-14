@@ -60,3 +60,14 @@
 %s/\C\<diag_\([a-z]\+\)_\([a-z]\+\)\>/Diag\u\1\u\2/g
 
 %s/u8R"(\(.\{-\}\))"/br#"\1"#/
+
+%s/\<padded_string \(input\|code\)(\(b".*"\));/let \1 = PaddedString::from_slice(\2);/
+%s/\<lexer l(&\(input\|code\), &null_diag_reporter::instance);/let mut l = Lexer::new(\1, null_diag_reporter());/
+%s/\<lexer l(&\(input\|code\), &\(v\|errors\));/let mut l = Lexer::new(\1.view(), \&\2);/
+%s/\<diag_collector \(errors\|v\);/let \1 = DiagCollector::new();/
+
+%s/\<SCOPED_TRACE(\(.*\));/scoped_trace!(\1);/
+
+%s/\<QLJS_ASSERT(\(.*\));/qljs_assert!(\1);/
+%s/\<QLJS_ALWAYS_ASSERT(\(.*\));/qljs_always_assert!(\1);/
+%s/\<QLJS_SLOW_ASSERT(\(.*\));/qljs_slow_assert!(\1);/

@@ -43,6 +43,12 @@ macro_rules! qljs_case_decimal_digit {
     };
 }
 
+macro_rules! qljs_case_newline_start {
+    () => {
+        b'\n' | b'\r' | LINE_SEPARATOR_PARAGRAPH_SEPARATOR_FIRST_BYTE
+    };
+}
+
 const LINE_SEPARATOR_PARAGRAPH_SEPARATOR_FIRST_BYTE: u8 = 0xe2;
 
 const LEFT_SINGLE_QUOTE: char = '\u{2018}';
@@ -945,6 +951,151 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 }
             }
         }
+    }
+
+    // Reparse a '/' or '/=' token as a regular expression literal.
+    //
+    // Precondition: self.peek().type_ == TokenType::Slash or
+    //               TokenType::SlashEqual.
+    // Postcondition: self.peek().type_ == TokenType::Regexp.
+    pub fn reparse_as_regexp(&mut self) {
+        qljs_assert!(
+            self.last_token.type_ == TokenType::Slash
+                || self.last_token.type_ == TokenType::SlashEqual
+        );
+
+        self.input = InputPointer(self.last_token.begin);
+        qljs_assert!(self.input[0] == b'/');
+        self.last_token.type_ = TokenType::Regexp;
+
+        let mut c: InputPointer = self.input + 1;
+        'next: loop {
+            match c[0] {
+                b'\0' => {
+                    if self.is_eof(c.0) {
+                        report(
+                            self.diag_reporter,
+                            DiagUnclosedRegexpLiteral {
+                                regexp_literal: unsafe {
+                                    SourceCodeSpan::new(self.last_token.begin, c.0)
+                                },
+                            },
+                        );
+                        break 'next;
+                    } else {
+                        c += 1;
+                        continue 'next;
+                    }
+                }
+
+                b'\\' => {
+                    c += 1;
+                    match c[0] {
+                        b'\0' => {
+                            if self.is_eof(c.0) {
+                                report(
+                                    self.diag_reporter,
+                                    DiagUnclosedRegexpLiteral {
+                                        regexp_literal: unsafe {
+                                            SourceCodeSpan::new(self.last_token.begin, c.0)
+                                        },
+                                    },
+                                );
+                                break 'next;
+                            } else {
+                                c += 1;
+                                continue 'next;
+                            }
+                        }
+
+                        _ => {
+                            c += 1;
+                            continue 'next;
+                        }
+                    }
+                }
+
+                b'[' => {
+                    c += 1;
+                    loop {
+                        match c[0] {
+                            b']' | b'\0' => {
+                                continue 'next;
+                            }
+
+                            b'\\' => {
+                                if c[1] == b']' || c[1] == b'\\' {
+                                    c += 2;
+                                } else {
+                                    c += 1;
+                                }
+                            }
+
+                            qljs_case_newline_start!() => {
+                                if newline_character_size(c) != 0 {
+                                    continue 'next;
+                                }
+                                // NOTE(port): This used to be fallthrough.
+                                c += 1;
+                            }
+
+                            _ => {
+                                c += 1;
+                            }
+                        }
+                    }
+                }
+
+                b'/' => {
+                    c += 1;
+                    // TODO(strager): Is the check for '\\' correct?
+                    if is_identifier_byte(c[0]) || c[0] == b'\\' {
+                        let ident: ParsedIdentifier =
+                            self.parse_identifier(c.0, IdentifierKind::JavaScript);
+                        c = InputPointer(ident.after);
+                        match ident.escape_sequences {
+                            Some(escape_sequences) => {
+                                for escape_sequence in escape_sequences.as_slice() {
+                                    report(
+                                        self.diag_reporter,
+                                        DiagRegexpLiteralFlagsCannotContainUnicodeEscapes {
+                                            escape_sequence: *escape_sequence,
+                                        },
+                                    );
+                                }
+                            }
+                            None => {}
+                        }
+                    }
+                    break 'next;
+                }
+
+                qljs_case_newline_start!() => {
+                    if newline_character_size(c) != 0 {
+                        report(
+                            self.diag_reporter,
+                            DiagUnclosedRegexpLiteral {
+                                regexp_literal: unsafe {
+                                    SourceCodeSpan::new(self.last_token.begin, c.0)
+                                },
+                            },
+                        );
+                        break 'next;
+                    }
+                    // NOTE(port): This used to be fallthrough.
+                    c += 1;
+                    continue 'next;
+                }
+
+                _ => {
+                    c += 1;
+                    continue 'next;
+                }
+            }
+        }
+
+        self.input = c;
+        self.last_token.end = self.input.0;
     }
 
     fn parse_binary_number(&mut self) {

@@ -1607,12 +1607,222 @@ fn lex_template_literal_with_ascii_control_characters() {
     }
 }
 
-// TODO(port): lex_regular_expression_literals
-// TODO(port): lex_regular_expression_literal_with_digit_flag
-// TODO(port): lex_unicode_escape_in_regular_expression_literal_flags
-// TODO(port): lex_non_ascii_in_regular_expression_literal_flags
-// TODO(port): lex_regular_expression_literals_preserves_leading_newline_flag
-// TODO(port): lex_regular_expression_literal_with_ascii_control_characters
+#[test]
+fn lex_regular_expression_literals() {
+    fn check_regexp(raw_code: &[u8]) {
+        let code = PaddedString::from_slice(raw_code);
+        scoped_trace!(code);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+
+        assert_matches!(l.peek().type_, TokenType::Slash | TokenType::SlashEqual);
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert_eq!(l.peek().begin, code.c_str());
+        assert_eq!(l.peek().end, code.null_terminator());
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+    }
+
+    check_regexp(b"/ /");
+    check_regexp(br#"/hello\/world/"#);
+    check_regexp(b"/re/g");
+    check_regexp(br#"/[/]/"#);
+    check_regexp(br#"/[\]/]/"#);
+    check_regexp(br#"/[\\]/"#);
+    check_regexp(b"/=/");
+
+    for raw_code in [b"/end_of_file", br#"/eof\"# as &[u8]] {
+        let code = PaddedString::from_slice(raw_code);
+        scoped_trace!(code);
+        let v = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert_eq!(l.peek().begin, code.c_str());
+        assert_eq!(l.peek().end, code.null_terminator());
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            code.view(),
+            DiagUnclosedRegexpLiteral {
+                regexp_literal: 0..(code.slice()),
+            },
+        );
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    for line_terminator in LINE_TERMINATORS {
+        let code = PaddedString::from_slice(
+            format!("/first_line{line_terminator}second_line/").as_bytes(),
+        );
+        scoped_trace!(code);
+        let v = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert_eq!(l.peek().begin, code.c_str());
+        assert_eq!(l.peek().end, unsafe {
+            code.c_str().add(b"/first_line".len())
+        });
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            code.view(),
+            DiagUnclosedRegexpLiteral {
+                regexp_literal: 0..b"/first_line",
+            },
+        );
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"second_line");
+    }
+
+    for line_terminator in LINE_TERMINATORS {
+        let code = PaddedString::from_slice(
+            format!("/first[line{line_terminator}second]line/").as_bytes(),
+        );
+        scoped_trace!(code);
+        let v = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert_eq!(l.peek().begin, code.c_str());
+        assert_eq!(l.peek().end, unsafe {
+            code.c_str().add(b"/first[line".len())
+        });
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            code.view(),
+            DiagUnclosedRegexpLiteral {
+                regexp_literal: 0..b"/first[line",
+            },
+        );
+
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"second");
+    }
+
+    // TODO(#187): Report invalid escape sequences.
+
+    // TODO(#203): Report invalid characters and mismatched brackets.
+}
+
+#[test]
+fn lex_regular_expression_literal_with_digit_flag() {
+    let input = PaddedString::from_slice(b"/cellular/3g");
+
+    let mut l = Lexer::new(input.view(), null_diag_reporter());
+    assert_eq!(l.peek().type_, TokenType::Slash);
+    l.reparse_as_regexp();
+    assert_eq!(l.peek().type_, TokenType::Regexp);
+    assert_eq!(l.peek().begin, input.c_str());
+    assert_eq!(l.peek().end, input.null_terminator());
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+    // TODO(#47): Report an error, because '3' is an invalid flag.
+}
+
+#[test]
+fn lex_unicode_escape_in_regular_expression_literal_flags() {
+    let errors = DiagCollector::new();
+    let input = PaddedString::from_slice(b"/hello/\\u{67}i");
+
+    let mut l = Lexer::new(input.view(), &errors);
+    l.reparse_as_regexp();
+    assert_eq!(l.peek().type_, TokenType::Regexp);
+    assert_eq!(l.peek().begin, input.c_str());
+    assert_eq!(l.peek().end, input.null_terminator());
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+    qljs_assert_diags!(
+        errors.clone_errors(),
+        input.view(),
+        DiagRegexpLiteralFlagsCannotContainUnicodeEscapes {
+            escape_sequence: b"/hello/"..b"\\u{67}",
+        },
+    );
+}
+
+#[test]
+fn lex_non_ascii_in_regular_expression_literal_flags() {
+    let errors = DiagCollector::new();
+    let input = PaddedString::from_slice("/hello/\u{05d0}".as_bytes());
+
+    let mut l = Lexer::new(input.view(), &errors);
+    l.reparse_as_regexp();
+    assert_eq!(l.peek().type_, TokenType::Regexp);
+    assert_eq!(l.peek().begin, input.c_str());
+    assert_eq!(l.peek().end, input.null_terminator());
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+    // TODO(#47): Report an error, because '\u05d0' is an invalid flag.
+}
+
+#[test]
+fn lex_regular_expression_literals_preserves_leading_newline_flag() {
+    {
+        let code = PaddedString::from_slice(b"\n/ /");
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert!(l.peek().has_leading_newline);
+    }
+
+    {
+        let code = PaddedString::from_slice(b"/ /");
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert!(!(l.peek().has_leading_newline));
+    }
+}
+
+#[test]
+fn lex_regular_expression_literal_with_ascii_control_characters() {
+    for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
+        let input = PaddedString::from_slice(format!("/hello{control_character}world/").as_bytes());
+        scoped_trace!(input);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+    }
+
+    for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
+        let input =
+            PaddedString::from_slice(format!("/hello\\{control_character}world/").as_bytes());
+        scoped_trace!(input);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &errors);
+
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_no_diags!(errors.clone_errors(), input.view());
+    }
+}
+
 // TODO(port): split_less_less_into_two_tokens
 // TODO(port): split_less_less_has_no_leading_newline
 // TODO(port): split_greater_from_bigger_token
