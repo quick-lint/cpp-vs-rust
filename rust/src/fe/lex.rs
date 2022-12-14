@@ -11,6 +11,7 @@ use crate::port::maybe_uninit::*;
 use crate::port::simd::*;
 use crate::qljs_always_assert;
 use crate::qljs_assert;
+use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 use crate::util::utf_8::*;
@@ -779,9 +780,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             &SINGLE_ENDING_QUOTES
         };
         let is_ending_quote = |code_point: char| -> bool {
-            /* TODO(port)
-            const_assert!(DOUBLE_ENDING_QUOTES.len() == SINGLE_ENDING_QUOTES.len());
-            */
+            qljs_const_assert!(DOUBLE_ENDING_QUOTES.len() == SINGLE_ENDING_QUOTES.len());
             ending_quotes.contains(&code_point)
         };
 

@@ -1,5 +1,6 @@
 use crate::container::padded_string::*;
 use crate::qljs_assert;
+use crate::qljs_const_assert;
 
 // See: https://www.unicode.org/versions/Unicode11.0.0/ch03.pdf
 pub fn encode_utf_8<'a>(code_point: u32, out: &'a mut [u8]) -> &'a mut [u8] {
@@ -55,9 +56,7 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         }
     } else if (c(0) & 0b1110_0000) == 0b1100_0000 {
         // 2-byte sequence (0xc0..0xdf).
-        /* TODO(port)
-        const_assert!(PADDED_STRING_PADDING_SIZE >= 1);
-        */
+        qljs_const_assert!(PADDED_STRING_PADDING_SIZE >= 1);
         let byte_0_ok = c(0) >= 0xc2;
         let byte_1_ok = is_continuation_byte(c(1));
         if byte_0_ok && byte_1_ok {
@@ -75,9 +74,7 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         }
     } else if (c(0) & 0b1111_0000) == 0b1110_0000 {
         // 3-byte sequence (0xe0..0xef).
-        /* TODO(port)
-        const_assert!(PADDED_STRING_PADDING_SIZE >= 2);
-        */
+        qljs_const_assert!(PADDED_STRING_PADDING_SIZE >= 2);
         let byte_1_ok = if c(0) == 0xe0 {
             0xa0 <= c(1) && c(1) <= 0xbf
         } else if c(0) == 0xed {
@@ -103,9 +100,7 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         }
     } else if (c(0) & 0b1111_1000) == 0b1111_0000 {
         // 4-byte sequence (0xf0..0xf7).
-        /* TODO(port)
-        const_assert!(PADDED_STRING_PADDING_SIZE >= 3);
-        */
+        qljs_const_assert!(PADDED_STRING_PADDING_SIZE >= 3);
         let byte_0_ok = c(0) <= 0xf4;
         let byte_1_ok = if c(0) == 0xf0 {
             0x90 <= c(1) && c(1) <= 0xbf

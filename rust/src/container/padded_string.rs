@@ -1,14 +1,15 @@
 use crate::qljs_assert;
+use crate::qljs_const_assert;
 use crate::util::narrow_cast::*;
 
 pub type PaddedStringSizeType = i32;
 
 pub const PADDED_STRING_PADDING_SIZE: PaddedStringSizeType = 64;
 
-/* TODO(port)
-const_assert!(padded_string::padding_size >= 32 /*::simdjson::SIMDJSON_PADDING*/,
-              "padded_string must have enough padded to satisfy simdjson");
-*/
+qljs_const_assert!(
+    padded_string::padding_size >= 32, /*::simdjson::SIMDJSON_PADDING*/
+    "padded_string must have enough padded to satisfy simdjson",
+);
 
 static EMPTY_STRING: [u8; PADDED_STRING_PADDING_SIZE as usize] =
     [0; PADDED_STRING_PADDING_SIZE as usize];

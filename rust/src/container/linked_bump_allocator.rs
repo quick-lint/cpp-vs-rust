@@ -3,6 +3,7 @@ use crate::qljs_always_assert;
 
 use crate::port::allocator::*;
 use crate::qljs_assert;
+use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 
@@ -69,11 +70,10 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
     // TODO(port): make_rewind_guard
 
     pub fn new_object<T: Sized>(&self, value: T) -> *mut T {
-        /* TODO(port)
-        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
-                      "T is not allowed by this allocator; this allocator's "
-                      "alignment is insufficient for T");
-        */
+        qljs_const_assert!(
+            std::mem::align_of::<T>() <= ALIGNMENT,
+            "T is not allowed by this allocator; this allocator's alignment is insufficient for T",
+        );
         let byte_size: usize = Self::align_up(std::mem::size_of::<T>());
         unsafe {
             let result_raw: *mut T = self.allocate_bytes(byte_size) as *mut T;
@@ -125,11 +125,10 @@ impl<const ALIGNMENT: usize> BumpAllocatorLike for LinkedBumpAllocator<ALIGNMENT
         &self,
         len: usize,
     ) -> &'b mut [std::mem::MaybeUninit<T>] {
-        /* TODO(port)
-        const_assert!(std::mem::align_of(T) <= ALIGNMENT,
-                      "T is not allowed by this allocator; this allocator's "
-                      "alignment is insufficient for T");
-        */
+        qljs_const_assert!(
+            std::mem::align_of::<T>() <= ALIGNMENT,
+            "T is not allowed by this allocator; this allocator's alignment is insufficient for T",
+        );
         let byte_size: usize = Self::align_up(len * std::mem::size_of::<T>());
         let data = self.allocate_bytes(byte_size) as *mut std::mem::MaybeUninit<T>;
         unsafe { std::slice::from_raw_parts_mut(data, len) }
