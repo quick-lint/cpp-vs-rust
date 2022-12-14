@@ -68,10 +68,9 @@ pub trait DiagnosticFormatter {
 
             if after_left_curly.as_bytes()[0] == b'{' {
                 // "{{"; the '{' is escaped.
-                // TODO(port): Combine these two calls. Doing so would need split_once_inclusive, I
-                // think.
-                self.write_message_part(code, severity, before_left_curly);
-                self.write_message_part(code, severity, "{");
+                let before_and_including_left_curly: &str =
+                    &remaining_message[0..(before_left_curly.len() + 1)];
+                self.write_message_part(code, severity, before_and_including_left_curly);
                 remaining_message = &after_left_curly[1..];
                 continue;
             }
