@@ -37,6 +37,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/fe/language-debug.cpp",
     "cpp/src/quick-lint-js/fe/language.h",
     "cpp/src/quick-lint-js/fe/lex-keyword-generated.cpp",
+    "cpp/src/quick-lint-js/fe/lex-unicode-generated.cpp",
     "cpp/src/quick-lint-js/fe/source-code-span.cpp",
     "cpp/src/quick-lint-js/fe/source-code-span.h",
     "cpp/src/quick-lint-js/fe/token.h",
@@ -70,8 +71,11 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/util/utf-8.cpp",
     "cpp/src/quick-lint-js/util/utf-8.h",
     "cpp/test/diag-collector.cpp",
+    "cpp/test/diag-matcher.cpp",  # Sorta.
     "cpp/test/quick-lint-js/array.h",  # Not needed in Rust.
+    "cpp/test/quick-lint-js/characters.h",
     "cpp/test/quick-lint-js/diag-collector.h",
+    "cpp/test/quick-lint-js/diag-matcher.h",  # Sorta.
     "cpp/test/quick-lint-js/gtest.h",  # Not needed in Rust.
     "cpp/test/quick-lint-js/test-translation-table-generated.h",
     "cpp/test/test-assert.cpp",
