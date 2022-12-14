@@ -1,5 +1,6 @@
 use crate::container::monotonic_allocator::*;
 use crate::container::vector::*;
+use crate::fe::buffering_diag_reporter::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::identifier::*;
 use crate::fe::source_code_span::*;
@@ -607,8 +608,8 @@ pub union TokenExtras<'alloc, 'code> {
     // Used only if this is a ReservedKeywordWithEscapeSequence token.
     pub identifier_escape_sequences: &'alloc EscapeSequenceList<'alloc, 'code>,
     // Used only if this is a CompleteTemplate or IncompleteTemplate token.
-    // TODO(port)
-    // pub template_escape_sequence_diagnostics: &'TODO dyn BufferingDiagReporter,
+    pub template_escape_sequence_diagnostics:
+        std::mem::ManuallyDrop<Option<&'alloc mut BufferingDiagReporter<'code>>>,
 }
 
 impl<'alloc, 'code> std::fmt::Debug for TokenExtras<'alloc, 'code> {

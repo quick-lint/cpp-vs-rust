@@ -1356,7 +1356,134 @@ fn string_with_curly_quotes() {
     }
 }
 
-// TODO(port): lex_templates
+#[test]
+fn lex_templates() {
+    let mut f = Fixture::new();
+
+    f.check_tokens(b"``", &[TokenType::CompleteTemplate]);
+    f.check_tokens(b"`hello`", &[TokenType::CompleteTemplate]);
+    f.check_tokens(b"`hello$world`", &[TokenType::CompleteTemplate]);
+    f.check_tokens(b"`hello{world`", &[TokenType::CompleteTemplate]);
+    f.check_tokens(br#"`hello\`world`"#, &[TokenType::CompleteTemplate]);
+    f.check_tokens(br#"`hello$\{world`"#, &[TokenType::CompleteTemplate]);
+    f.check_tokens(br#"`hello\${world`"#, &[TokenType::CompleteTemplate]);
+    f.check_tokens(
+        br#"`hello
+world`"#,
+        &[TokenType::CompleteTemplate],
+    );
+    f.check_tokens(b"`hello\\\nworld`", &[TokenType::CompleteTemplate]);
+    f.check_tokens(br#"`\uabcd`"#, &[TokenType::CompleteTemplate]);
+    f.check_tokens(br#"`\u{abcd}`"#, &[TokenType::CompleteTemplate]);
+
+    {
+        let code = PaddedString::from_slice(b"`hello${42}`");
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        assert_eq!(l.peek().span().as_slice(), b"`hello${");
+        let template_begin: *const u8 = l.peek().begin;
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Number);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::RightCurly);
+        l.skip_in_template(template_begin);
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        assert_eq!(l.peek().span().as_slice(), b"`");
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    {
+        let code = PaddedString::from_slice(b"`${42}world`");
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        assert_eq!(l.peek().span().as_slice(), b"`${");
+        let template_begin: *const u8 = l.peek().begin;
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Number);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::RightCurly);
+        l.skip_in_template(template_begin);
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        assert_eq!(l.peek().span().as_slice(), b"world`");
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    {
+        let code = PaddedString::from_slice(b"`${left}${right}`");
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        let template_begin: *const u8 = l.peek().begin;
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::RightCurly);
+        l.skip_in_template(template_begin);
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::RightCurly);
+        l.skip_in_template(template_begin);
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+
+    f.check_tokens_with_errors(
+        b"`unterminated",
+        &[TokenType::CompleteTemplate],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedTemplate {
+                    incomplete_template: 0..b"`unterminated",
+                },
+            );
+        },
+    );
+
+    {
+        let code = PaddedString::from_slice(b"`${un}terminated");
+        let v = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
+        let template_begin: *const u8 = l.peek().begin;
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::RightCurly);
+        l.skip_in_template(template_begin);
+        assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            code.view(),
+            DiagUnclosedTemplate {
+                incomplete_template: 0..b"`${un}terminated",
+            },
+        );
+    }
+
+    f.check_tokens_with_errors(
+        b"`unterminated\\",
+        &[TokenType::CompleteTemplate],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagUnclosedTemplate {
+                    incomplete_template: 0..b"`unterminated\\",
+                },
+            );
+        },
+    );
+}
+
 // TODO(port): templates_buffer_unicode_escape_errors
 // TODO(port): templates_do_not_buffer_valid_unicode_escapes
 // TODO(port): lex_template_literal_with_ascii_control_characters

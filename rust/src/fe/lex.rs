@@ -2,6 +2,7 @@ use crate::container::linked_bump_allocator::*;
 use crate::container::monotonic_allocator::*;
 use crate::container::padded_string::*;
 use crate::container::vector::*;
+use crate::fe::buffering_diag_reporter::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
 use crate::fe::lex_unicode_generated::*;
@@ -537,7 +538,17 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 self.last_token.end = self.input.0;
             }
 
-            // TODO(port): case '`':
+            b'`' => {
+                self.input += 1;
+                let body: ParsedTemplateBody =
+                    self.parse_template_body(self.input, self.last_token.begin, self.diag_reporter);
+                self.last_token.extras.template_escape_sequence_diagnostics =
+                    std::mem::ManuallyDrop::new(body.escape_sequence_diagnostics);
+                self.last_token.type_ = body.type_;
+                self.input = InputPointer(body.end);
+                self.last_token.end = self.input.0;
+            }
+
             b'#' => {
                 if self.input[1] == b'!' && self.input.0 == self.original_input.c_str() {
                     self.input += 2;
@@ -817,6 +828,122 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             }
             c += narrow_cast::<isize, _>(decoded.size);
             // Loop.
+        }
+    }
+
+    pub fn skip_in_template(&mut self, template_begin: *const u8) {
+        qljs_assert!(self.peek().type_ == TokenType::RightCurly);
+        self.last_token.begin = self.input.0;
+        let body: ParsedTemplateBody =
+            self.parse_template_body(self.input, template_begin, self.diag_reporter);
+        self.last_token.type_ = body.type_;
+        self.last_token.extras.template_escape_sequence_diagnostics =
+            std::mem::ManuallyDrop::new(body.escape_sequence_diagnostics);
+        self.input = InputPointer(body.end);
+        self.last_token.end = body.end;
+    }
+
+    fn parse_template_body<'this>(
+        &mut self,
+        input: InputPointer,
+        template_begin: *const u8,
+        diag_reporter: &dyn DiagReporter,
+    ) -> ParsedTemplateBody</* HACK(strager) */ 'code, 'code> {
+        let mut escape_sequence_diagnostics: Option<
+            & /* HACK(strager) */ 'code mut BufferingDiagReporter,
+        > = None;
+        let mut c: InputPointer = input;
+        loop {
+            match c[0] {
+                b'\0' => {
+                    if self.is_eof(c.0) {
+                        report(
+                            diag_reporter,
+                            DiagUnclosedTemplate {
+                                incomplete_template: unsafe {
+                                    SourceCodeSpan::new(template_begin, c.0)
+                                },
+                            },
+                        );
+                        return ParsedTemplateBody {
+                            type_: TokenType::CompleteTemplate,
+                            end: c.0,
+                            escape_sequence_diagnostics: escape_sequence_diagnostics,
+                        };
+                    } else {
+                        c += 1;
+                    }
+                }
+
+                b'`' => {
+                    c += 1;
+                    return ParsedTemplateBody {
+                        type_: TokenType::CompleteTemplate,
+                        end: c.0,
+                        escape_sequence_diagnostics: escape_sequence_diagnostics,
+                    };
+                }
+
+                b'\\' => {
+                    let escape_sequence_start: *const u8 = c.0;
+                    c += 1;
+                    match c[0] {
+                        b'\0' => {
+                            if self.is_eof(c.0) {
+                                report(
+                                    diag_reporter,
+                                    DiagUnclosedTemplate {
+                                        incomplete_template: unsafe {
+                                            SourceCodeSpan::new(template_begin, c.0)
+                                        },
+                                    },
+                                );
+                                return ParsedTemplateBody {
+                                    type_: TokenType::CompleteTemplate,
+                                    end: c.0,
+                                    escape_sequence_diagnostics: escape_sequence_diagnostics,
+                                };
+                            } else {
+                                c += 1;
+                            }
+                        }
+                        b'u' => {
+                            if escape_sequence_diagnostics.is_none() {
+                                escape_sequence_diagnostics = Some(unsafe {
+                                    &mut *self.allocator.new_object(BufferingDiagReporter::new(
+                                        self.get_allocator(),
+                                    ))
+                                });
+                            }
+                            let inner_reporter: &mut BufferingDiagReporter =
+                                unsafe { escape_sequence_diagnostics.as_mut().unwrap_unchecked() };
+                            c = InputPointer(
+                                self.parse_unicode_escape(escape_sequence_start, inner_reporter)
+                                    .end,
+                            );
+                        }
+                        _ => {
+                            c += 1;
+                        }
+                    }
+                }
+
+                b'$' => {
+                    if c[1] == b'{' {
+                        c += 2;
+                        return ParsedTemplateBody {
+                            type_: TokenType::IncompleteTemplate,
+                            end: c.0,
+                            escape_sequence_diagnostics: escape_sequence_diagnostics,
+                        };
+                    }
+                    c += 1;
+                }
+
+                _ => {
+                    c += 1;
+                }
+            }
         }
     }
 
@@ -1856,6 +1983,12 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 struct ParsedUnicodeEscape {
     end: *const u8,
     code_point: Option<u32>,
+}
+
+struct ParsedTemplateBody<'alloc, 'code> {
+    type_: TokenType,
+    end: *const u8,
+    escape_sequence_diagnostics: Option<&'alloc mut BufferingDiagReporter<'code>>,
 }
 
 // The result of parsing an identifier.
