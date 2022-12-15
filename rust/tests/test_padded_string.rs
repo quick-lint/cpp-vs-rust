@@ -28,7 +28,7 @@ fn resize_with_bigger_len_adds_new_characters() {
     s.resize(10);
 
     assert_eq!(s.len(), 10);
-    assert_eq!(s.as_slice(), "hello\0\0\0\0\0".as_bytes());
+    assert_eq!(s.as_slice(), b"hello\0\0\0\0\0");
     expect_null_terminated(&s);
 }
 
@@ -39,7 +39,7 @@ fn resize_grow_uninitialized_preserves_original_data() {
     s.resize_grow_uninitialized(10);
 
     assert_eq!(s.len(), 10);
-    assert_eq!(&s.as_slice()[0..5], "hello".as_bytes());
+    assert_eq!(&s.as_slice()[0..5], b"hello");
     expect_null_terminated(&s);
     // Don't read indexes 5 through 9. The data is uninitialized and could be
     // anything.
@@ -52,7 +52,7 @@ fn resize_with_smaller_len_removes_characters() {
     s.resize(5);
 
     assert_eq!(s.len(), 5);
-    assert_eq!(s.as_slice(), "hello".as_bytes());
+    assert_eq!(s.as_slice(), b"hello");
     expect_null_terminated(&s);
 }
 
@@ -68,7 +68,7 @@ fn debug_format_does_not_include_padding_bytes() {
 #[test]
 fn as_slice_excludes_padding_bytes() {
     let s = PaddedString::from_string(String::from("hello"));
-    assert_eq!(s.as_slice(), "hello".as_bytes());
+    assert_eq!(s.as_slice(), b"hello");
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn moving_does_not_invalidate_pointers() {
     assert_eq!(s2.data_ptr(), old_s1_data, "moving should not reallocate");
     assert_eq!(
         s2.as_slice(),
-        "helloworld".as_bytes(),
+        b"helloworld",
         "moving should not change data"
     );
     expect_null_terminated(&s2);
@@ -101,11 +101,7 @@ fn moving_empty_string_does_not_invalidate_pointers() {
     let old_s1_data: *mut u8 = s1.data_ptr();
     let mut s2 = s1; // Move.
     assert_eq!(s2.data_ptr(), old_s1_data, "moving should not reallocate");
-    assert_eq!(
-        s2.as_slice(),
-        "".as_bytes(),
-        "moving should not change data"
-    );
+    assert_eq!(s2.as_slice(), b"", "moving should not change data");
     expect_null_terminated(&s2);
 }
 
