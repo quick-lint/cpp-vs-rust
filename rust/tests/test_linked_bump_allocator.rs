@@ -2,7 +2,8 @@ use cpp_vs_rust::container::linked_bump_allocator::*;
 
 #[test]
 fn separate_allocations_are_contiguous_without_padding() {
-    // TODO(port): Use a generic function instead.
+    // HACK(strager): We would use a generic function, but if we do that, then we can't call
+    // std::mem::align_of.
     macro_rules! test_with_type {
         ($type:ty, $value:expr) => {{
             const ALIGNMENT: usize = std::mem::align_of::<$type>();
