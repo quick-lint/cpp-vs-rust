@@ -662,12 +662,11 @@ impl<'alloc, 'code> Token<'alloc, 'code> {
     //   self.type_ == TokenType::IncompleteTemplate
     // Precondition: This function was not previously called for the same token.
     pub fn report_errors_for_escape_sequences_in_template(&self, reporter: &dyn DiagReporter) {
-        use std::ops::Deref;
         qljs_assert!(
             self.type_ == TokenType::CompleteTemplate
                 || self.type_ == TokenType::IncompleteTemplate
         );
-        match unsafe { self.extras.template_escape_sequence_diagnostics.deref() } {
+        match unsafe { &*self.extras.template_escape_sequence_diagnostics } {
             // NOTE(port): In the C++ code, this called move_into. We call copy_into to avoid const
             // correctness issues.
             Some(diags) => {
