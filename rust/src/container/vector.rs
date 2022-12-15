@@ -24,9 +24,7 @@ pub trait VectorLike {
     fn capacity(&self) -> usize;
     fn as_slice(&self) -> &[Self::T];
     fn as_mut_slice(&mut self) -> &mut [Self::T];
-    // TODO(port): reserve in Rust means something different than reserve in C++!
-    // C++'s v.reserve(42) is like Rust's v.reserve(v.len() + 42).
-    fn reserve(&mut self, size: usize);
+    fn reserve_to(&mut self, new_capacity: usize);
     fn push(&mut self, value: Self::T);
     fn pop(&mut self);
     fn resize(&mut self, new_size: usize)
@@ -69,8 +67,8 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
     pub fn as_mut_slice(&mut self) -> &mut [Vector::T] {
         self.0.as_mut_slice()
     }
-    pub fn reserve(&mut self, size: usize) {
-        self.0.reserve(size);
+    pub fn reserve_to(&mut self, new_capacity: usize) {
+        self.0.reserve_to(new_capacity);
     }
     pub fn push(&mut self, value: Vector::T) {
         self.0.push(value);
@@ -145,7 +143,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
         unsafe { std::slice::from_raw_parts_mut(self.data as *mut T, self.len()) }
     }
 
-    fn reserve(&mut self, new_capacity: usize) {
+    fn reserve_to(&mut self, new_capacity: usize) {
         if self.capacity() < new_capacity {
             self.reserve_grow(new_capacity);
         }

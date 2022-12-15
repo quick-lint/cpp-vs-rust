@@ -17,7 +17,7 @@ fn is_empty() {
 fn append_into_reserved_memory() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.reserve(2);
+    v.reserve_to(2);
     assert_eq!(v.capacity(), 2);
     assert_eq!(v.len(), 0);
 
@@ -54,7 +54,7 @@ fn append_into_new_memory() {
 fn growing_allocation_in_place() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.reserve(2);
+    v.reserve_to(2);
 
     v.push(100);
     v.push(200);
@@ -71,7 +71,7 @@ fn growing_allocation_in_place() {
 fn growing_allocation_by_copy() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.reserve(2);
+    v.reserve_to(2);
 
     v.push(100);
     v.push(200);
