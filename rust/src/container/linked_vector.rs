@@ -52,7 +52,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
 
     pub fn pop(&mut self) {
         unsafe {
-            qljs_assert!(!self.empty());
+            qljs_assert!(!self.is_empty());
             let c: &mut ChunkHeader<T> = &mut *self.tail;
             let item: &mut std::mem::MaybeUninit<T> = c.slot(c.item_count - 1);
             item.assume_init_drop();
@@ -79,13 +79,13 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         }
     }
 
-    pub fn empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.head.is_null()
     }
 
     pub fn back(&self) -> &T {
         unsafe {
-            qljs_assert!(!self.empty());
+            qljs_assert!(!self.is_empty());
             (*self.tail).items().last().unwrap_unchecked()
         }
     }

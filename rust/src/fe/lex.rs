@@ -1848,13 +1848,13 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         );
                         normalized.append(escape_span.as_slice());
                     } else {
-                        let normalized_len_before: usize = normalized.size();
+                        let normalized_len_before: usize = normalized.len();
                         normalized.append_count(4, b'\0');
                         let encoded: &mut [u8] =
                             &mut normalized.as_mut_slice()[normalized_len_before..];
                         // TODO(port): Change encode_utf_8's interface so this is less awkward.
                         let encoded_remainder_len: usize = encode_utf_8(code_point, encoded).len();
-                        normalized.resize(normalized.size() - encoded_remainder_len);
+                        normalized.resize(normalized.len() - encoded_remainder_len);
                         escape_sequences.push(escape_span);
                     }
                 }

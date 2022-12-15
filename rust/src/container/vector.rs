@@ -19,11 +19,13 @@ pub trait VectorLike {
     type Allocator;
 
     fn new(allocator: Self::Allocator) -> Self;
-    fn empty(&self) -> bool;
-    fn size(&self) -> usize;
+    fn is_empty(&self) -> bool;
+    fn len(&self) -> usize;
     fn capacity(&self) -> usize;
     fn as_slice(&self) -> &[Self::T];
     fn as_mut_slice(&mut self) -> &mut [Self::T];
+    // TODO(port): reserve in Rust means something different than reserve in C++!
+    // C++'s v.reserve(42) is like Rust's v.reserve(v.len() + 42).
     fn reserve(&mut self, size: usize);
     fn push(&mut self, value: Self::T);
     fn pop(&mut self);
@@ -52,11 +54,11 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
         UninstrumentedVector(Vector::new(allocator))
     }
 
-    pub fn empty(&self) -> bool {
-        self.0.empty()
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
-    pub fn size(&self) -> usize {
-        self.0.size()
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
     pub fn capacity(&self) -> usize {
         self.0.capacity()
@@ -123,12 +125,11 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
         }
     }
 
-    fn empty(&self) -> bool {
+    fn is_empty(&self) -> bool {
         self.data == self.data_end
     }
 
-    // TODO(port): Rename to 'len'.
-    fn size(&self) -> usize {
+    fn len(&self) -> usize {
         unsafe { narrow_cast(self.data_end.offset_from(self.data)) }
     }
 
@@ -137,11 +138,11 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     }
 
     fn as_slice(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.data as *const T, self.size()) }
+        unsafe { std::slice::from_raw_parts(self.data as *const T, self.len()) }
     }
 
     fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe { std::slice::from_raw_parts_mut(self.data as *mut T, self.size()) }
+        unsafe { std::slice::from_raw_parts_mut(self.data as *mut T, self.len()) }
     }
 
     fn reserve(&mut self, new_capacity: usize) {
@@ -182,32 +183,32 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     }
 
     fn pop(&mut self) {
-        qljs_assert!(!self.empty());
+        qljs_assert!(!self.is_empty());
         // NOTE(port): The C++ code didn't destruct, so we don't drop here.
         self.data_end = unsafe { self.data_end.offset(-1) };
     }
 
-    fn resize(&mut self, new_size: usize)
+    fn resize(&mut self, new_len: usize)
     where
         T: Default,
     {
         unsafe {
-            let old_size = self.size();
-            if new_size == old_size {
+            let old_len = self.len();
+            if new_len == old_len {
                 // Do nothing.
-            } else if new_size < old_size {
-                let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_size);
-                for i in new_size..old_size {
+            } else if new_len < old_len {
+                let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_len);
+                for i in new_len..old_len {
                     (*self.data.add(i)).assume_init_drop();
                 }
                 self.data_end = new_end;
             } else {
                 let old_capacity = self.capacity();
-                if new_size > old_capacity {
-                    self.reserve_grow_by_at_least(new_size - old_capacity);
+                if new_len > old_capacity {
+                    self.reserve_grow_by_at_least(new_len - old_capacity);
                 }
-                let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_size);
-                for i in old_size..new_size {
+                let new_end: *mut std::mem::MaybeUninit<T> = self.data.add(new_len);
+                for i in old_len..new_len {
                     (*self.data.add(i)).write(T::default());
                 }
                 self.data_end = new_end;
@@ -232,22 +233,22 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
     }
 
     pub fn front_mut(&mut self) -> &mut T {
-        qljs_assert!(!self.empty());
+        qljs_assert!(!self.is_empty());
         unsafe { (*self.data).assume_init_mut() }
     }
 
     pub fn back_mut(&mut self) -> &mut T {
-        qljs_assert!(!self.empty());
+        qljs_assert!(!self.is_empty());
         unsafe { (*self.data_end.offset(-1)).assume_init_mut() }
     }
 
     pub fn front(&self) -> &T {
-        qljs_assert!(!self.empty());
+        qljs_assert!(!self.is_empty());
         unsafe { (*self.data).assume_init_ref() }
     }
 
     pub fn back(&self) -> &T {
-        qljs_assert!(!self.empty());
+        qljs_assert!(!self.is_empty());
         unsafe { (*self.data_end.offset(-1)).assume_init_ref() }
     }
 
@@ -262,7 +263,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
                 self.data_end = self.data;
                 self.capacity_end = self.data.add(new_capacity);
             } else {
-                let old_size = self.size();
+                let old_len = self.len();
                 let old_capacity = self.capacity();
                 let old_array: &mut [std::mem::MaybeUninit<T>] =
                     std::slice::from_raw_parts_mut(self.data, old_capacity);
@@ -277,13 +278,13 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
                         let new_data: &mut [std::mem::MaybeUninit<T>] = self
                             .allocator
                             .allocate_uninitialized_array::<T>(new_capacity);
-                        for i in 0..old_size {
+                        for i in 0..old_len {
                             new_data[i].write(old_array[i].assume_init_read());
                         }
                         self.clear();
                         let new_data_ptr: *mut std::mem::MaybeUninit<T> = new_data.as_mut_ptr();
                         self.data = new_data_ptr;
-                        self.data_end = new_data_ptr.add(old_size);
+                        self.data_end = new_data_ptr.add(old_len);
                         self.capacity_end = new_data_ptr.add(new_capacity);
                     }
                 }
@@ -293,14 +294,14 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
 
     pub fn clear(&mut self) {
         if !self.data.is_null() {
-            let size = self.size();
+            let len = self.len();
             unsafe {
-                for i in 0..size {
+                for i in 0..len {
                     (*self.data.add(i)).assume_init_drop();
                 }
                 self.allocator.deallocate(
                     self.data as *mut u8,
-                    size * std::mem::size_of::<T>(),
+                    len * std::mem::size_of::<T>(),
                     std::mem::align_of::<T>(),
                 );
             }
@@ -311,11 +312,11 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
     fn reserve_grow_by_at_least(&mut self, minimum_new_entries: usize) {
         let old_capacity: usize = self.capacity();
         const MINIMUM_CAPACITY: usize = 4;
-        let new_size: usize = std::cmp::max(
+        let new_len: usize = std::cmp::max(
             std::cmp::max(MINIMUM_CAPACITY, old_capacity + minimum_new_entries),
             old_capacity * 2,
         );
-        self.reserve_grow(new_size);
+        self.reserve_grow(new_len);
     }
 }
 
@@ -325,7 +326,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::Index<usiz
     type Output = T;
 
     fn index<'a>(&'a self, index: usize) -> &'a T {
-        qljs_assert!(index < self.size());
+        qljs_assert!(index < self.len());
         unsafe { (*self.data.add(index)).assume_init_ref() }
     }
 }
@@ -334,7 +335,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> std::ops::IndexMut<u
     for RawBumpVector<'alloc, T, BumpAllocator>
 {
     fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut T {
-        qljs_assert!(index < self.size());
+        qljs_assert!(index < self.len());
         unsafe { (*self.data.add(index)).assume_init_mut() }
     }
 }

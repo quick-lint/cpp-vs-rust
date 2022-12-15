@@ -5,7 +5,7 @@ use cpp_vs_rust::util::narrow_cast::*;
 #[test]
 fn empty() {
     let v = LinkedVector::<i32>::new(global_allocator());
-    assert!(v.empty());
+    assert!(v.is_empty());
     assert_eq!(to_vec(&v), vec![]);
 }
 
@@ -13,7 +13,7 @@ fn empty() {
 fn push_one() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     v.push(42);
-    assert!(!v.empty());
+    assert!(!v.is_empty());
     assert_eq!(to_vec(&v), vec![42]);
 }
 
@@ -27,7 +27,7 @@ fn push_seven() {
     v.push(500);
     v.push(600);
     v.push(700);
-    assert!(!v.empty());
+    assert!(!v.is_empty());
     assert_eq!(to_vec(&v), vec![100, 200, 300, 400, 500, 600, 700]);
 }
 
@@ -58,7 +58,7 @@ fn push_one_then_pop() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     v.push(42);
     v.pop();
-    assert!(v.empty());
+    assert!(v.is_empty());
     assert_eq!(to_vec(&v), vec![]);
 }
 
@@ -68,7 +68,7 @@ fn push_two_then_pop() {
     v.push(42);
     v.push(69);
     v.pop();
-    assert!(!(v.empty()));
+    assert!(!(v.is_empty()));
     assert_eq!(to_vec(&v), vec![42]);
     assert_eq!(*v.back(), 42);
 }

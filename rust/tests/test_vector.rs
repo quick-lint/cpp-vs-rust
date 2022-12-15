@@ -5,11 +5,11 @@ use cpp_vs_rust::container::winkable::*;
 const I32_ALIGNMENT: usize = std::mem::align_of::<i32>();
 
 #[test]
-fn empty() {
+fn is_empty() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    assert!(v.empty());
-    assert_eq!(v.size(), 0);
+    assert!(v.is_empty());
+    assert_eq!(v.len(), 0);
     assert_eq!(v.capacity(), 0);
 }
 
@@ -19,16 +19,16 @@ fn append_into_reserved_memory() {
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
     v.reserve(2);
     assert_eq!(v.capacity(), 2);
-    assert_eq!(v.size(), 0);
+    assert_eq!(v.len(), 0);
 
     v.push(100);
     assert_eq!(v.capacity(), 2);
-    assert_eq!(v.size(), 1);
+    assert_eq!(v.len(), 1);
     assert_eq!(to_vec(&v), vec![100]);
 
     v.push(200);
     assert_eq!(v.capacity(), 2);
-    assert_eq!(v.size(), 2);
+    assert_eq!(v.len(), 2);
     assert_eq!(to_vec(&v), vec![100, 200]);
 }
 
@@ -37,16 +37,16 @@ fn append_into_new_memory() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
     assert_eq!(v.capacity(), 0);
-    assert_eq!(v.size(), 0);
+    assert_eq!(v.len(), 0);
 
     v.push(100);
     assert!(v.capacity() > 0);
-    assert_eq!(v.size(), 1);
+    assert_eq!(v.len(), 1);
     assert_eq!(to_vec(&v), vec![100]);
 
     v.push(200);
     assert!(v.capacity() > 0);
-    assert_eq!(v.size(), 2);
+    assert_eq!(v.len(), 2);
     assert_eq!(to_vec(&v), vec![100, 200]);
 }
 
@@ -110,7 +110,7 @@ fn resize_allows_same_size() {
 
     v.resize(2);
 
-    assert_eq!(v.size(), 2, "resizing vector should not change size");
+    assert_eq!(v.len(), 2, "resizing vector should not change size");
     assert_eq!(
         v.capacity(),
         old_capacity,
@@ -136,7 +136,7 @@ fn resize_allows_shrinking() {
 
     v.resize(2);
 
-    assert_eq!(v.size(), 2, "shrinking vector should change size");
+    assert_eq!(v.len(), 2, "shrinking vector should change size");
     assert_eq!(
         v.capacity(),
         old_capacity,
@@ -166,7 +166,7 @@ fn resize_allows_growing_within_capacity() {
     assert!(old_capacity >= 3);
     v.resize(3);
 
-    assert_eq!(v.size(), 3, "growing vector should change size");
+    assert_eq!(v.len(), 3, "growing vector should change size");
     assert_eq!(
         v.capacity(),
         old_capacity,
@@ -194,7 +194,7 @@ fn resize_allows_growing_outside_capacity() {
     assert!(v.capacity() < 10);
     v.resize(10);
 
-    assert_eq!(v.size(), 10, "growing vector should change size");
+    assert_eq!(v.len(), 10, "growing vector should change size");
     assert_eq!(v.capacity(), 10, "growing vector should change capacity");
     assert_eq!(
         to_vec(&v),
@@ -242,13 +242,13 @@ fn moving_preserves_pointers() {
 
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
     let old_v_capacity: usize = v.capacity();
-    let old_v_size: usize = v.size();
+    let old_v_len: usize = v.len();
 
     let v2: BumpVector<i32, _> = v; // Move.
 
     assert_eq!(v2.as_slice().as_ptr() as usize, old_v_data_pointer);
     assert_eq!(v2.capacity(), old_v_capacity);
-    assert_eq!(v2.size(), old_v_size);
+    assert_eq!(v2.len(), old_v_len);
 }
 
 fn to_vec<T: Clone + Winkable, BumpAllocator: BumpAllocatorLike>(
