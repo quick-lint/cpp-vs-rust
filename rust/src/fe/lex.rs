@@ -2188,27 +2188,23 @@ struct ParsedTemplateBody<'alloc, 'code> {
 
 // The result of parsing an identifier.
 //
-// Typically, .normalized is default-constructed. However, if an identifier
-// contains escape squences, then .normalized points to a heap-allocated
-// null-terminated string of the unescaped identifier.
+// Typically, .normalized is empty. However, if an identifier contains escape squences, then
+// .normalized references a heap-allocated null-terminated string of the unescaped identifier.
 //
-// Say we are parsing the identifier starting with 'w' in the following
-// example:
+// Say we are parsing the identifier starting with 'w' in the following example:
 //
 // Input: log(w\u{61}t)
 //                    ^
-//                    .end
+//                    .after
 //
-// In this case, .end points to the ')' character which follows the
-// identifier, and .normalized points to a heap-allocated string b"wat".
+// In this case, .after points to the ')' character which follows the identifier, and .normalized
+// references a heap-allocated string b"wat\0".
 //
-// If any escape sequences were parsed, .escape_sequences points to a list of
-// escape squence spans.
+// If any escape sequences were parsed, .escape_sequences references a list of escape squence
+// spans.
 //
 // Invariant:
-//   (escape_sequences == nullptr) == (normalized.data() == nullptr)
-//
-// TODO(port): Update docs for Rustisms.
+//   escape_sequences.is_none() == normalized.is_empty()
 struct ParsedIdentifier<'alloc, 'code> {
     after: *const u8, // Where to continue parsing.
     normalized: &'alloc [u8],

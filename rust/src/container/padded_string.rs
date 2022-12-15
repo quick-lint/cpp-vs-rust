@@ -14,9 +14,9 @@ qljs_const_assert!(
 static EMPTY_STRING: [u8; PADDED_STRING_PADDING_LEN as usize] =
     [0; PADDED_STRING_PADDING_LEN as usize];
 
-// Like std::string, but guaranteed to have several null bytes at the end.
+// Like String, but guaranteed to have several null bytes at the end.
 //
-// padded_string enables using SIMD instructions without extra bounds checking.
+// PaddedString enables using SIMD instructions without extra bounds checking.
 pub struct PaddedString {
     data: *mut u8,
     len_excluding_padding_bytes: PaddedStringSizeType,

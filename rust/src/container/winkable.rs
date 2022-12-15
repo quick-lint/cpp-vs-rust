@@ -1,12 +1,9 @@
 // A type is winkable if the underlying memory for instances of the type can
-// safely be deallocated without calling the object's destructor. (Memory leaks
-// are considered "safe".)
+// safely be deallocated without dropping the instance. (Memory leaks are considered "safe".)
 //
 // Example winkable types:
-// * anything trivially destructible
-// * container types like std::vector<U>, if U is winkable
-//
-// TODO(port): Update description for Rustisms.
+// * anything implementing Copy
+// * container types like Vec<U>, if U is winkable
 pub trait Winkable {}
 
 impl Winkable for i8 {}
