@@ -237,7 +237,7 @@ fn look_up(input: &[u8]) -> Option<&'static KeywordEntry> {
     ];
 
     let len: usize = input.len();
-    if len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH {
+    if (MIN_WORD_LENGTH..=MAX_WORD_LENGTH).contains(&len) {
         let key: u32 = hash(input);
 
         if key <= MAX_HASH_VALUE {

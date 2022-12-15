@@ -1526,7 +1526,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 }
             }
         }
-        if !garbage_begin.is_null() && has_trailing_underscore == true {
+        if !garbage_begin.is_null() && has_trailing_underscore {
             report(
                 self.diag_reporter,
                 DiagNumberLiteralContainsTrailingUnderscores {
@@ -1799,7 +1799,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         let escape_sequences: &mut EscapeSequenceList = unsafe {
             &mut *self.allocator.new_object(EscapeSequenceList::new(
                 "parse_identifier_slow escape_sequences",
-                &self.get_allocator(),
+                self.get_allocator(),
             ))
         };
 
