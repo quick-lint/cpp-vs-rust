@@ -39,7 +39,7 @@ impl<'alloc> DiagReporter for BufferingDiagReporter<'alloc> {
                 std::slice::from_raw_parts(diag, diag_byte_size),
             );
         }
-        unsafe { &mut *self.diagnostics.get() }.emplace_back(AnyDiag {
+        unsafe { &mut *self.diagnostics.get() }.push(AnyDiag {
             type_: type_,
             diag: diag_data,
         });

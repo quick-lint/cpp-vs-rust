@@ -1855,7 +1855,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         // TODO(port): Change encode_utf_8's interface so this is less awkward.
                         let encoded_remainder_len: usize = encode_utf_8(code_point, encoded).len();
                         normalized.resize(normalized.size() - encoded_remainder_len);
-                        escape_sequences.push_back(escape_span);
+                        escape_sequences.push(escape_span);
                     }
                 }
 

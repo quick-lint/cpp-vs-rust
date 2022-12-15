@@ -10,107 +10,107 @@ fn empty() {
 }
 
 #[test]
-fn emplace_back_one() {
+fn push_one() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
-    v.emplace_back(42);
+    v.push(42);
     assert!(!v.empty());
     assert_eq!(to_vec(&v), vec![42]);
 }
 
 #[test]
-fn emplace_back_seven() {
+fn push_seven() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
-    v.emplace_back(100);
-    v.emplace_back(200);
-    v.emplace_back(300);
-    v.emplace_back(400);
-    v.emplace_back(500);
-    v.emplace_back(600);
-    v.emplace_back(700);
+    v.push(100);
+    v.push(200);
+    v.push(300);
+    v.push(400);
+    v.push(500);
+    v.push(600);
+    v.push(700);
     assert!(!v.empty());
     assert_eq!(to_vec(&v), vec![100, 200, 300, 400, 500, 600, 700]);
 }
 
 #[test]
-fn emplace_back_full_chunk() {
+fn push_full_chunk() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     let mut expected_items: Vec<i32> = vec![];
     for i in 0..narrow_cast(v.items_per_chunk()) {
-        v.emplace_back(i);
+        v.push(i);
         expected_items.push(i);
     }
     assert_eq!(to_vec(&v), expected_items);
 }
 
 #[test]
-fn emplace_back_full_chunk_and_one() {
+fn push_full_chunk_and_one() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     let mut expected_items: Vec<i32> = vec![];
     for i in 0..(narrow_cast::<i32, usize>(v.items_per_chunk()) + 1) {
-        v.emplace_back(i);
+        v.push(i);
         expected_items.push(i);
     }
     assert_eq!(to_vec(&v), expected_items);
 }
 
 #[test]
-fn emplace_back_one_then_pop_back() {
+fn push_one_then_pop() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
-    v.emplace_back(42);
-    v.pop_back();
+    v.push(42);
+    v.pop();
     assert!(v.empty());
     assert_eq!(to_vec(&v), vec![]);
 }
 
 #[test]
-fn emplace_back_two_then_pop_back() {
+fn push_two_then_pop() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
-    v.emplace_back(42);
-    v.emplace_back(69);
-    v.pop_back();
+    v.push(42);
+    v.push(69);
+    v.pop();
     assert!(!(v.empty()));
     assert_eq!(to_vec(&v), vec![42]);
     assert_eq!(*v.back(), 42);
 }
 
 #[test]
-fn emplace_back_full_chunk_then_pop_back() {
+fn push_full_chunk_then_pop() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     let mut expected_items: Vec<i32> = vec![];
     for i in 0..narrow_cast(v.items_per_chunk()) {
-        v.emplace_back(i);
+        v.push(i);
         expected_items.push(i);
     }
-    v.pop_back();
+    v.pop();
     expected_items.pop();
     assert_eq!(to_vec(&v), expected_items);
     assert_eq!(*v.back(), *expected_items.last().unwrap());
 }
 
 #[test]
-fn emplace_back_full_chunk_plus_one_then_pop_back() {
+fn push_full_chunk_plus_one_then_pop() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     let mut expected_items: Vec<i32> = vec![];
     for i in 0..(narrow_cast::<i32, usize>(v.items_per_chunk()) + 1) {
-        v.emplace_back(i);
+        v.push(i);
         expected_items.push(i);
     }
-    v.pop_back();
+    v.pop();
     expected_items.pop();
     assert_eq!(to_vec(&v), expected_items);
     assert_eq!(*v.back(), *expected_items.last().unwrap());
 }
 
 #[test]
-fn emplace_back_full_chunk_plus_one_then_pop_back_most() {
+fn push_full_chunk_plus_one_then_pop_most() {
     let mut v = LinkedVector::<i32>::new(global_allocator());
     let mut expected_items: Vec<i32> = vec![];
     for i in 0..(narrow_cast::<i32, usize>(v.items_per_chunk()) + 1) {
-        v.emplace_back(i);
+        v.push(i);
         expected_items.push(i);
     }
     for _ in 0..(narrow_cast::<i32, usize>(v.items_per_chunk()) * 2 / 3) {
-        v.pop_back();
+        v.pop();
         expected_items.pop();
     }
     assert_eq!(to_vec(&v), expected_items);

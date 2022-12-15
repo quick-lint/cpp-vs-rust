@@ -25,8 +25,8 @@ pub trait VectorLike {
     fn as_slice(&self) -> &[Self::T];
     fn as_mut_slice(&mut self) -> &mut [Self::T];
     fn reserve(&mut self, size: usize);
-    fn push_back(&mut self, value: Self::T);
-    fn pop_back(&mut self);
+    fn push(&mut self, value: Self::T);
+    fn pop(&mut self);
     fn resize(&mut self, new_size: usize)
     where
         Self::T: Default;
@@ -70,11 +70,11 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
     pub fn reserve(&mut self, size: usize) {
         self.0.reserve(size);
     }
-    pub fn push_back(&mut self, value: Vector::T) {
-        self.0.push_back(value);
+    pub fn push(&mut self, value: Vector::T) {
+        self.0.push(value);
     }
-    pub fn pop_back(&mut self) {
-        self.0.pop_back();
+    pub fn pop(&mut self) {
+        self.0.pop();
     }
     pub fn append(&mut self, data: &[Vector::T])
     where
@@ -150,7 +150,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
         }
     }
 
-    fn push_back(&mut self, value: T) {
+    fn push(&mut self, value: T) {
         if self.capacity_end == self.data_end {
             self.reserve_grow_by_at_least(1);
         }
@@ -166,7 +166,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     {
         // TODO(strager): Make this more efficient.
         for x in data {
-            self.push_back(x.clone());
+            self.push(x.clone());
         }
     }
 
@@ -177,11 +177,11 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     {
         // TODO(strager): Make this more efficient.
         for _ in 0..count {
-            self.push_back(value.clone());
+            self.push(value.clone());
         }
     }
 
-    fn pop_back(&mut self) {
+    fn pop(&mut self) {
         qljs_assert!(!self.empty());
         // NOTE(port): The C++ code didn't destruct, so we don't drop here.
         self.data_end = unsafe { self.data_end.offset(-1) };

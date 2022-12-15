@@ -21,12 +21,12 @@ fn append_into_reserved_memory() {
     assert_eq!(v.capacity(), 2);
     assert_eq!(v.size(), 0);
 
-    v.push_back(100);
+    v.push(100);
     assert_eq!(v.capacity(), 2);
     assert_eq!(v.size(), 1);
     assert_eq!(to_vec(&v), vec![100]);
 
-    v.push_back(200);
+    v.push(200);
     assert_eq!(v.capacity(), 2);
     assert_eq!(v.size(), 2);
     assert_eq!(to_vec(&v), vec![100, 200]);
@@ -39,12 +39,12 @@ fn append_into_new_memory() {
     assert_eq!(v.capacity(), 0);
     assert_eq!(v.size(), 0);
 
-    v.push_back(100);
+    v.push(100);
     assert!(v.capacity() > 0);
     assert_eq!(v.size(), 1);
     assert_eq!(to_vec(&v), vec![100]);
 
-    v.push_back(200);
+    v.push(200);
     assert!(v.capacity() > 0);
     assert_eq!(v.size(), 2);
     assert_eq!(to_vec(&v), vec![100, 200]);
@@ -56,14 +56,14 @@ fn growing_allocation_in_place() {
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
     v.reserve(2);
 
-    v.push_back(100);
-    v.push_back(200);
+    v.push(100);
+    v.push(200);
     assert_eq!(v.capacity(), 2);
     assert_eq!(to_vec(&v), vec![100, 200]);
 
-    v.push_back(300);
+    v.push(300);
     assert!(v.capacity() > 2);
-    v.push_back(400);
+    v.push(400);
     assert_eq!(to_vec(&v), vec![100, 200, 300, 400]);
 }
 
@@ -73,8 +73,8 @@ fn growing_allocation_by_copy() {
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
     v.reserve(2);
 
-    v.push_back(100);
-    v.push_back(200);
+    v.push(100);
+    v.push(200);
     assert_eq!(v.capacity(), 2);
     assert_eq!(to_vec(&v), vec![100, 200]);
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
@@ -82,9 +82,9 @@ fn growing_allocation_by_copy() {
     // Prevent allocation from growing in-place.
     let middle_number: *mut i32 = alloc.new_object(42i32);
 
-    v.push_back(300);
+    v.push(300);
     assert!(v.capacity() > 2);
-    v.push_back(400);
+    v.push(400);
     assert_eq!(to_vec(&v), vec![100, 200, 300, 400]);
 
     assert_ne!(
@@ -103,8 +103,8 @@ fn growing_allocation_by_copy() {
 fn resize_allows_same_size() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
+    v.push(100);
+    v.push(200);
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
     let old_capacity: usize = v.capacity();
 
@@ -128,9 +128,9 @@ fn resize_allows_same_size() {
 fn resize_allows_shrinking() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
-    v.push_back(300);
+    v.push(100);
+    v.push(200);
+    v.push(300);
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
     let old_capacity: usize = v.capacity();
 
@@ -158,8 +158,8 @@ fn resize_allows_shrinking() {
 fn resize_allows_growing_within_capacity() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
+    v.push(100);
+    v.push(200);
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
     let old_capacity: usize = v.capacity();
 
@@ -188,8 +188,8 @@ fn resize_allows_growing_within_capacity() {
 fn resize_allows_growing_outside_capacity() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
+    v.push(100);
+    v.push(200);
 
     assert!(v.capacity() < 10);
     v.resize(10);
@@ -204,28 +204,28 @@ fn resize_allows_growing_outside_capacity() {
 }
 
 #[test]
-fn pop_back_shrinks_vector() {
+fn pop_shrinks_vector() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
-    v.push_back(300);
-    v.pop_back();
+    v.push(100);
+    v.push(200);
+    v.push(300);
+    v.pop();
 
     assert_eq!(to_vec(&v), vec![100, 200]);
     assert!(v.capacity() >= 3);
 }
 
 #[test]
-fn pop_back_then_push_back_reuses_memory() {
+fn pop_then_push_reuses_memory() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
-    v.push_back(300);
-    v.pop_back();
+    v.push(100);
+    v.push(200);
+    v.push(300);
+    v.pop();
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
-    v.push_back(400);
+    v.push(400);
     let v_data_pointer = v.as_slice().as_ptr() as usize;
 
     assert_eq!(to_vec(&v), vec![100, 200, 400]);
@@ -237,8 +237,8 @@ fn pop_back_then_push_back_reuses_memory() {
 fn moving_preserves_pointers() {
     let alloc = LinkedBumpAllocator::<I32_ALIGNMENT>::new("test");
     let mut v: BumpVector<i32, _> = BumpVector::new("test", &alloc);
-    v.push_back(100);
-    v.push_back(200);
+    v.push(100);
+    v.push(200);
 
     let old_v_data_pointer = v.as_slice().as_ptr() as usize;
     let old_v_capacity: usize = v.capacity();

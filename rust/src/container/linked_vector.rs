@@ -7,9 +7,11 @@ use crate::qljs_slow_assert;
 // Guarantees:
 //
 // * Items are ordered by insertion (like std::vector and std::deque when only
-//   calling emplace_back).
+//   calling push).
 // * Items are never copied or moved when adding or removing different items
 //   (like std::deque). Pointer stability.
+//
+// TODO(port): Update comment with Rustisms.
 pub struct LinkedVector<'alloc, T> {
     head: *mut ChunkHeader<T>,
     tail: *mut ChunkHeader<T>,
@@ -37,7 +39,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     }
 
     // TODO(port): Rename to 'push'.
-    pub fn emplace_back(&mut self, value: T) -> &mut T {
+    pub fn push(&mut self, value: T) -> &mut T {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.tail;
             if c.is_null() || (*c).item_count == ChunkHeader::<T>::capacity() {
@@ -50,7 +52,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         }
     }
 
-    pub fn pop_back(&mut self) {
+    pub fn pop(&mut self) {
         unsafe {
             qljs_assert!(!self.empty());
             let c: &mut ChunkHeader<T> = &mut *self.tail;
