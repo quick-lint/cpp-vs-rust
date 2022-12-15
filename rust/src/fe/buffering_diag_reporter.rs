@@ -5,14 +5,12 @@ use crate::port::allocator::*;
 use crate::port::maybe_uninit::*;
 
 pub struct BufferingDiagReporter<'alloc> {
-    allocator: &'alloc dyn Allocator,
     diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, AnyDiag>>,
 }
 
 impl<'alloc> BufferingDiagReporter<'alloc> {
     pub fn new(allocator: &'alloc dyn Allocator) -> BufferingDiagReporter<'alloc> {
         BufferingDiagReporter {
-            allocator: allocator,
             diagnostics: std::cell::UnsafeCell::new(LinkedVector::new(allocator)),
         }
     }
