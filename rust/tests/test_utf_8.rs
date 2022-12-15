@@ -312,7 +312,7 @@ fn decode_overlong_sequences_are_an_error_for_each_code_unit() {
         PaddedString::from_slice(&[0xfc, 0x83, 0xbf, 0xbf, 0xbf, 0xbf]), // U+03FFFFFF
     ] {
         let mut i = 0;
-        while i < input.size() {
+        while i < input.len() {
             let current_input = PaddedStringView::from(&input).substr(i);
             let result: DecodeUTF8Result = decode_utf_8(current_input);
             assert_eq!(result.size, 1);
@@ -335,7 +335,7 @@ fn decode_surrogate_sequences_are_an_error_for_each_code_unit() {
         PaddedString::from_slice(&[0xed, 0xbf, 0xbf]), // U+DFFF
     ] {
         let mut i = 0;
-        while i < input.size() {
+        while i < input.len() {
             let current_input = PaddedStringView::from(&input).substr(i);
             let result: DecodeUTF8Result = decode_utf_8(current_input);
             assert_eq!(result.size, 1);
@@ -349,7 +349,7 @@ fn decode_surrogate_sequences_are_an_error_for_each_code_unit() {
 fn expect_decode_utf_8_single_code_point(input: &[u8], expected: char) {
     let input_string = PaddedString::from_slice(input);
     let result: DecodeUTF8Result = decode_utf_8(input_string.view());
-    assert_eq!(result.size, input_string.size());
+    assert_eq!(result.size, input_string.len());
     assert!(result.ok);
     assert_eq!(result.code_point, expected);
 }

@@ -46,7 +46,7 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
     }
     let input_slice: &[u8] = input.slice_with_padding();
     let c = |index: usize| unsafe { *input_slice.get_unchecked(index) };
-    if input.size() == 0 {
+    if input.len() == 0 {
         DecodeUTF8Result {
             size: 0,
             code_point: '\0',

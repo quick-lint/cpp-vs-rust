@@ -4,48 +4,47 @@ use crate::util::narrow_cast::*;
 
 pub type PaddedStringSizeType = i32;
 
-pub const PADDED_STRING_PADDING_SIZE: PaddedStringSizeType = 64;
+pub const PADDED_STRING_PADDING_LEN: PaddedStringSizeType = 64;
 
 qljs_const_assert!(
-    padded_string::padding_size >= 32, /*::simdjson::SIMDJSON_PADDING*/
+    padded_string::padding_len >= 32, /*::simdjson::SIMDJSON_PADDING*/
     "padded_string must have enough padded to satisfy simdjson",
 );
 
-static EMPTY_STRING: [u8; PADDED_STRING_PADDING_SIZE as usize] =
-    [0; PADDED_STRING_PADDING_SIZE as usize];
+static EMPTY_STRING: [u8; PADDED_STRING_PADDING_LEN as usize] =
+    [0; PADDED_STRING_PADDING_LEN as usize];
 
 // Like std::string, but guaranteed to have several null bytes at the end.
 //
 // padded_string enables using SIMD instructions without extra bounds checking.
 pub struct PaddedString {
     data: *mut u8,
-    size_excluding_padding_bytes: PaddedStringSizeType,
+    len_excluding_padding_bytes: PaddedStringSizeType,
 }
 
 impl PaddedString {
     pub fn new() -> PaddedString {
         PaddedString {
             data: EMPTY_STRING.as_ptr() as *mut u8,
-            size_excluding_padding_bytes: 0,
+            len_excluding_padding_bytes: 0,
         }
     }
 
     pub fn from_slice(s: &[u8]) -> PaddedString {
-        let size_excluding_padding_bytes: PaddedStringSizeType = narrow_cast(s.len());
-        let size_including_padding_bytes =
-            size_excluding_padding_bytes + PADDED_STRING_PADDING_SIZE;
+        let len_excluding_padding_bytes: PaddedStringSizeType = narrow_cast(s.len());
+        let len_including_padding_bytes = len_excluding_padding_bytes + PADDED_STRING_PADDING_LEN;
         unsafe {
             let data: *mut u8 =
-                std::alloc::alloc(layout_for_padded_size(size_including_padding_bytes));
-            std::ptr::copy_nonoverlapping(s.as_ptr(), data, size_excluding_padding_bytes as usize);
+                std::alloc::alloc(layout_for_padded_len(len_including_padding_bytes));
+            std::ptr::copy_nonoverlapping(s.as_ptr(), data, len_excluding_padding_bytes as usize);
             std::ptr::write_bytes(
-                data.offset(size_excluding_padding_bytes as isize),
+                data.offset(len_excluding_padding_bytes as isize),
                 0,
-                PADDED_STRING_PADDING_SIZE as usize,
+                PADDED_STRING_PADDING_LEN as usize,
             );
             PaddedString {
                 data: data,
-                size_excluding_padding_bytes: size_excluding_padding_bytes,
+                len_excluding_padding_bytes: len_excluding_padding_bytes,
             }
         }
     }
@@ -66,78 +65,77 @@ impl PaddedString {
         self.data
     }
 
-    pub fn size(&self) -> PaddedStringSizeType {
-        self.size_excluding_padding_bytes
+    pub fn len(&self) -> PaddedStringSizeType {
+        self.len_excluding_padding_bytes
     }
 
-    pub fn padded_size(&self) -> PaddedStringSizeType {
-        self.size() + PADDED_STRING_PADDING_SIZE
+    pub fn padded_len(&self) -> PaddedStringSizeType {
+        self.len() + PADDED_STRING_PADDING_LEN
     }
 
-    pub fn resize(&mut self, new_size: PaddedStringSizeType) {
-        let old_size = self.size_excluding_padding_bytes;
-        if new_size == old_size {
+    pub fn resize(&mut self, new_len: PaddedStringSizeType) {
+        let old_len = self.len_excluding_padding_bytes;
+        if new_len == old_len {
             // Do nothing.
-        } else if new_size < old_size {
+        } else if new_len < old_len {
             // Shrink. Do not reallocate and copy.
             unsafe {
                 std::ptr::write_bytes(
-                    self.data.offset(new_size as isize),
+                    self.data.offset(new_len as isize),
                     0,
-                    PADDED_STRING_PADDING_SIZE as usize,
+                    PADDED_STRING_PADDING_LEN as usize,
                 );
             }
-            self.size_excluding_padding_bytes = new_size;
+            self.len_excluding_padding_bytes = new_len;
         } else {
             // Grow. Need to reallocate and copy.
-            self.resize_grow_uninitialized(new_size);
+            self.resize_grow_uninitialized(new_len);
             unsafe {
                 std::ptr::write_bytes(
-                    self.data.offset(old_size as isize),
+                    self.data.offset(old_len as isize),
                     0,
-                    narrow_cast(new_size - old_size),
+                    narrow_cast(new_len - old_len),
                 );
             }
         }
     }
 
-    pub fn resize_grow_uninitialized(&mut self, new_size: PaddedStringSizeType) {
-        let old_size = self.size_excluding_padding_bytes;
-        qljs_assert!(new_size > old_size);
-        let new_size_including_padding_bytes = new_size + PADDED_STRING_PADDING_SIZE;
+    pub fn resize_grow_uninitialized(&mut self, new_len: PaddedStringSizeType) {
+        let old_len = self.len_excluding_padding_bytes;
+        qljs_assert!(new_len > old_len);
+        let new_len_including_padding_bytes = new_len + PADDED_STRING_PADDING_LEN;
 
         unsafe {
             let new_data: *mut u8 = if self.data == (EMPTY_STRING.as_ptr() as *mut u8) {
-                std::alloc::alloc(layout_for_padded_size(new_size_including_padding_bytes))
+                std::alloc::alloc(layout_for_padded_len(new_len_including_padding_bytes))
             } else {
                 std::alloc::realloc(
                     self.data,
-                    layout_for_padded_size(self.padded_size()),
-                    new_size_including_padding_bytes as usize,
+                    layout_for_padded_len(self.padded_len()),
+                    new_len_including_padding_bytes as usize,
                 )
             };
 
-            // Only null-terminate. Do not write between &new_data[old_size] and
-            // &new_data[new_size].
+            // Only null-terminate. Do not write between &new_data[old_len] and
+            // &new_data[new_len].
             std::ptr::write_bytes(
-                new_data.offset(new_size as isize),
+                new_data.offset(new_len as isize),
                 0,
-                PADDED_STRING_PADDING_SIZE as usize,
+                PADDED_STRING_PADDING_LEN as usize,
             );
 
             self.data = new_data;
-            self.size_excluding_padding_bytes = new_size;
+            self.len_excluding_padding_bytes = new_len;
         }
     }
 
     pub fn null_terminator(&self) -> *const u8 {
-        unsafe { self.data.offset(self.size() as isize) }
+        unsafe { self.data.offset(self.len() as isize) }
     }
 
-    // TODO(port): Rename to as_slice.
-    pub fn slice(&self) -> &[u8] {
+    pub fn as_slice(&self) -> &[u8] {
         unsafe {
-            std::slice::from_raw_parts(self.data, narrow_cast(self.size_excluding_padding_bytes))
+            std::slice::from_raw_parts(self.data, narrow_cast(self.len_excluding_padding_bytes))
         }
     }
 
@@ -150,14 +148,14 @@ impl Drop for PaddedString {
     fn drop(&mut self) {
         if self.data != (EMPTY_STRING.as_ptr() as *mut u8) {
             unsafe {
-                std::alloc::dealloc(self.data, layout_for_padded_size(self.padded_size()));
+                std::alloc::dealloc(self.data, layout_for_padded_len(self.padded_len()));
             }
         }
     }
 }
 
-fn layout_for_padded_size(padded_size: PaddedStringSizeType) -> std::alloc::Layout {
-    std::alloc::Layout::array::<u8>(narrow_cast(padded_size)).unwrap()
+fn layout_for_padded_len(padded_len: PaddedStringSizeType) -> std::alloc::Layout {
+    std::alloc::Layout::array::<u8>(narrow_cast(padded_len)).unwrap()
 }
 
 impl std::fmt::Debug for PaddedString {
@@ -178,7 +176,7 @@ impl<'a> PaddedStringView<'a> {
     pub fn from(s: &'a PaddedString) -> PaddedStringView<'a> {
         let result = PaddedStringView {
             data: s.c_str(),
-            length: s.size(),
+            length: s.len(),
             phantom: std::marker::PhantomData,
         };
         qljs_assert!(unsafe { *result.null_terminator() } == 0);
@@ -205,12 +203,12 @@ impl<'a> PaddedStringView<'a> {
         self.data
     }
 
-    pub fn size(&self) -> PaddedStringSizeType {
+    pub fn len(&self) -> PaddedStringSizeType {
         self.length
     }
 
-    pub fn padded_size(&self) -> PaddedStringSizeType {
-        self.size() + PADDED_STRING_PADDING_SIZE
+    pub fn padded_len(&self) -> PaddedStringSizeType {
+        self.len() + PADDED_STRING_PADDING_LEN
     }
 
     pub fn null_terminator(&self) -> *const u8 {
@@ -225,7 +223,7 @@ impl<'a> PaddedStringView<'a> {
         unsafe {
             std::slice::from_raw_parts(
                 self.data,
-                narrow_cast(self.length + PADDED_STRING_PADDING_SIZE),
+                narrow_cast(self.length + PADDED_STRING_PADDING_LEN),
             )
         }
     }
@@ -240,7 +238,7 @@ impl<'a> std::ops::Index<PaddedStringSizeType> for PaddedStringView<'a> {
 
     fn index(&self, index: PaddedStringSizeType) -> &u8 {
         qljs_assert!(index >= 0);
-        qljs_assert!(index <= self.size());
+        qljs_assert!(index <= self.len());
         unsafe { &*self.data.offset(index as isize) }
     }
 }

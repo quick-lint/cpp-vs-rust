@@ -970,7 +970,7 @@ fn lex_strings() {
             v.clone_errors(),
             input.view(),
             DiagUnclosedStringLiteral {
-                string_literal: 0..(input.slice()),
+                string_literal: 0..(input.as_slice()),
             },
         );
     }
@@ -1596,14 +1596,14 @@ fn lex_template_literal_with_ascii_control_characters() {
     {
         let input = PaddedString::from_slice(format!("`hello{control_character}world`").as_bytes());
         scoped_trace!(input);
-        f.check_tokens(input.slice(), &[TokenType::CompleteTemplate]);
+        f.check_tokens(input.as_slice(), &[TokenType::CompleteTemplate]);
     }
 
     for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
         let input =
             PaddedString::from_slice(format!("`hello\\{control_character}world`").as_bytes());
         scoped_trace!(input);
-        f.check_tokens(input.slice(), &[TokenType::CompleteTemplate]);
+        f.check_tokens(input.as_slice(), &[TokenType::CompleteTemplate]);
     }
 }
 
@@ -1649,7 +1649,7 @@ fn lex_regular_expression_literals() {
             v.clone_errors(),
             code.view(),
             DiagUnclosedRegexpLiteral {
-                regexp_literal: 0..(code.slice()),
+                regexp_literal: 0..(code.as_slice()),
             },
         );
 

@@ -3,7 +3,7 @@ use cpp_vs_rust::container::padded_string::*;
 #[test]
 fn new_string_has_following_null_bytes() {
     let padded = PaddedString::new();
-    assert_eq!(padded.size(), 0);
+    assert_eq!(padded.len(), 0);
     expect_null_terminated(&padded);
 }
 
@@ -15,20 +15,20 @@ fn empty_string_from_string_has_following_null_bytes() {
 }
 
 #[test]
-fn size_excludes_padding_bytes() {
+fn len_excludes_padding_bytes() {
     let s = String::from("hello");
     let padded = PaddedString::from_string(s);
-    assert_eq!(padded.size(), 5);
+    assert_eq!(padded.len(), 5);
 }
 
 #[test]
-fn resize_with_bigger_size_adds_new_characters() {
+fn resize_with_bigger_len_adds_new_characters() {
     let mut s = PaddedString::from_str("hello");
 
     s.resize(10);
 
-    assert_eq!(s.size(), 10);
-    assert_eq!(s.slice(), "hello\0\0\0\0\0".as_bytes());
+    assert_eq!(s.len(), 10);
+    assert_eq!(s.as_slice(), "hello\0\0\0\0\0".as_bytes());
     expect_null_terminated(&s);
 }
 
@@ -38,21 +38,21 @@ fn resize_grow_uninitialized_preserves_original_data() {
 
     s.resize_grow_uninitialized(10);
 
-    assert_eq!(s.size(), 10);
-    assert_eq!(&s.slice()[0..5], "hello".as_bytes());
+    assert_eq!(s.len(), 10);
+    assert_eq!(&s.as_slice()[0..5], "hello".as_bytes());
     expect_null_terminated(&s);
     // Don't read indexes 5 through 9. The data is uninitialized and could be
     // anything.
 }
 
 #[test]
-fn resize_with_smaller_size_removes_characters() {
+fn resize_with_smaller_len_removes_characters() {
     let mut s = PaddedString::from_str("helloworld");
 
     s.resize(5);
 
-    assert_eq!(s.size(), 5);
-    assert_eq!(s.slice(), "hello".as_bytes());
+    assert_eq!(s.len(), 5);
+    assert_eq!(s.as_slice(), "hello".as_bytes());
     expect_null_terminated(&s);
 }
 
@@ -66,9 +66,9 @@ fn debug_format_does_not_include_padding_bytes() {
 }
 
 #[test]
-fn slice_excludes_padding_bytes() {
+fn as_slice_excludes_padding_bytes() {
     let s = PaddedString::from_string(String::from("hello"));
-    assert_eq!(s.slice(), "hello".as_bytes());
+    assert_eq!(s.as_slice(), "hello".as_bytes());
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn moving_does_not_invalidate_pointers() {
     let mut s2 = s1; // Move.
     assert_eq!(s2.data_ptr(), old_s1_data, "moving should not reallocate");
     assert_eq!(
-        s2.slice(),
+        s2.as_slice(),
         "helloworld".as_bytes(),
         "moving should not change data"
     );
@@ -101,14 +101,18 @@ fn moving_empty_string_does_not_invalidate_pointers() {
     let old_s1_data: *mut u8 = s1.data_ptr();
     let mut s2 = s1; // Move.
     assert_eq!(s2.data_ptr(), old_s1_data, "moving should not reallocate");
-    assert_eq!(s2.slice(), "".as_bytes(), "moving should not change data");
+    assert_eq!(
+        s2.as_slice(),
+        "".as_bytes(),
+        "moving should not change data"
+    );
     expect_null_terminated(&s2);
 }
 
 fn expect_null_terminated(s: &PaddedString) {
     let data: *const u8 = s.c_str();
-    for i in 0..PADDED_STRING_PADDING_SIZE {
-        let index = s.size() + i;
+    for i in 0..PADDED_STRING_PADDING_LEN {
+        let index = s.len() + i;
         assert_eq!(
             unsafe { *data.offset(index as isize) },
             0x00,
