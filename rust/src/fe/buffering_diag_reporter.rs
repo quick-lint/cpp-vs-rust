@@ -4,7 +4,6 @@ use crate::fe::diagnostic_types::*;
 use crate::port::allocator::*;
 use crate::port::maybe_uninit::*;
 
-// TODO(port): Disable Sync.
 pub struct BufferingDiagReporter<'alloc> {
     allocator: &'alloc dyn Allocator,
     diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, AnyDiag>>,
