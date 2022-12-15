@@ -1,4 +1,5 @@
 use crate::qljs_assert;
+use crate::util::array::*;
 
 #[cfg(target_arch = "x86")]
 use std::arch::x86::*;
@@ -73,10 +74,7 @@ impl BoolVector16SSE2 {
     // data must point to at least 16 elements.
     pub fn load_slow(data: &[bool]) -> BoolVector16SSE2 {
         qljs_assert!(data.len() >= 16);
-        let mut bytes: [u8; 16] = [0; 16]; // TODO(port): Do not initialize.
-        for i in 0..16 {
-            bytes[i] = if data[i] { 0xff } else { 0x00 };
-        }
+        let bytes: [u8; 16] = generate_array_n(|i: usize| if data[i] { 0xff } else { 0x00 });
         unsafe { BoolVector16SSE2(_mm_loadu_si128(bytes.as_ptr() as *const __m128i)) }
     }
 
@@ -191,10 +189,7 @@ impl BoolVector16NEON {
     // data must point to at least 16 elements.
     pub fn load_slow(data: &[bool]) -> BoolVector16NEON {
         qljs_assert!(data.len() >= 16);
-        let mut bytes: [u8; 16] = [0; 16]; // TODO(port): Do not initialize.
-        for i in 0..16 {
-            bytes[i] = if data[i] { 0xff } else { 0x00 };
-        }
+        let bytes: [u8; 16] = generate_array_n(|i: usize| if data[i] { 0xff } else { 0x00 });
         unsafe { BoolVector16NEON(vld1q_u8(bytes.as_ptr())) }
     }
 
