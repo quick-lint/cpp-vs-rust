@@ -43,7 +43,7 @@ pub struct LinkedBumpAllocatorRewindState {
 }
 
 impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
-    pub fn new(debug_owner: &'static str) -> LinkedBumpAllocator<ALIGNMENT> {
+    pub fn new(_debug_owner: &'static str) -> LinkedBumpAllocator<ALIGNMENT> {
         LinkedBumpAllocator {
             state: std::cell::UnsafeCell::new(LinkedBumpAllocatorState {
                 chunk: std::ptr::null_mut(),
@@ -106,12 +106,8 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         unsafe { &mut *self.state.get() }.allocate_bytes(size)
     }
 
-    unsafe fn deallocate_bytes(&self, p: *mut u8, size: usize) {
+    unsafe fn deallocate_bytes(&self, _p: *mut u8, _size: usize) {
         // TODO(strager): Mark memory as unallocated for Valgrind and ASAN.
-    }
-
-    fn append_chunk(&self, len: usize) {
-        unsafe { &mut *self.state.get() }.append_chunk(len)
     }
 
     pub fn allocate(&self, bytes: usize, align: usize) -> *mut u8 {
@@ -252,12 +248,12 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
         }
     }
 
-    fn did_allocate_bytes(&self, p: *mut u8, size: usize) {
+    fn did_allocate_bytes(&self, _p: *mut u8, _size: usize) {
         // TODO(strager): Mark memory as usable for Valgrind.
         // TODO(port): Mark memory as usable for ASAN.
     }
 
-    fn did_deallocate_bytes(&self, p: *mut u8, size: usize) {
+    fn did_deallocate_bytes(&self, _p: *mut u8, _size: usize) {
         // TODO(strager): Mark memory as unusable for Valgrind.
         // TODO(port): Mark memory as unusable for Valgrind.
     }

@@ -846,7 +846,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.end = body.end;
     }
 
-    fn parse_template_body<'this>(
+    fn parse_template_body(
         &mut self,
         input: InputPointer,
         template_begin: *const u8,
@@ -1610,7 +1610,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         } else {
             input += 2; // Skip "\u".
             code_point_hex_begin = input.0;
-            for i in 0..4 {
+            for _ in 0..4 {
                 if input[0] == b'\0' && self.is_eof(input.0) {
                     // TODO: Add an enum to DiagExpectedHexDigitsInUnicodeEscape to
                     // indicate whether the token is a template literal, a string literal

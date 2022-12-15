@@ -55,10 +55,8 @@ const STRINGPOOL: &[u8; 525] = b"\
     ";
 
 fn look_up(input: &[u8]) -> Option<&'static KeywordEntry> {
-    const TOTAL_KEYWORDS: usize = 80;
     const MIN_WORD_LENGTH: usize = 2;
     const MAX_WORD_LENGTH: usize = 11;
-    const MIN_HASH_VALUE: usize = 2;
     const MAX_HASH_VALUE: u32 = 161;
 
     const INVALID: KeywordEntry = KeywordEntry {
