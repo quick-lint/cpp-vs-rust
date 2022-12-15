@@ -1087,18 +1087,15 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         let ident: ParsedIdentifier =
                             self.parse_identifier(c.0, IdentifierKind::JavaScript);
                         c = InputPointer(ident.after);
-                        match ident.escape_sequences {
-                            Some(escape_sequences) => {
-                                for escape_sequence in escape_sequences.as_slice() {
-                                    report(
-                                        self.diag_reporter,
-                                        DiagRegexpLiteralFlagsCannotContainUnicodeEscapes {
-                                            escape_sequence: *escape_sequence,
-                                        },
-                                    );
-                                }
+                        if let Some(escape_sequences) = ident.escape_sequences {
+                            for escape_sequence in escape_sequences.as_slice() {
+                                report(
+                                    self.diag_reporter,
+                                    DiagRegexpLiteralFlagsCannotContainUnicodeEscapes {
+                                        escape_sequence: *escape_sequence,
+                                    },
+                                );
                             }
-                            None => {}
                         }
                     }
                     break 'next;
