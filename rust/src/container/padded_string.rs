@@ -49,14 +49,6 @@ impl PaddedString {
         }
     }
 
-    pub fn from_str(s: &str) -> PaddedString {
-        PaddedString::from_slice(s.as_bytes())
-    }
-
-    pub fn from_string(s: String) -> PaddedString {
-        PaddedString::from_str(&s)
-    }
-
     pub fn c_str(&self) -> *const u8 {
         self.data
     }

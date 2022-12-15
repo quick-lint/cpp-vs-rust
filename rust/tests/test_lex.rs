@@ -942,7 +942,8 @@ fn lex_strings() {
 
     for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
         let v = DiagCollector::new();
-        let input = PaddedString::from_string(format!("'unterminated{line_terminator}hello"));
+        let input =
+            PaddedString::from_slice(format!("'unterminated{line_terminator}hello").as_bytes());
         let mut l = Lexer::new(input.view(), &v);
         assert_eq!(l.peek().type_, TokenType::String);
         l.skip();
@@ -960,7 +961,8 @@ fn lex_strings() {
 
     for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
         let v = DiagCollector::new();
-        let input = PaddedString::from_string(format!("'separated{line_terminator}hello'"));
+        let input =
+            PaddedString::from_slice(format!("'separated{line_terminator}hello'").as_bytes());
         let mut l = Lexer::new(input.view(), &v);
         assert_eq!(l.peek().type_, TokenType::String);
         l.skip();
@@ -977,9 +979,9 @@ fn lex_strings() {
 
     for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
         let v = DiagCollector::new();
-        let input = PaddedString::from_string(format!(
-            "'separated{line_terminator}{line_terminator}hello'"
-        ));
+        let input = PaddedString::from_slice(
+            format!("'separated{line_terminator}{line_terminator}hello'").as_bytes(),
+        );
         let mut l = Lexer::new(input.view(), &v);
         assert_eq!(l.peek().type_, TokenType::String);
         l.skip();
@@ -1006,9 +1008,9 @@ fn lex_strings() {
         // TODO(port)
         for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
             let v = DiagCollector::new();
-            let input = PaddedString::from_string(format!(
-                "let x = 'hello{line_terminator}let y = 'world'"
-            ));
+            let input = PaddedString::from_slice(
+                format!("let x = 'hello{line_terminator}let y = 'world'").as_bytes(),
+            );
             let mut l = Lexer::new(input.view(), &v);
             assert_eq!(l.peek().type_, TokenType::KWLet);
             l.skip();
@@ -2948,7 +2950,7 @@ impl Fixture {
     }
 
     fn lex_to_eof_types(&mut self, input: &str) -> Vec<TokenType> {
-        self.lex_to_eof_types_padded(PaddedString::from_str(input).view())
+        self.lex_to_eof_types_padded(PaddedString::from_slice(input.as_bytes()).view())
     }
 
     fn lex_to_eof_types_padded(&mut self, input: PaddedStringView<'_>) -> Vec<TokenType> {

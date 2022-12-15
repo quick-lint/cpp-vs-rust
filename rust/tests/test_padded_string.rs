@@ -8,22 +8,22 @@ fn new_string_has_following_null_bytes() {
 }
 
 #[test]
-fn empty_string_from_string_has_following_null_bytes() {
-    let s = String::from("");
-    let padded = PaddedString::from_string(s);
+fn empty_string_from_slice_has_following_null_bytes() {
+    let s: &[u8] = b"";
+    let padded = PaddedString::from_slice(s);
     expect_null_terminated(&padded);
 }
 
 #[test]
 fn len_excludes_padding_bytes() {
-    let s = String::from("hello");
-    let padded = PaddedString::from_string(s);
+    let s: &[u8] = b"hello";
+    let padded = PaddedString::from_slice(s);
     assert_eq!(padded.len(), 5);
 }
 
 #[test]
 fn resize_with_bigger_len_adds_new_characters() {
-    let mut s = PaddedString::from_str("hello");
+    let mut s = PaddedString::from_slice(b"hello");
 
     s.resize(10);
 
@@ -34,7 +34,7 @@ fn resize_with_bigger_len_adds_new_characters() {
 
 #[test]
 fn resize_grow_uninitialized_preserves_original_data() {
-    let mut s = PaddedString::from_str("hello");
+    let mut s = PaddedString::from_slice(b"hello");
 
     s.resize_grow_uninitialized(10);
 
@@ -47,7 +47,7 @@ fn resize_grow_uninitialized_preserves_original_data() {
 
 #[test]
 fn resize_with_smaller_len_removes_characters() {
-    let mut s = PaddedString::from_str("helloworld");
+    let mut s = PaddedString::from_slice(b"helloworld");
 
     s.resize(5);
 
@@ -58,7 +58,7 @@ fn resize_with_smaller_len_removes_characters() {
 
 #[test]
 fn debug_format_does_not_include_padding_bytes() {
-    let s = PaddedString::from_str("hello");
+    let s = PaddedString::from_slice(b"hello");
     assert_eq!(
         format!("BEFORE{s:?}AFTER"),
         format!("BEFORE{:?}AFTER", "hello")
@@ -67,13 +67,13 @@ fn debug_format_does_not_include_padding_bytes() {
 
 #[test]
 fn as_slice_excludes_padding_bytes() {
-    let s = PaddedString::from_string(String::from("hello"));
+    let s = PaddedString::from_slice(b"hello");
     assert_eq!(s.as_slice(), b"hello");
 }
 
 #[test]
 fn shrinking_does_not_reallocate() {
-    let mut s = PaddedString::from_str("helloworld");
+    let mut s = PaddedString::from_slice(b"helloworld");
     let old_data: *mut u8 = s.data_ptr();
     s.resize(5);
     assert_eq!(s.data_ptr(), old_data);
@@ -83,7 +83,7 @@ fn shrinking_does_not_reallocate() {
 
 #[test]
 fn moving_does_not_invalidate_pointers() {
-    let mut s1 = PaddedString::from_str("helloworld");
+    let mut s1 = PaddedString::from_slice(b"helloworld");
     let old_s1_data: *mut u8 = s1.data_ptr();
     let mut s2 = s1; // Move.
     assert_eq!(s2.data_ptr(), old_s1_data, "moving should not reallocate");

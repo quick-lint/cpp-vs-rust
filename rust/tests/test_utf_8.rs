@@ -75,7 +75,7 @@ fn expect_encode_utf_8(code_point: u32, expected: &[u8]) {
 
 #[test]
 fn decode_empty_string() {
-    let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_str("").view());
+    let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_slice(b"").view());
     assert_eq!(result.size, 0);
     assert!(!result.ok);
 }
@@ -83,14 +83,14 @@ fn decode_empty_string() {
 #[test]
 fn decode_ascii() {
     {
-        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_str("a").view());
+        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_slice(b"a").view());
         assert_eq!(result.size, 1);
         assert!(result.ok);
         assert_eq!(result.code_point, 'a');
     }
 
     {
-        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_str("12345").view());
+        let result: DecodeUTF8Result = decode_utf_8(PaddedString::from_slice(b"12345").view());
         assert_eq!(result.size, 1);
         assert!(result.ok);
         assert_eq!(result.code_point, '1');

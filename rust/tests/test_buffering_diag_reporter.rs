@@ -9,8 +9,8 @@ use cpp_vs_rust::test::diag_collector::*;
 
 #[test]
 fn buffers_all_visits() {
-    let bom_code = PaddedString::from_str("bom");
-    let string_code = PaddedString::from_str("\"");
+    let bom_code = PaddedString::from_slice(b"bom");
+    let string_code = PaddedString::from_slice(b"\"");
 
     let memory = MonotonicAllocator::new("test");
     let mut diag_reporter = BufferingDiagReporter::new(&memory);
@@ -52,7 +52,7 @@ fn not_destructing_does_not_leak() {
     let memory = MonotonicAllocator::new("test");
     let diag_reporter = BufferingDiagReporter::new(&memory);
 
-    let bom_code = PaddedString::from_str("bom");
+    let bom_code = PaddedString::from_slice(b"bom");
     report(
         &diag_reporter,
         DiagUnexpectedBomBeforeShebang {
