@@ -2396,19 +2396,19 @@ fn is_hex_digit(c: u8) -> bool {
     matches!(c, qljs_case_decimal_digit!() | b'a'..=b'f' | b'A'..=b'F')
 }
 
-fn is_initial_identifier_byte(byte: u8) -> bool {
+pub fn is_initial_identifier_byte(byte: u8) -> bool {
     matches!(byte, qljs_case_identifier_start!() | 0xc2..=0xcb | 0xcd..=0xed | 0xef..=0xf0)
 }
 
-fn is_identifier_byte(byte: u8) -> bool {
+pub fn is_identifier_byte(byte: u8) -> bool {
     matches!(byte, qljs_case_decimal_digit!() | qljs_case_identifier_start!() | 0xc2..=0xed | 0xef..=0xf0 | 0xf3)
 }
 
-fn is_initial_identifier_character(code_point: u32) -> bool {
+pub fn is_initial_identifier_character(code_point: u32) -> bool {
     look_up_in_unicode_table(&IDENTIFIER_START_CHUNK_INDEXES, code_point)
 }
 
-fn is_identifier_character(code_point: u32, kind: IdentifierKind) -> bool {
+pub fn is_identifier_character(code_point: u32, kind: IdentifierKind) -> bool {
     if kind == IdentifierKind::JSX && code_point == (b'-' as u32) {
         return true;
     }

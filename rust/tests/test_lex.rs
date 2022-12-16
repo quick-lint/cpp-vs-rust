@@ -14,6 +14,7 @@ use cpp_vs_rust::test::characters::*;
 use cpp_vs_rust::test::diag_collector::*;
 use cpp_vs_rust::test::diag_matcher::*;
 use cpp_vs_rust::test::parse_support::*;
+use cpp_vs_rust::util::utf_8::*;
 
 macro_rules! scoped_trace {
     ($expr:expr $(,)?) => {
@@ -3271,8 +3272,57 @@ fn inserting_semicolon_at_right_curly_remembers_next_token() {
 // TODO(port): rolling_back_transaction
 // TODO(port): insert_semicolon_after_rolling_back_transaction
 // TODO(port): unfinished_transaction_does_not_leak_memory
-// TODO(port): is_initial_identifier_byte_agrees_with_is_initial_identifier_character
-// TODO(port): is_identifier_byte_agrees_with_is_identifier_character
+
+#[test]
+fn is_initial_identifier_byte_agrees_with_is_initial_identifier_character() {
+    const MIN_CODE_POINT: char = '\0';
+    const MAX_CODE_POINT: char = '\u{10ffff}';
+
+    let mut is_valid_byte: [bool; 256] = [false; 256];
+    is_valid_byte[b'\\' as usize] = true;
+    for c in MIN_CODE_POINT..=MAX_CODE_POINT {
+        if is_initial_identifier_character(c as u32) {
+            let mut utf_8: [u8; 10] = [0; 10];
+            encode_utf_8(c as u32, &mut utf_8);
+            is_valid_byte[utf_8[0] as usize] = true;
+        }
+    }
+
+    for byte in 0..is_valid_byte.len() {
+        assert_eq!(
+            is_initial_identifier_byte(byte as u8),
+            is_valid_byte[byte],
+            "byte = 0x{:x}",
+            byte,
+        );
+    }
+}
+
+#[test]
+fn is_identifier_byte_agrees_with_is_identifier_character() {
+    const MIN_CODE_POINT: char = '\0';
+    const MAX_CODE_POINT: char = '\u{10ffff}';
+
+    let mut is_valid_byte: [bool; 256] = [false; 256];
+    is_valid_byte[b'\\' as usize] = true;
+    for c in MIN_CODE_POINT..=MAX_CODE_POINT {
+        if is_identifier_character(c as u32, IdentifierKind::JavaScript) {
+            let mut utf_8: [u8; 10] = [0; 10];
+            encode_utf_8(c as u32, &mut utf_8);
+            is_valid_byte[utf_8[0] as usize] = true;
+        }
+    }
+
+    for byte in 0..is_valid_byte.len() {
+        assert_eq!(
+            is_identifier_byte(byte as u8),
+            is_valid_byte[byte],
+            "byte = 0x{:x}",
+            byte,
+        );
+    }
+}
+
 // TODO(port): jsx_identifier
 // TODO(port): invalid_jsx_identifier
 // TODO(port): jsx_string
