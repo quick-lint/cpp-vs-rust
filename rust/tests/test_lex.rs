@@ -2450,7 +2450,12 @@ fn lex_identifier_with_disallowed_initial_character_as_subsequent_character() {
     f.check_single_token("legal\u{0816}".as_bytes(), "legal\u{0816}".as_bytes());
 }
 
-// TODO(port): lex_identifiers_which_look_like_keywords
+#[test]
+fn lex_identifiers_which_look_like_keywords() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"ifelse", &[TokenType::Identifier]);
+    f.check_tokens(b"IF", &[TokenType::Identifier]);
+}
 
 #[test]
 fn private_identifier() {
