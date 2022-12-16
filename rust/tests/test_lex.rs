@@ -3176,9 +3176,92 @@ fn lex_token_notes_leading_newline_after_comment() {
     assert!(l.peek().has_leading_newline); // b
 }
 
-// TODO(port): inserting_semicolon_at_newline_remembers_next_token
-// TODO(port): insert_semicolon_at_beginning_of_input
-// TODO(port): inserting_semicolon_at_right_curly_remembers_next_token
+#[test]
+fn inserting_semicolon_at_newline_remembers_next_token() {
+    let code = PaddedString::from_slice(b"hello\nworld");
+    let mut l = Lexer::new(code.view(), null_diag_reporter());
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    assert_eq!(l.peek().identifier_name().normalized_name(), b"hello");
+    assert!(!(l.peek().has_leading_newline));
+    let hello_end: *const u8 = l.peek().end;
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    assert_eq!(l.peek().identifier_name().normalized_name(), b"world");
+    assert!(l.peek().has_leading_newline);
+    l.insert_semicolon();
+    assert_eq!(l.peek().type_, TokenType::Semicolon);
+    assert!(!(l.peek().has_leading_newline));
+    assert_eq!(l.peek().begin, hello_end);
+    assert_eq!(l.peek().end, hello_end);
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    assert_eq!(l.peek().identifier_name().normalized_name(), b"world");
+    assert!(l.peek().has_leading_newline);
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+}
+
+#[test]
+fn insert_semicolon_at_beginning_of_input() {
+    let code = PaddedString::from_slice(b"hello world");
+    let mut l = Lexer::new(code.view(), null_diag_reporter());
+
+    l.insert_semicolon();
+    assert_eq!(l.peek().type_, TokenType::Semicolon);
+    assert!(!l.peek().has_leading_newline);
+    assert_eq!(l.peek().begin, code.c_str());
+    assert_eq!(l.peek().end, code.c_str());
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    assert_eq!(l.peek().identifier_name().normalized_name(), b"hello");
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    assert_eq!(l.peek().identifier_name().normalized_name(), b"world");
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+}
+
+#[test]
+fn inserting_semicolon_at_right_curly_remembers_next_token() {
+    let code = PaddedString::from_slice(b"{ x }");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::LeftCurly);
+    assert!(!l.peek().has_leading_newline);
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    assert_eq!(l.peek().identifier_name().normalized_name(), b"x");
+    assert!(!l.peek().has_leading_newline);
+    let x_end: *const u8 = l.peek().end;
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::RightCurly);
+    assert!(!(l.peek().has_leading_newline));
+    l.insert_semicolon();
+    assert_eq!(l.peek().type_, TokenType::Semicolon);
+    assert!(!l.peek().has_leading_newline);
+    assert_eq!(l.peek().begin, x_end);
+    assert_eq!(l.peek().end, x_end);
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::RightCurly);
+    assert!(!l.peek().has_leading_newline);
+    l.skip();
+
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+}
+
 // TODO(port): transaction_buffers_errors_until_commit
 // TODO(port): nested_transaction_buffers_errors_until_outer_commit
 // TODO(port): rolled_back_inner_transaction_discards_errors

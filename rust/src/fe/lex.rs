@@ -1202,6 +1202,16 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.end = self.input.0;
     }
 
+    pub fn insert_semicolon(&mut self) {
+        qljs_assert!(!self.last_last_token_end.is_null());
+        self.input = InputPointer(self.last_last_token_end);
+
+        self.last_token.type_ = TokenType::Semicolon;
+        self.last_token.has_leading_newline = false;
+        self.last_token.begin = self.input.0;
+        self.last_token.end = self.input.0;
+    }
+
     // Do not call this after calling insert_semicolon, unless skip has been
     // called after.
     pub fn end_of_previous_token(&self) -> *const u8 {
