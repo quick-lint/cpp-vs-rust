@@ -2160,7 +2160,95 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn skip_block_comment(&mut self) {
-        todo!();
+        qljs_slow_assert!(self.input[0] == b'/' && self.input[1] == b'*');
+        let mut c: InputPointer = self.input + 2;
+
+        #[cfg(target_feature = "sse2")]
+        type BoolVector = BoolVector16SSE2;
+        #[cfg(target_feature = "sse2")]
+        type CharVector = CharVector16SSE2;
+        #[cfg(not(target_feature = "sse2"))]
+        type BoolVector = BoolVector1;
+        #[cfg(not(target_feature = "sse2"))]
+        type CharVector = CharVector1;
+
+        fn is_comment_end(string: InputPointer) -> bool {
+            string[0] == b'*' && string[1] == b'/'
+        }
+
+        loop {
+            let chars: CharVector = unsafe { CharVector::load_raw(c.0) };
+            let matches: BoolVector = chars.lane_eq(CharVector::repeated(b'*'))
+                | chars.lane_eq(CharVector::repeated(b'\0'))
+                | chars.lane_eq(CharVector::repeated(b'\n'))
+                | chars.lane_eq(CharVector::repeated(b'\r'))
+                | chars.lane_eq(CharVector::repeated(
+                    LINE_SEPARATOR_PARAGRAPH_SEPARATOR_FIRST_BYTE,
+                ));
+            let mask: u32 = matches.mask();
+            if mask != 0 {
+                for i in mask.trailing_zeros()..(chars.len() as u32) {
+                    if (mask & (1 << i)) != 0 {
+                        let cc: InputPointer = c + (i as isize);
+                        if is_comment_end(cc) {
+                            c = cc;
+                            return found_comment_end(self, c);
+                        }
+                        let newline_size: usize = newline_character_size(cc);
+                        if newline_size > 0 {
+                            c = cc + (newline_size as isize);
+                            return found_newline_in_comment(self, c);
+                        }
+                        if cc[0] == b'\0' {
+                            return found_end_of_file(self);
+                        }
+                    }
+                }
+            }
+            c += chars.len() as isize;
+        }
+
+        fn found_newline_in_comment(this: &mut Lexer, mut c: InputPointer) {
+            this.last_token.has_leading_newline = true;
+            loop {
+                let chars: CharVector = unsafe { CharVector::load_raw(c.0) };
+                let matches: BoolVector = chars.lane_eq(CharVector::repeated(b'\0'))
+                    | chars.lane_eq(CharVector::repeated(b'*'));
+                let mask: u32 = matches.mask();
+                if mask != 0 {
+                    for i in mask.trailing_zeros()..(chars.len() as u32) {
+                        if (mask & (1 << i)) != 0 {
+                            let cc: InputPointer = c + (i as isize);
+                            if is_comment_end(cc) {
+                                c = cc;
+                                return found_comment_end(this, c);
+                            }
+                            if cc[0] == b'\0' {
+                                return found_end_of_file(this);
+                            }
+                        }
+                    }
+                }
+                c += chars.len() as isize;
+            }
+        }
+
+        fn found_comment_end(this: &mut Lexer, c: InputPointer) {
+            this.input = c + 2;
+            this.skip_whitespace();
+        }
+
+        fn found_end_of_file(this: &mut Lexer) {
+            report(
+                this.diag_reporter,
+                DiagUnclosedBlockComment {
+                    comment_open: unsafe {
+                        SourceCodeSpan::new((this.input + 0).0, (this.input + 2).0)
+                    },
+                },
+            );
+            this.input = InputPointer(this.original_input.null_terminator());
+        }
     }
 
     fn skip_line_comment_body(&mut self) {

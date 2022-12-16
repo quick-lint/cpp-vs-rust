@@ -21,7 +21,33 @@ macro_rules! scoped_trace {
     };
 }
 
-// TODO(port): lex_block_comments
+#[test]
+fn lex_block_comments() {
+    let mut f = Fixture::new();
+
+    f.check_single_token(b"/* */ hello", b"hello");
+    f.check_single_token(b"/*/ comment */ hi", b"hi");
+    f.check_single_token(b"/* comment /*/ hi", b"hi");
+    f.check_single_token(b"/* not /* nested */ ident", b"ident");
+    assert_eq!(f.lex_to_eof_types("/**/"), vec![]);
+
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"hello /* unterminated comment ");
+        let mut l = Lexer::new(input.view(), &v);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnclosedBlockComment {
+                comment_open: b"hello "..b"/*",
+            },
+        );
+    }
+}
+
 // TODO(port): lex_unopened_block_comment
 // TODO(port): lex_regexp_literal_starting_with_star_slash
 // TODO(port): lex_regexp_literal_starting_with_star_star_slash
@@ -3140,6 +3166,7 @@ impl Fixture {
         callback(&tokens);
     }
 
+    // TODO(port): Accept a &[u8] instead.
     fn lex_to_eof_types(&mut self, input: &str) -> Vec<TokenType> {
         self.lex_to_eof_types_padded(PaddedString::from_slice(input.as_bytes()).view())
     }
