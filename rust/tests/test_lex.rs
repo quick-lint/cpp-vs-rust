@@ -89,8 +89,94 @@ fn lex_line_comments_with_control_characters() {
     }
 }
 
-// TODO(port): lex_html_open_comments
-// TODO(port): lex_html_close_comments
+#[test]
+fn lex_html_open_comments() {
+    let mut f = Fixture::new();
+
+    assert_eq!(f.lex_to_eof_types("<!-- --> hello"), vec![]);
+    for line_terminator in LINE_TERMINATORS {
+        f.check_single_token(
+            format!("<!-- hello{line_terminator}world").as_bytes(),
+            b"world",
+        );
+    }
+    assert_eq!(f.lex_to_eof_types("<!-- hello\n<!-- world"), vec![]);
+    assert_eq!(f.lex_to_eof_types("<!--// hello"), vec![]);
+    f.check_tokens(
+        b"hello<!--->\n \n \nworld",
+        &[TokenType::Identifier, TokenType::Identifier],
+    );
+    for control_character in CONTROL_CHARACTERS_EXCEPT_LINE_TERMINATORS {
+        let input = PaddedString::from_slice(
+            format!("<!-- hello {control_character} world\n42.0").as_bytes(),
+        );
+        scoped_trace!(input);
+        f.check_tokens(input.as_slice(), &[TokenType::Number]);
+    }
+
+    f.check_tokens(
+        b"hello<!world",
+        &[
+            TokenType::Identifier,
+            TokenType::Less,
+            TokenType::Bang,
+            TokenType::Identifier,
+        ],
+    );
+    f.check_tokens(
+        b"hello<!-world",
+        &[
+            TokenType::Identifier,
+            TokenType::Less,
+            TokenType::Bang,
+            TokenType::Minus,
+            TokenType::Identifier,
+        ],
+    );
+}
+
+#[test]
+fn lex_html_close_comments() {
+    let mut f = Fixture::new();
+
+    assert_eq!(f.lex_to_eof_types("--> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types("     --> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types("/* */--> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types("/**//**/--> comment"), vec![]);
+
+    for eol in LINE_TERMINATORS {
+        f.check_single_token(format!("-->{eol}hello").as_bytes(), b"hello");
+        f.check_single_token(format!("--> comment{eol}hello").as_bytes(), b"hello");
+        f.check_single_token(
+            format!("--> comment1{eol}--> comment2{eol}hello").as_bytes(),
+            b"hello",
+        );
+
+        f.check_single_token(
+            format!("/*{eol}*/--> comment{eol}hello").as_bytes(),
+            b"hello",
+        );
+        f.check_single_token(
+            format!("/* */ /*{eol}*/ --> comment{eol}hello").as_bytes(),
+            b"hello",
+        );
+        f.check_single_token(
+            format!("/*{eol}*/ /* */ --> comment{eol}hello").as_bytes(),
+            b"hello",
+        );
+    }
+
+    // Not an HTML close comment because non-whitespace non-comment preceeds.
+    f.check_tokens(
+        b"3 --> 4",
+        &[
+            TokenType::Number,
+            TokenType::MinusMinus,
+            TokenType::Greater,
+            TokenType::Number,
+        ],
+    );
+}
 
 #[test]
 fn lex_numbers() {
