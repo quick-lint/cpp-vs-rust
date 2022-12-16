@@ -6,6 +6,8 @@ use std::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::*;
 
+// TODO(port): forceinline attributes
+
 #[cfg(target_feature = "sse2")]
 #[derive(Clone, Copy)]
 pub struct CharVector16SSE2(__m128i);
@@ -220,3 +222,91 @@ impl std::ops::BitOr<BoolVector16NEON> for BoolVector16NEON {
 
 #[cfg(target_feature = "neon")]
 pub use crate::port::simd_neon_arm::*;
+
+pub struct CharVector1(u8);
+
+impl CharVector1 {
+    pub fn new(data: u8) -> CharVector1 {
+        CharVector1(data)
+    }
+
+    pub fn load(data: &[u8]) -> CharVector1 {
+        CharVector1(data[0])
+    }
+
+    pub unsafe fn load_raw(data: *const u8) -> CharVector1 {
+        Self::load(std::slice::from_raw_parts(data, 1))
+    }
+
+    pub fn repeated(c: u8) -> CharVector1 {
+        CharVector1(c)
+    }
+
+    pub fn lane_eq(&self, rhs: CharVector1) -> BoolVector1 {
+        BoolVector1(self.0 == rhs.0)
+    }
+
+    pub fn lane_lt(&self, rhs: CharVector1) -> BoolVector1 {
+        BoolVector1(self.0 < rhs.0)
+    }
+
+    pub fn lane_gt(&self, rhs: CharVector1) -> BoolVector1 {
+        BoolVector1(self.0 > rhs.0)
+    }
+
+    pub const fn len(&self) -> usize {
+        1
+    }
+}
+
+impl std::ops::BitOr<CharVector1> for CharVector1 {
+    type Output = CharVector1;
+
+    fn bitor(self, rhs: CharVector1) -> CharVector1 {
+        CharVector1(self.0 | rhs.0)
+    }
+}
+
+pub struct BoolVector1(bool);
+
+impl BoolVector1 {
+    pub fn new(data: bool) -> BoolVector1 {
+        BoolVector1(data)
+    }
+
+    pub fn find_first_false(&self) -> u32 {
+        if self.0 {
+            1
+        } else {
+            0
+        }
+    }
+
+    pub fn mask(&self) -> u32 {
+        if self.0 {
+            1
+        } else {
+            0
+        }
+    }
+
+    pub const fn len(&self) -> usize {
+        1
+    }
+}
+
+impl std::ops::BitAnd<BoolVector1> for BoolVector1 {
+    type Output = BoolVector1;
+
+    fn bitand(self, rhs: BoolVector1) -> BoolVector1 {
+        BoolVector1(self.0 && rhs.0)
+    }
+}
+
+impl std::ops::BitOr<BoolVector1> for BoolVector1 {
+    type Output = BoolVector1;
+
+    fn bitor(self, rhs: BoolVector1) -> BoolVector1 {
+        BoolVector1(self.0 || rhs.0)
+    }
+}
