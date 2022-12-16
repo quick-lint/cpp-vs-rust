@@ -266,7 +266,6 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 }
             }
 
-            // Non-ASCII or control character.
             b'(' | b')' | b',' | b':' | b';' | b'[' | b']' | b'{' | b'}' | b'~' => {
                 self.last_token.type_ = unsafe { std::mem::transmute(self.input[0]) };
                 self.input += 1;
@@ -624,6 +623,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             }
             // TODO(port): case '\x01' ... case '\x7f':
             // TODO(port): case '@':
+            // Non-ASCII or control character.
             _ => {
                 let character: DecodeUTF8Result = decode_utf_8(unsafe {
                     PaddedStringView::from_begin_end(
