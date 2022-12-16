@@ -13,6 +13,9 @@ use crate::port::maybe_uninit::*;
 use crate::port::simd::*;
 use crate::qljs_always_assert;
 use crate::qljs_assert;
+use crate::qljs_case_contextual_keyword;
+use crate::qljs_case_reserved_keyword_except_await_and_yield;
+use crate::qljs_case_strict_only_reserved_keyword;
 use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
@@ -210,40 +213,42 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 self.last_token.normalized_identifier = ident.normalized;
                 self.last_token.end = ident.after;
                 self.last_token.type_ = identifier_token_type(ident.normalized);
-                /* TODO(port)
-                if ident.escape_sequences && !ident.escape_sequences->empty() {
-                    match self.last_token.type_ {
-                        TokenType::Identifier => {
-                            self.last_token.type_ = TokenType::Identifier;
-                        }
+                if let Some(escape_sequences) = ident.escape_sequences {
+                    if !escape_sequences.is_empty() {
+                        match self.last_token.type_ {
+                            TokenType::Identifier => {
+                                self.last_token.type_ = TokenType::Identifier;
+                            }
 
-                        qljs_case_contextual_keyword!()
-                        | TokenType::KWAwait
-                        | TokenType::KWYield => {
-                            // Escape sequences in identifiers prevent it from becoming a
-                            // contextual keyword.
-                            self.last_token.type_ = TokenType::Identifier;
-                        }
+                            qljs_case_contextual_keyword!()
+                            | TokenType::KWAwait
+                            | TokenType::KWYield => {
+                                // Escape sequences in identifiers prevent it from becoming a
+                                // contextual keyword.
+                                self.last_token.type_ = TokenType::Identifier;
+                            }
 
-                        qljs_case_strict_only_reserved_keyword!() => {
-                            // TODO(#73): Treat 'protected', 'implements', etc. in strict mode as
-                            // reserved words.
-                            self.last_token.type_ = TokenType::Identifier;
-                        }
+                            qljs_case_strict_only_reserved_keyword!() => {
+                                // TODO(#73): Treat 'protected', 'implements', etc. in strict mode as
+                                // reserved words.
+                                self.last_token.type_ = TokenType::Identifier;
+                            }
 
-                        qljs_case_reserved_keyword_except_await_and_yield!() => {
-                            // Escape sequences in identifiers prevent it from becoming a reserved
-                            // keyword.
-                            self.last_token.type_ = TokenType::ReservedKeywordWithEscapeSequence;
-                            self.last_token.identifier_escape_sequences = ident.escape_sequences;
-                        }
+                            qljs_case_reserved_keyword_except_await_and_yield!() => {
+                                // Escape sequences in identifiers prevent it from becoming a reserved
+                                // keyword.
+                                self.last_token.type_ =
+                                    TokenType::ReservedKeywordWithEscapeSequence;
+                                self.last_token.extras.identifier_escape_sequences =
+                                    escape_sequences;
+                            }
 
-                        _ => {
-                            unreachable!();
+                            _ => {
+                                unreachable!();
+                            }
                         }
                     }
                 }
-                */
             }
 
             // Non-ASCII or control character.

@@ -13,6 +13,7 @@ use cpp_vs_rust::qljs_assert_no_diags;
 use cpp_vs_rust::test::characters::*;
 use cpp_vs_rust::test::diag_collector::*;
 use cpp_vs_rust::test::diag_matcher::*;
+use cpp_vs_rust::test::parse_support::*;
 
 macro_rules! scoped_trace {
     ($expr:expr $(,)?) => {
@@ -2667,8 +2668,45 @@ fn lex_typescript_contextual_keywords() {
     f.check_tokens(b"unknown", &[TokenType::KWUnknown]);
 }
 
-// TODO(port): lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences
-// TODO(port): lex_contextual_keywords_and_await_and_yield_can_contain_escape_sequences
+#[test]
+fn lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_sequences() {
+    // TODO(#73): Also lex 'protected', 'implements', etc. as
+    // reserved_keyword_with_escape_sequence in strict mode.
+    for keyword in DISALLOWED_BINDING_IDENTIFIER_KEYWORDS.iter() {
+        let code = PaddedString::from_slice(escape_first_character_in_keyword(keyword).as_bytes());
+        scoped_trace!(code);
+        let errors = DiagCollector::new();
+        let l = Lexer::new(code.view(), &errors);
+
+        assert_eq!(l.peek().type_, TokenType::ReservedKeywordWithEscapeSequence);
+        assert_eq!(
+            l.peek().identifier_name().normalized_name(),
+            keyword.as_bytes()
+        );
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+        l.peek()
+            .report_errors_for_escape_sequences_in_keyword(&errors);
+        qljs_assert_diags!(
+            errors.clone_errors(),
+            code.view(),
+            DiagKeywordsCannotContainEscapeSequences {
+                escape_sequence: 0..b"\\u{??}",
+            },
+        );
+    }
+}
+
+#[test]
+fn lex_contextual_keywords_and_await_and_yield_can_contain_escape_sequences() {
+    let mut f = Fixture::new();
+    for keyword in CONTEXTUAL_KEYWORDS.iter() {
+        let code: String = escape_first_character_in_keyword(keyword);
+        scoped_trace!(code);
+        scoped_trace!(keyword);
+        f.check_single_token(code.as_bytes(), keyword.as_bytes());
+    }
+}
 
 #[test]
 fn lex_single_character_symbols() {

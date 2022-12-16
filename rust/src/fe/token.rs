@@ -2,6 +2,7 @@ use crate::container::monotonic_allocator::*;
 use crate::container::vector::*;
 use crate::fe::buffering_diag_reporter::*;
 use crate::fe::diag_reporter::*;
+use crate::fe::diagnostic_types::*;
 use crate::fe::identifier::*;
 use crate::fe::source_code_span::*;
 use crate::qljs_assert;
@@ -50,7 +51,7 @@ macro_rules! qljs_case_reserved_keyword_except_await_and_function_and_yield {
 #[macro_export]
 macro_rules! qljs_case_reserved_keyword_except_function {
     () => {
-        qljs_case_reserved_keyword_except_await_and_function_and_yield!()
+        $crate::qljs_case_reserved_keyword_except_await_and_function_and_yield!()
             | $crate::fe::token::TokenType::KWAwait
             | $crate::fe::token::TokenType::KWYield
     };
@@ -59,7 +60,7 @@ macro_rules! qljs_case_reserved_keyword_except_function {
 #[macro_export]
 macro_rules! qljs_case_reserved_keyword_except_await_and_yield {
     () => {
-        qljs_case_reserved_keyword_except_await_and_function_and_yield!()
+        $crate::qljs_case_reserved_keyword_except_await_and_function_and_yield!()
             | $crate::fe::token::TokenType::KWFunction
     };
 }
@@ -69,7 +70,7 @@ macro_rules! qljs_case_reserved_keyword_except_await_and_yield {
 #[macro_export]
 macro_rules! qljs_case_reserved_keyword {
     () => {
-        qljs_case_reserved_keyword_except_await_and_yield!()
+        $crate::qljs_case_reserved_keyword_except_await_and_yield!()
             | $crate::fe::token::TokenType::KWAwait
             | $crate::fe::token::TokenType::KWYield
     };
@@ -80,7 +81,7 @@ macro_rules! qljs_case_reserved_keyword {
 #[macro_export]
 macro_rules! qljs_case_strict_reserved_keyword {
     () => {
-        qljs_case_reserved_keyword!() | qljs_case_strict_only_reserved_keyword!()
+        $crate::qljs_case_reserved_keyword!() | qljs_case_strict_only_reserved_keyword!()
     };
 }
 
@@ -134,7 +135,7 @@ macro_rules! qljs_case_typescript_only_contextual_keyword_except_type {
 #[macro_export]
 macro_rules! qljs_case_typescript_only_contextual_keyword {
     () => {
-        qljs_case_typescript_only_contextual_keyword_except_type!()
+        $crate::qljs_case_typescript_only_contextual_keyword_except_type!()
             | $crate::fe::token::TokenType::KWType
     };
 }
@@ -142,7 +143,7 @@ macro_rules! qljs_case_typescript_only_contextual_keyword {
 #[macro_export]
 macro_rules! qljs_case_contextual_keyword_except_async_and_get_and_set_and_static_and_type {
     () => {
-        qljs_case_typescript_only_contextual_keyword_except_type!()
+        $crate::qljs_case_typescript_only_contextual_keyword_except_type!()
             | $crate::fe::token::TokenType::KWAs
             | $crate::fe::token::TokenType::KWFrom
             | $crate::fe::token::TokenType::KWLet
@@ -153,7 +154,7 @@ macro_rules! qljs_case_contextual_keyword_except_async_and_get_and_set_and_stati
 #[macro_export]
 macro_rules! qljs_case_contextual_keyword_except_async_and_get_and_set {
     () => {
-        qljs_case_contextual_keyword_except_async_and_get_and_set_and_static_and_type!()
+        $crate::qljs_case_contextual_keyword_except_async_and_get_and_set_and_static_and_type!()
             | $crate::fe::token::TokenType::KWStatic
             | $crate::fe::token::TokenType::KWType
     };
@@ -164,7 +165,7 @@ macro_rules! qljs_case_contextual_keyword_except_async_and_get_and_set {
 #[macro_export]
 macro_rules! qljs_case_contextual_keyword {
     () => {
-        qljs_case_contextual_keyword_except_async_and_get_and_set!()
+        $crate::qljs_case_contextual_keyword_except_async_and_get_and_set!()
             | $crate::fe::token::TokenType::KWAsync
             | $crate::fe::token::TokenType::KWGet
             | $crate::fe::token::TokenType::KWSet
@@ -175,7 +176,7 @@ macro_rules! qljs_case_contextual_keyword {
 #[macro_export]
 macro_rules! qljs_case_keyword {
     () => {
-        qljs_case_contextual_keyword!() | qljs_case_strict_reserved_keyword!()
+        $crate::qljs_case_contextual_keyword!() | $crate::qljs_case_strict_reserved_keyword!()
     };
 }
 
@@ -205,7 +206,7 @@ macro_rules! qljs_case_binary_only_operator_symbol_except_less_less_and_star {
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator_symbol_except_star {
     () => {
-        qljs_case_binary_only_operator_symbol_except_less_less_and_star!()
+        $crate::qljs_case_binary_only_operator_symbol_except_less_less_and_star!()
             | $crate::fe::token::TokenType::LessLess
     };
 }
@@ -213,14 +214,16 @@ macro_rules! qljs_case_binary_only_operator_symbol_except_star {
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator_symbol {
     () => {
-        qljs_case_binary_only_operator_symbol_except_star!() | $crate::fe::token::TokenType::Star
+        $crate::qljs_case_binary_only_operator_symbol_except_star!()
+            | $crate::fe::token::TokenType::Star
     };
 }
 
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator {
     () => {
-        qljs_case_binary_only_operator_symbol!() | $crate::fe::token::TokenType::KWInstanceof
+        $crate::qljs_case_binary_only_operator_symbol!()
+            | $crate::fe::token::TokenType::KWInstanceof
     };
 }
 
@@ -245,7 +248,7 @@ macro_rules! qljs_case_compound_assignment_operator_except_slash_equal {
 macro_rules! qljs_case_compound_assignment_operator {
     () => {
         $crate::fe::token::TokenType::SlashEqual
-            | qljs_case_compound_assignment_operator_except_slash_equal!()
+            | $crate::qljs_case_compound_assignment_operator_except_slash_equal!()
     };
 }
 
@@ -651,7 +654,18 @@ impl<'alloc, 'code> Token<'alloc, 'code> {
     //   self.type_ == TokenType::ReservedKeywordWithEscapeSequence
     // Precondition: This function was not previously called for the same token.
     pub fn report_errors_for_escape_sequences_in_keyword(&self, reporter: &dyn DiagReporter) {
-        todo!(); // TODO(port)
+        qljs_assert!(self.type_ == TokenType::ReservedKeywordWithEscapeSequence);
+        let escape_sequences: &EscapeSequenceList =
+            unsafe { self.extras.identifier_escape_sequences };
+        qljs_assert!(!escape_sequences.is_empty());
+        for escape_sequence in escape_sequences.as_slice() {
+            report(
+                reporter,
+                DiagKeywordsCannotContainEscapeSequences {
+                    escape_sequence: *escape_sequence,
+                },
+            );
+        }
     }
 
     // Report errors for each invalid escape sequence in the most recently parsed
