@@ -1007,40 +1007,37 @@ fn lex_strings() {
         );
     }
 
-    if false {
-        // TODO(port)
-        for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
-            let v = DiagCollector::new();
-            let input = PaddedString::from_slice(
-                format!("let x = 'hello{line_terminator}let y = 'world'").as_bytes(),
-            );
-            let mut l = Lexer::new(input.view(), &v);
-            assert_eq!(l.peek().type_, TokenType::KWLet);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::Identifier);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::Equal);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::String);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::KWLet);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::Identifier);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::Equal);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::String);
-            l.skip();
-            assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    for line_terminator in LINE_TERMINATORS_EXCEPT_LS_PS {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(
+            format!("let x = 'hello{line_terminator}let y = 'world'").as_bytes(),
+        );
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::KWLet);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Equal);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::String);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::KWLet);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Equal);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::String);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
 
-            qljs_assert_diags!(
-                v.clone_errors(),
-                input.view(),
-                DiagUnclosedStringLiteral {
-                    string_literal: b"let x = "..b"'hello",
-                },
-            );
-        }
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnclosedStringLiteral {
+                string_literal: b"let x = "..b"'hello",
+            },
+        );
     }
 
     f.check_tokens_with_errors(
@@ -2807,7 +2804,6 @@ fn question_dot_followed_by_non_digit_is_question_dot() {
 }
 
 #[test]
-#[allow(unused_mut, unused_variables)] // TODO(port): Delete.
 fn lex_whitespace() {
     let mut f = Fixture::new();
     for whitespace in &[
@@ -2856,7 +2852,10 @@ fn lex_whitespace() {
         {
             let input: String = format!("async{whitespace}function{whitespace}");
             scoped_trace!(input);
-            // TODO(port): f.check_tokens(input.as_bytes(), &[TokenType::KWAsync, TokenType::KWFunction]);
+            f.check_tokens(
+                input.as_bytes(),
+                &[TokenType::KWAsync, TokenType::KWFunction],
+            );
         }
     }
 }
