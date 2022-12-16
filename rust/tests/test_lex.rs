@@ -3323,16 +3323,421 @@ fn is_identifier_byte_agrees_with_is_identifier_character() {
     }
 }
 
-// TODO(port): jsx_identifier
-// TODO(port): invalid_jsx_identifier
-// TODO(port): jsx_string
-// TODO(port): jsx_string_ignores_comments
-// TODO(port): unterminated_jsx_string
-// TODO(port): jsx_tag
-// TODO(port): jsx_text_children
-// TODO(port): jsx_illegal_text_children
-// TODO(port): jsx_expression_children
-// TODO(port): jsx_nested_children
+#[test]
+fn jsx_identifier() {
+    fn check_identifier(tag_code: &[u8], expected_normalized: &[u8]) {
+        scoped_trace!(tag_code);
+
+        let mut code_vec: Vec<u8> = vec![b'!'];
+        code_vec.extend_from_slice(tag_code);
+        let code = PaddedString::from_slice(&code_vec[..]);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '!'.
+
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(
+            l.peek().identifier_name().normalized_name(),
+            expected_normalized
+        );
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+
+    check_identifier(b"div", b"div");
+    check_identifier(b"MyComponent", b"MyComponent");
+    check_identifier(b"my-web-component", b"my-web-component");
+    check_identifier(b"MY-WEB-COMPONENT", b"MY-WEB-COMPONENT");
+    check_identifier(b"test-0", b"test-0");
+    check_identifier(b"_component_", b"_component_");
+    check_identifier(b"$component$", b"$component$");
+    check_identifier(b"test-", b"test-");
+
+    // NOTE(strager): Babel [1] and some other tools reject these. TypeScript
+    // allows these. My reading of the spec is that these are allowed.
+    //
+    // [1] https://github.com/babel/babel/issues/14060
+    check_identifier(b"\\u{48}ello", b"Hello");
+    check_identifier(b"\\u{68}ello-world", b"hello-world");
+
+    check_identifier(b" div ", b"div");
+    check_identifier(b"/**/div/**/", b"div");
+    check_identifier(b" banana-split ", b"banana-split");
+    check_identifier(b"/**/banana-split/**/", b"banana-split");
+
+    for line_terminator in LINE_TERMINATORS {
+        check_identifier(
+            format!("{line_terminator}banana-split{line_terminator}").as_bytes(),
+            b"banana-split",
+        );
+    }
+
+    check_identifier(b"<!-- line comment\nbanana-split", b"banana-split");
+    check_identifier(b"\n--> line comment\nbanana-split", b"banana-split");
+
+    check_identifier("\u{00c1}gua".as_bytes(), "\u{00c1}gua".as_bytes());
+    check_identifier("\u{00c1}gua-".as_bytes(), "\u{00c1}gua-".as_bytes());
+}
+
+#[test]
+fn invalid_jsx_identifier() {
+    let mut f = Fixture::new();
+    f.lex_jsx_tokens = true;
+
+    f.check_tokens_with_errors(
+        b"<hello\\u{2d}world>",
+        &[TokenType::Less, TokenType::Identifier, TokenType::Greater],
+        |input: PaddedStringView, errors: &Vec<AnyDiag>| {
+            qljs_assert_diags!(
+                errors,
+                input,
+                DiagEscapedHyphenNotAllowedInJSXTag {
+                    escape_sequence: b"<hello"..b"\\u{2d}",
+                },
+            );
+        },
+    );
+}
+
+#[test]
+fn jsx_string() {
+    fn check_string(string_code: &[u8]) {
+        scoped_trace!(string_code);
+
+        let mut code_vec: Vec<u8> = vec![b'!'];
+        code_vec.extend_from_slice(string_code);
+        let code = PaddedString::from_slice(&code_vec[..]);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '!'.
+
+        assert_eq!(l.peek().type_, TokenType::String);
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+
+    check_string(br#"'hello'"#);
+    check_string(br#""hello""#);
+
+    // Backslashes are ignored.
+    check_string(br#""hello\nworld""#);
+    check_string(br#""hello\""#);
+    check_string(br#""hello\\""#);
+    check_string(br#"'hello\'"#);
+    check_string(br#"'hello\\'"#);
+    check_string(br#"'hello\u{}world'"#);
+    check_string(br#"'hello\u00xyworld'"#);
+    check_string(br#"'hello\u00'"#);
+
+    // Null bytes are allowed.
+    check_string(b"'hello\0world'");
+    check_string(b"'\0world'");
+    check_string(b"'hello\0'");
+
+    // Line terminators are allowed.
+    for line_terminator in LINE_TERMINATORS {
+        check_string(format!("'hello{line_terminator}world'").as_bytes());
+    }
+}
+
+// Despite what the JSX specification says, comments are not interpreted in
+// attribute strings.
+// https://github.com/facebook/jsx/pull/133
+#[test]
+fn jsx_string_ignores_comments() {
+    {
+        let code = PaddedString::from_slice(b"! 'hello // '\nworld'");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '!'.
+
+        assert_eq!(l.peek().type_, TokenType::String);
+        assert_eq!(l.peek().begin, unsafe { code.c_str().add(b"! ".len()) });
+        assert_eq!(
+            l.peek().end,
+            unsafe { code.c_str().add(b"! 'hello // '".len()) },
+            "string should end at ', treating // as part of the string"
+        );
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"world");
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+
+    {
+        let code = PaddedString::from_slice(br#"! "hello/* not"comment */world""#);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '!'.
+
+        assert_eq!(l.peek().type_, TokenType::String);
+        assert_eq!(l.peek().begin, unsafe { code.c_str().add(b"! ".len()) });
+        assert_eq!(
+            l.peek().end,
+            unsafe { code.c_str().add(br#"! "hello/* not""#.len()) },
+            "string should end at \", treating /* as part of the string"
+        );
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"comment");
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+}
+
+#[test]
+fn unterminated_jsx_string() {
+    let code = PaddedString::from_slice(b"! 'hello");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+    l.skip_in_jsx(); // Ignore '!'.
+
+    assert_eq!(l.peek().type_, TokenType::String);
+    qljs_assert_diags!(
+        errors.clone_errors(),
+        code.view(),
+        DiagUnclosedJSXStringLiteral {
+            string_literal_begin: b"! "..b"'",
+        },
+    );
+
+    l.skip_in_jsx();
+    assert_eq!(l.peek().type_, TokenType::EndOfFile);
+}
+
+#[test]
+fn jsx_tag() {
+    {
+        let code = PaddedString::from_slice(b"<svg:rect>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"svg");
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Colon);
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"rect");
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+
+    {
+        let code = PaddedString::from_slice(b"<myModule.MyComponent>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"myModule");
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Dot);
+
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"MyComponent");
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+}
+
+#[test]
+fn jsx_text_children() {
+    {
+        let code = PaddedString::from_slice(b"<>hello world");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        l.skip_in_jsx_children(); // Skip '>'.
+
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+
+    {
+        let code = PaddedString::from_slice(b"<>hello</>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        l.skip_in_jsx_children(); // Skip '>'.
+
+        assert_eq!(l.peek().type_, TokenType::Less);
+        assert_eq!(l.peek().begin, unsafe {
+            code.c_str().add(b"<>hello".len())
+        });
+        assert_eq!(l.peek().end, unsafe { code.c_str().add(b"<>hello<".len()) });
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+
+    // '>=' might be interpreted as greater_equal by a buggy lexer, for example.
+    for text_begin in ["=", ">", ">>", ">=", ">>="] {
+        let code = PaddedString::from_slice(format!("<>{text_begin}hello").as_bytes());
+        scoped_trace!(code);
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        assert_eq!(l.peek().type_, TokenType::Greater);
+        assert_eq!(l.peek().begin, unsafe { code.c_str().add(b"<".len()) });
+        assert_eq!(l.peek().end, unsafe { code.c_str().add(b"<>".len()) });
+        l.skip_in_jsx_children();
+
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+        if text_begin == "=" {
+            qljs_assert_no_diags!(errors.clone_errors(), code.view());
+        } else if text_begin == ">" || text_begin == ">=" {
+            qljs_assert_diags!(
+                errors.clone_errors(),
+                code.view(),
+                DiagUnexpectedGreaterInJSXText {
+                    greater: b"<>"..b">",
+                },
+            );
+        } else if text_begin == ">>" || text_begin == ">>=" {
+            qljs_assert_diags!(
+                errors.clone_errors(),
+                code.view(),
+                DiagUnexpectedGreaterInJSXText {
+                    greater: b"<>"..b">",
+                },
+                DiagUnexpectedGreaterInJSXText {
+                    greater: b"<>>"..b">",
+                },
+            );
+        } else {
+            unreachable!();
+        }
+    }
+}
+
+#[test]
+fn jsx_illegal_text_children() {
+    {
+        let code = PaddedString::from_slice(b"<>hello>world</>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        l.skip_in_jsx_children(); // Skip '>'.
+        assert_eq!(l.peek().type_, TokenType::Less);
+        qljs_assert_diags!(
+            errors.clone_errors(),
+            code.view(),
+            DiagUnexpectedGreaterInJSXText {
+                greater: b"<>hello"..b">",
+            },
+        );
+    }
+
+    {
+        let code = PaddedString::from_slice(b"<>hello}world</>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        l.skip_in_jsx(); // Ignore '<'.
+
+        l.skip_in_jsx_children(); // Skip '>'.
+        assert_eq!(l.peek().type_, TokenType::Less);
+        qljs_assert_diags!(
+            errors.clone_errors(),
+            code.view(),
+            DiagUnexpectedRightCurlyInJSXText {
+                right_curly: b"<>hello"..b"}",
+            },
+        );
+    }
+}
+
+#[test]
+fn jsx_expression_children() {
+    let mut f = Fixture::new();
+
+    f.lex_jsx_tokens = true;
+
+    {
+        let code = PaddedString::from_slice(b"<>hello {name}!</>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+
+        // <>hello
+        assert_eq!(l.peek().type_, TokenType::Less);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+
+        // {name}
+        l.skip_in_jsx_children();
+        assert_eq!(l.peek().type_, TokenType::LeftCurly);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::RightCurly);
+
+        // !</>
+        l.skip_in_jsx_children();
+        assert_eq!(l.peek().type_, TokenType::Less);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+}
+
+#[test]
+fn jsx_nested_children() {
+    let mut f = Fixture::new();
+
+    f.lex_jsx_tokens = true;
+
+    {
+        let code = PaddedString::from_slice(b"<>hello <span>world</span>!</>");
+        let errors = DiagCollector::new();
+        let mut l = Lexer::new(code.view(), &errors);
+        // <>hello
+        assert_eq!(l.peek().type_, TokenType::Less);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+
+        // <span>world</span>
+        l.skip_in_jsx_children();
+        assert_eq!(l.peek().type_, TokenType::Less);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+        l.skip_in_jsx_children();
+        assert_eq!(l.peek().type_, TokenType::Less);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+
+        // !</>
+        l.skip_in_jsx_children();
+        assert_eq!(l.peek().type_, TokenType::Less);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.skip_in_jsx();
+        assert_eq!(l.peek().type_, TokenType::Greater);
+
+        qljs_assert_no_diags!(errors.clone_errors(), code.view());
+    }
+}
 
 struct Fixture {
     lex_jsx_tokens: bool,

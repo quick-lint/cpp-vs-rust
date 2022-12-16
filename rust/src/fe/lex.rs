@@ -47,6 +47,12 @@ macro_rules! qljs_case_decimal_digit {
     };
 }
 
+macro_rules! qljs_case_non_ascii {
+    () => {
+        0x80..=0xff
+    };
+}
+
 macro_rules! qljs_case_newline_start {
     () => {
         b'\n' | b'\r' | LINE_SEPARATOR_PARAGRAPH_SEPARATOR_FIRST_BYTE
@@ -136,10 +142,6 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     // Precondition: self.peek().type_ != TokenType::EndOfFile.
     pub fn skip(&mut self) {
         self.parse_current_token();
-    }
-
-    pub fn skip_in_jsx(&mut self) {
-        todo!();
     }
 
     // Returns true if a valid regexp literal is found
@@ -836,6 +838,28 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         }
     }
 
+    fn parse_jsx_string_literal(&mut self) -> *const u8 {
+        let opening_quote: u8 = self.input[0];
+        let mut c: InputPointer = self.input + 1;
+        while c[0] != opening_quote {
+            if c[0] == b'\0' && self.is_eof(c.0) {
+                report(
+                    self.diag_reporter,
+                    DiagUnclosedJSXStringLiteral {
+                        string_literal_begin: unsafe {
+                            SourceCodeSpan::new(self.input.0, (self.input + 1).0)
+                        },
+                    },
+                );
+                return c.0;
+            }
+            c += 1;
+            // Loop.
+        }
+        c += 1;
+        c.0
+    }
+
     fn parse_smart_quote_string_literal(&mut self, opening_quote: &DecodeUTF8Result) -> *const u8 {
         qljs_assert!(opening_quote.ok);
         qljs_assert!(
@@ -1020,6 +1044,121 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                     c += 1;
                 }
             }
+        }
+    }
+
+    // Like self.skip(), except:
+    //
+    // * interpret identifiers as JSX identifiers (JSX identifiers may contain
+    //   '-')
+    // * interpret strings as JSX strings (JSX strings do not support '\' escapes)
+    // * interpret '>>', '>=', etc. as a '>' token followed by another token
+    pub fn skip_in_jsx(&mut self) {
+        self.last_last_token_end = self.last_token.end;
+        self.last_token.has_leading_newline = false;
+        self.skip_whitespace();
+
+        'retry: loop {
+            self.last_token.begin = self.input.0;
+            match self.input[0] {
+                qljs_case_identifier_start!() | qljs_case_non_ascii!() => {
+                    let ident: ParsedIdentifier =
+                        self.parse_identifier(self.input.0, IdentifierKind::JSX);
+                    self.input = InputPointer(ident.after);
+                    self.last_token.normalized_identifier = ident.normalized;
+                    self.last_token.end = ident.after;
+                    self.last_token.type_ = TokenType::Identifier;
+                    return;
+                }
+
+                b'>' => {
+                    self.last_token.type_ = TokenType::Greater;
+                    self.input += 1;
+                    self.last_token.end = self.input.0;
+                    return;
+                }
+
+                b'"' | b'\'' => {
+                    self.input = InputPointer(self.parse_jsx_string_literal());
+                    self.last_token.type_ = TokenType::String;
+                    self.last_token.end = self.input.0;
+                    return;
+                }
+
+                _ => {
+                    if !self.try_parse_current_token() {
+                        continue 'retry;
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    // After parsing a '}' (right_curly) token, call this function to interpret
+    // '}' as ending an expression inside a JSX element.
+    //
+    // After parsing a '>' (greater) token, call this function to interpret '>' as
+    // the beginning of children for a JSX element.
+    //
+    // For example:
+    //
+    //   <div>Hello, {name}!!!</div>
+    //
+    // After seeing the '>' (greater) token, the caller should use
+    // self.skip_in_jsx_children() so 'Hello, {' is interpreted as text (instead
+    // of a 'Hello' identifier token, a ',' token, and a '{' token). After seeing
+    // the '}' (right_curly) token, the caller should use
+    // self.skip_in_jsx_children() so '!!!' is interpreted as text (instead of
+    // three '!' tokens).
+    //
+    // Precondition: self.peek().type_ == TokenType::RightCurly ||
+    //               self.peek().type_ == TokenType::Greater
+    pub fn skip_in_jsx_children(&mut self) {
+        qljs_assert!(
+            self.peek().type_ == TokenType::RightCurly || self.peek().type_ == TokenType::Greater
+        );
+        self.skip_jsx_text();
+        self.skip_in_jsx();
+    }
+
+    // After the current token, look for for first occurrence of any one of the
+    // following:
+    //
+    // * '=>' (invalid in JSX children)
+    // * '>' (invalid in JSX children)
+    // * '}' (invalid in JSX children)
+    // * '{'
+    // * '<'
+    // * end of file
+    //
+    // If '=>' was found, this function returns a pointer to the '='. Otherwise,
+    // it returns nullptr.
+    pub fn find_equal_greater_in_jsx_children(&self) -> *const u8 {
+        let mut c: InputPointer = self.input;
+        loop {
+            match c[0] {
+                b'<' | b'{' | b'}' => {
+                    return std::ptr::null();
+                }
+
+                b'>' => {
+                    let previous: InputPointer = c - 1;
+                    if previous[0] == b'=' {
+                        return previous.0;
+                    }
+                    return std::ptr::null();
+                }
+
+                b'\0' => {
+                    if self.is_eof(c.0) {
+                        return std::ptr::null();
+                    }
+                }
+
+                _ => {}
+            }
+            c += 1;
         }
     }
 
@@ -2324,6 +2463,46 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.has_leading_newline = true;
     }
 
+    fn skip_jsx_text(&mut self) {
+        let mut c: InputPointer = self.input;
+        loop {
+            match c[0] {
+                b'{' | b'<' => {
+                    break;
+                }
+
+                b'>' => {
+                    report(
+                        self.diag_reporter,
+                        DiagUnexpectedGreaterInJSXText {
+                            greater: unsafe { SourceCodeSpan::new(c.0, (c + 1).0) },
+                        },
+                    );
+                }
+
+                b'}' => {
+                    report(
+                        self.diag_reporter,
+                        DiagUnexpectedRightCurlyInJSXText {
+                            right_curly: unsafe { SourceCodeSpan::new(c.0, (c + 1).0) },
+                        },
+                    );
+                }
+
+                b'\0' => {
+                    if self.is_eof(c.0) {
+                        break;
+                    }
+                }
+
+                _ => {}
+            }
+            c += 1;
+        }
+        // TODO(strager): Should we set has_leading_newline?
+        self.input = c;
+    }
+
     fn is_eof(&self, input: *const u8) -> bool {
         qljs_assert!(unsafe { *input } == b'\0');
         input == self.original_input.null_terminator()
@@ -2496,6 +2675,14 @@ impl std::ops::Add<isize> for InputPointer {
 impl std::ops::AddAssign<isize> for InputPointer {
     fn add_assign(&mut self, rhs: isize) {
         *self = *self + rhs;
+    }
+}
+
+impl std::ops::Sub<isize> for InputPointer {
+    type Output = InputPointer;
+
+    fn sub(self, rhs: isize) -> InputPointer {
+        InputPointer(unsafe { self.0.offset(-rhs) })
     }
 }
 
