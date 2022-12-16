@@ -29,7 +29,7 @@ fn lex_block_comments() {
     f.check_single_token(b"/*/ comment */ hi", b"hi");
     f.check_single_token(b"/* comment /*/ hi", b"hi");
     f.check_single_token(b"/* not /* nested */ ident", b"ident");
-    assert_eq!(f.lex_to_eof_types("/**/"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"/**/"), vec![]);
 
     {
         let v = DiagCollector::new();
@@ -56,14 +56,14 @@ fn lex_block_comments() {
 fn lex_line_comments() {
     let mut f = Fixture::new();
 
-    assert_eq!(f.lex_to_eof_types("// hello"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"// hello"), vec![]);
     for line_terminator in LINE_TERMINATORS {
         f.check_single_token(
             format!("// hello{line_terminator}world").as_bytes(),
             b"world",
         );
     }
-    assert_eq!(f.lex_to_eof_types("// hello\n// world"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"// hello\n// world"), vec![]);
     f.check_tokens(
         b"hello//*/\n \n \nworld",
         &[TokenType::Identifier, TokenType::Identifier],
@@ -76,7 +76,7 @@ fn lex_line_comments() {
      *  > U+2029 Paragraph Separator (0xe280a9)
      *  > U+2030 Per Mille Sign      (0xe280b0)
      */
-    assert_eq!(f.lex_to_eof_types("// 123‰"), vec![]);
+    assert_eq!(f.lex_to_eof_types("// 123‰".as_bytes()), vec![]);
 }
 
 #[test]
@@ -93,15 +93,15 @@ fn lex_line_comments_with_control_characters() {
 fn lex_html_open_comments() {
     let mut f = Fixture::new();
 
-    assert_eq!(f.lex_to_eof_types("<!-- --> hello"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"<!-- --> hello"), vec![]);
     for line_terminator in LINE_TERMINATORS {
         f.check_single_token(
             format!("<!-- hello{line_terminator}world").as_bytes(),
             b"world",
         );
     }
-    assert_eq!(f.lex_to_eof_types("<!-- hello\n<!-- world"), vec![]);
-    assert_eq!(f.lex_to_eof_types("<!--// hello"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"<!-- hello\n<!-- world"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"<!--// hello"), vec![]);
     f.check_tokens(
         b"hello<!--->\n \n \nworld",
         &[TokenType::Identifier, TokenType::Identifier],
@@ -139,10 +139,10 @@ fn lex_html_open_comments() {
 fn lex_html_close_comments() {
     let mut f = Fixture::new();
 
-    assert_eq!(f.lex_to_eof_types("--> comment"), vec![]);
-    assert_eq!(f.lex_to_eof_types("     --> comment"), vec![]);
-    assert_eq!(f.lex_to_eof_types("/* */--> comment"), vec![]);
-    assert_eq!(f.lex_to_eof_types("/**//**/--> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"--> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"     --> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"/* */--> comment"), vec![]);
+    assert_eq!(f.lex_to_eof_types(b"/**//**/--> comment"), vec![]);
 
     for eol in LINE_TERMINATORS {
         f.check_single_token(format!("-->{eol}hello").as_bytes(), b"hello");
@@ -3294,9 +3294,8 @@ impl Fixture {
         callback(&tokens);
     }
 
-    // TODO(port): Accept a &[u8] instead.
-    fn lex_to_eof_types(&mut self, input: &str) -> Vec<TokenType> {
-        self.lex_to_eof_types_padded(PaddedString::from_slice(input.as_bytes()).view())
+    fn lex_to_eof_types(&mut self, input: &[u8]) -> Vec<TokenType> {
+        self.lex_to_eof_types_padded(PaddedString::from_slice(input).view())
     }
 
     fn lex_to_eof_types_padded(&mut self, input: PaddedStringView<'_>) -> Vec<TokenType> {
