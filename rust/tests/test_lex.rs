@@ -2956,9 +2956,68 @@ fn lex_unexpected_bom_before_shebang() {
     }
 }
 
-// TODO(port): lex_invalid_common_characters_are_disallowed
-// TODO(port): ascii_control_characters_are_disallowed
-// TODO(port): ascii_control_characters_sorta_treated_like_whitespace
+#[test]
+fn lex_invalid_common_characters_are_disallowed() {
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"hello @ world");
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Identifier, "@ should be skipped");
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnexpectedAtCharacter {
+                character: b"hello "..b"@",
+            },
+        );
+    }
+}
+
+#[test]
+fn ascii_control_characters_are_disallowed() {
+    for control_character in CONTROL_CHARACTERS_EXCEPT_WHITESPACE {
+        let input = PaddedString::from_slice(format!("{control_character}hello").as_bytes());
+        scoped_trace!(input);
+        let v = DiagCollector::new();
+
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(
+            l.peek().type_,
+            TokenType::Identifier,
+            "control character should be skipped"
+        );
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnexpectedControlCharacter {
+                character: 0..(control_character.as_bytes()),
+            },
+        );
+    }
+}
+
+#[test]
+fn ascii_control_characters_sorta_treated_like_whitespace() {
+    for control_character in CONTROL_CHARACTERS_EXCEPT_WHITESPACE {
+        let input = PaddedString::from_slice(format!("  {control_character}  hello").as_bytes());
+        scoped_trace!(input);
+        let v = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(
+            l.peek().type_,
+            TokenType::Identifier,
+            "control character should be skipped"
+        );
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+    }
+}
+
 // TODO(port): lex_token_notes_leading_newline
 // TODO(port): lex_token_notes_leading_newline_after_single_line_comment
 // TODO(port): lex_token_notes_leading_newline_after_comment_with_newline

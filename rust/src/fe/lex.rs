@@ -618,11 +618,52 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                     self.last_token.type_ = TokenType::EndOfFile;
                     self.last_token.end = self.input.0;
                 } else {
-                    // TODO(port): fallthrough
+                    self.parse_control_character();
+                    return false;
                 }
             }
-            // TODO(port): case '\x01' ... case '\x7f':
-            // TODO(port): case '@':
+
+              | b'\x01'    // SOH Start of Heading
+              | b'\x02'    // STX Start of Text
+              | b'\x03'    // ETX End-of-text character
+              | b'\x04'    // EOT End-of-transmission character
+              | b'\x05'    // ENQ Enquiry character
+              | b'\x06'    // ACK Acknowledge character
+              | b'\x07'    // BEL Bell character
+              | b'\x08'    // BS Backspace
+              | b'\x0e'    // SO Shift Out
+              | b'\x0f'    // SI Shift In
+              | b'\x10'    // DLE Data Link Escape
+              | b'\x11'    // DC1 Device Control 1
+              | b'\x12'    // DC2 Device Control 2
+              | b'\x13'    // DC3 Device Control 3
+              | b'\x14'    // DC4 Device Control 4
+              | b'\x15'    // NAK Negative-acknowledge character
+              | b'\x16'    // SYN Synchronous Idle
+              | b'\x17'    // ETB End of Transmission Block
+              | b'\x18'    // CAN Cancel character
+              | b'\x19'    // EM End of Medium
+              | b'\x1a'    // SUB Substitute character
+              | b'\x1b'    // ESC Escape character
+              | b'\x1c'    // FS File Separator
+              | b'\x1d'    // GS Group Separator
+              | b'\x1e'    // RS Record Separator
+              | b'\x1f'    // US Unit Separator
+              | b'\x7f'   // DEL Delete
+              => {
+                  self.parse_control_character();
+                  return false;
+              }
+
+              b'@' => {
+                  let end: InputPointer = self.input + 1;
+                  report(self.diag_reporter, DiagUnexpectedAtCharacter{
+                      character: unsafe {SourceCodeSpan::new(self.input.0, end.0)}});
+                  self.input = end;
+                  self.skip_whitespace();
+                  return false;
+              }
+
             // Non-ASCII or control character.
             _ => {
                 let character: DecodeUTF8Result = decode_utf_8(unsafe {
@@ -654,6 +695,18 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         }
 
         true
+    }
+
+    fn parse_control_character(&mut self) {
+        let end: InputPointer = self.input + 1;
+        report(
+            self.diag_reporter,
+            DiagUnexpectedControlCharacter {
+                character: unsafe { SourceCodeSpan::new(self.input.0, end.0) },
+            },
+        );
+        self.input = end;
+        self.skip_whitespace();
     }
 
     fn parse_string_literal(&mut self) -> InputPointer {
