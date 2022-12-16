@@ -149,7 +149,22 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     fn parse_bom_before_shebang(&mut self) {
-        // TODO(port)
+        let mut input: InputPointer = self.input;
+        if input[0] == 0xef && input[1] == 0xbb && input[2] == 0xbf {
+            input += 3;
+            if input[0] == b'#' && input[1] == b'!' {
+                report(
+                    self.diag_reporter,
+                    DiagUnexpectedBomBeforeShebang {
+                        bom: unsafe { SourceCodeSpan::new(self.input.0, (self.input + 3).0) },
+                    },
+                );
+                input += 2;
+                self.skip_line_comment_body();
+            } else {
+                self.input = input;
+            }
+        }
     }
 
     // Skips leading whitespace and comments. Initializes self.last_token and

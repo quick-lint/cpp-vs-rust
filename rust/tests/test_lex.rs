@@ -2865,9 +2865,97 @@ fn lex_whitespace() {
     }
 }
 
-// TODO(port): lex_shebang
-// TODO(port): lex_not_shebang
-// TODO(port): lex_unexpected_bom_before_shebang
+#[test]
+fn lex_shebang() {
+    let mut f = Fixture::new();
+    f.check_tokens(b"#!/usr/bin/env node\nhello", &[TokenType::Identifier]);
+    f.check_tokens(b"#!ignored\n123", &[TokenType::Number]);
+}
+
+#[test]
+fn lex_not_shebang() {
+    // Whitespace must not appear between '#' and '!'.
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"# !notashebang");
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Bang, "# should be skipped");
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnexpectedHashCharacter { where_: 0..b"#" },
+        );
+    }
+
+    // '#!' must be on the first line.
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"\n#!notashebang\n");
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Bang, "# should be skipped");
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnexpectedHashCharacter {
+                where_: b"\n"..b"#",
+            },
+        );
+    }
+
+    // Whitespace must not appear before '#!'.
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"  #!notashebang\n");
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Bang, "# should be skipped");
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnexpectedHashCharacter {
+                where_: b"  "..b"#",
+            },
+        );
+    }
+
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"#\\u{21}\n");
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::PrivateIdentifier);
+        assert_eq!(l.peek().identifier_name().normalized_name(), b"#\\u{21}");
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagEscapedCharacterDisallowedInIdentifiers {
+                escape_sequence: b"#"..b"\\u{21}",
+            },
+        );
+    }
+}
+
+#[test]
+fn lex_unexpected_bom_before_shebang() {
+    // BOM must not appear before '#!'.
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice("\u{feff}#!notashebang\n".as_bytes());
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::EndOfFile, "# should be skipped");
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnexpectedBomBeforeShebang {
+                bom: 0..("\u{feff}".as_bytes()),
+            },
+        );
+    }
+}
+
 // TODO(port): lex_invalid_common_characters_are_disallowed
 // TODO(port): ascii_control_characters_are_disallowed
 // TODO(port): ascii_control_characters_sorta_treated_like_whitespace
