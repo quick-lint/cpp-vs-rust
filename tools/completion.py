@@ -76,7 +76,9 @@ CONVERTED_CPP_FILES = [
     "cpp/test/quick-lint-js/characters.h",
     "cpp/test/quick-lint-js/diag-collector.h",
     "cpp/test/quick-lint-js/diag-matcher.h",  # Sorta.
+    "cpp/test/quick-lint-js/dirty-set.h",  # We use BTreeSet in Rust instead.
     "cpp/test/quick-lint-js/gtest.h",  # Not needed in Rust.
+    "cpp/test/quick-lint-js/parse-support.h",
     "cpp/test/quick-lint-js/test-translation-table-generated.h",
     "cpp/test/test-assert.cpp",
     "cpp/test/test-buffering-diag-reporter.cpp",
