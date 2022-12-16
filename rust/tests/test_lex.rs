@@ -3044,10 +3044,52 @@ fn ascii_control_characters_sorta_treated_like_whitespace() {
     }
 }
 
-// TODO(port): lex_token_notes_leading_newline
-// TODO(port): lex_token_notes_leading_newline_after_single_line_comment
-// TODO(port): lex_token_notes_leading_newline_after_comment_with_newline
-// TODO(port): lex_token_notes_leading_newline_after_comment
+#[test]
+fn lex_token_notes_leading_newline() {
+    for line_terminator in LINE_TERMINATORS {
+        let code = PaddedString::from_slice(format!("a b{line_terminator}c d").as_bytes());
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        assert!(!l.peek().has_leading_newline); // a
+        l.skip();
+        assert!(!l.peek().has_leading_newline); // b
+        l.skip();
+        assert!(l.peek().has_leading_newline); // c
+        l.skip();
+        assert!(!l.peek().has_leading_newline); // d
+    }
+}
+
+#[test]
+fn lex_token_notes_leading_newline_after_single_line_comment() {
+    for line_terminator in LINE_TERMINATORS {
+        let code = PaddedString::from_slice(format!("a // hello{line_terminator}b").as_bytes());
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        assert!(!l.peek().has_leading_newline); // a
+        l.skip();
+        assert!(l.peek().has_leading_newline); // b
+    }
+}
+
+#[test]
+fn lex_token_notes_leading_newline_after_comment_with_newline() {
+    for line_terminator in LINE_TERMINATORS {
+        let code = PaddedString::from_slice(format!("a /*{line_terminator}*/ b").as_bytes());
+        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        assert!(!l.peek().has_leading_newline); // a
+        l.skip();
+        assert!(l.peek().has_leading_newline); // b
+    }
+}
+
+#[test]
+fn lex_token_notes_leading_newline_after_comment() {
+    let code = PaddedString::from_slice(b"a /* comment */\nb");
+    let mut l = Lexer::new(code.view(), null_diag_reporter());
+    assert!(!l.peek().has_leading_newline); // a
+    l.skip();
+    assert!(l.peek().has_leading_newline); // b
+}
+
 // TODO(port): inserting_semicolon_at_newline_remembers_next_token
 // TODO(port): insert_semicolon_at_beginning_of_input
 // TODO(port): inserting_semicolon_at_right_curly_remembers_next_token
