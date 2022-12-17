@@ -1,4 +1,5 @@
 use cpp_vs_rust::container::padded_string::*;
+use cpp_vs_rust::scoped_trace;
 use cpp_vs_rust::util::utf_8::*;
 
 #[test]
@@ -118,6 +119,8 @@ fn decode_always_invalid_code_unit_is_an_error() {
     for code_unit in [
         0xc0u8, 0xc1, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
     ] {
+        scoped_trace!(code_unit);
+
         {
             let input = PaddedString::from_slice(&[code_unit]);
             let result: DecodeUTF8Result = decode_utf_8(input.view());
@@ -311,9 +314,12 @@ fn decode_overlong_sequences_are_an_error_for_each_code_unit() {
         PaddedString::from_slice(&[0xf8, 0x87, 0xbf, 0xbf, 0xbf]), // U+001FFFFF
         PaddedString::from_slice(&[0xfc, 0x83, 0xbf, 0xbf, 0xbf, 0xbf]), // U+03FFFFFF
     ] {
+        scoped_trace!(input);
+
         let mut i = 0;
         while i < input.len() {
             let current_input = PaddedStringView::from(&input).substr(i);
+            scoped_trace!(current_input);
             let result: DecodeUTF8Result = decode_utf_8(current_input);
             assert_eq!(result.size, 1);
             assert!(!result.ok);
@@ -334,9 +340,11 @@ fn decode_surrogate_sequences_are_an_error_for_each_code_unit() {
         PaddedString::from_slice(&[0xed, 0xbe, 0x80]), // U+DF80
         PaddedString::from_slice(&[0xed, 0xbf, 0xbf]), // U+DFFF
     ] {
+        scoped_trace!(input);
         let mut i = 0;
         while i < input.len() {
             let current_input = PaddedStringView::from(&input).substr(i);
+            scoped_trace!(current_input);
             let result: DecodeUTF8Result = decode_utf_8(current_input);
             assert_eq!(result.size, 1);
             assert!(!result.ok);

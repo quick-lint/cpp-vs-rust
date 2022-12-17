@@ -1,4 +1,5 @@
 use cpp_vs_rust::port::simd::*;
+use cpp_vs_rust::scoped_trace;
 
 // TODO(port): Run tests with each supported CharVector16 implementation, rather than run with just
 // one.
@@ -61,6 +62,7 @@ fn bool16_first_false_of_all_true() {
 #[test]
 fn bool16_find_first_false_exhaustive_slow() {
     for i in 0..=0xffff {
+        scoped_trace!(i);
         let mut bools_data: [bool; 16] = [false; 16];
         let mut first_false = 16;
         for bit in 0..16 {

@@ -10,17 +10,12 @@ use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::fe::token::*;
 use cpp_vs_rust::qljs_assert_diags;
 use cpp_vs_rust::qljs_assert_no_diags;
+use cpp_vs_rust::scoped_trace;
 use cpp_vs_rust::test::characters::*;
 use cpp_vs_rust::test::diag_collector::*;
 use cpp_vs_rust::test::diag_matcher::*;
 use cpp_vs_rust::test::parse_support::*;
 use cpp_vs_rust::util::utf_8::*;
-
-macro_rules! scoped_trace {
-    ($expr:expr $(,)?) => {
-        // TODO(port): SCOPED_TRACE from Google Test.
-    };
-}
 
 #[test]
 fn lex_block_comments() {

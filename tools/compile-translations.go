@@ -758,6 +758,7 @@ func WriteTranslationTestRustSource(locales map[string][]TranslationEntry, path 
 
 use cpp_vs_rust::i18n::translation::*;
 use cpp_vs_rust::qljs_translatable;
+use cpp_vs_rust::scoped_trace;
 
 #[rustfmt::skip]
 pub const TEST_LOCALE_NAMES: [&'static str; %d] = [
@@ -795,6 +796,7 @@ pub const TEST_TRANSLATION_TABLE: [TranslatedString; %d] = [
 fn full_translation_table() {
     for (locale_index, locale_name) in TEST_LOCALE_NAMES.iter().enumerate() {
         let mut messages: Translator = Translator::new_using_messages_from_source_code();
+        scoped_trace!(locale_name);
         if locale_name.is_empty() {
             messages.use_messages_from_source_code();
         } else {
