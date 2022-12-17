@@ -617,7 +617,7 @@ pub union TokenExtras<'alloc, 'code> {
 
 impl<'alloc, 'code> std::fmt::Debug for TokenExtras<'alloc, 'code> {
     fn fmt(&self, _formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        // TODO(port)
+        // TODO(port-later)
         Ok(())
     }
 }
