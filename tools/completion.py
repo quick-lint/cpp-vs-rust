@@ -58,6 +58,8 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/port/char8.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/have.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/in-range.h",  # Not needed in Rust.
+    "cpp/src/quick-lint-js/port/integer.cpp", # Not needed in Rust.
+    "cpp/src/quick-lint-js/port/integer.h", # Not needed in Rust.
     "cpp/src/quick-lint-js/port/limits.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/math.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/max-align.h",  # Not needed in Rust.
@@ -68,6 +70,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/port/type-traits.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/vector-erase.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/warning.h",  # Not needed in Rust.
+    "cpp/src/quick-lint-js/util/algorithm.h", # Not needed in Rust.
     "cpp/src/quick-lint-js/util/cpp.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/util/narrow-cast.h",
     "cpp/src/quick-lint-js/util/pointer.h",  # Not needed in Rust.
@@ -75,6 +78,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/util/utf-8.h",
     "cpp/test/diag-collector.cpp",
     "cpp/test/diag-matcher.cpp",  # Sorta.
+    "cpp/test/parse-support.cpp",
     "cpp/test/quick-lint-js/array.h",  # Not needed in Rust.
     "cpp/test/quick-lint-js/characters.h",
     "cpp/test/quick-lint-js/diag-collector.h",
@@ -87,6 +91,7 @@ CONVERTED_CPP_FILES = [
     "cpp/test/test-buffering-diag-reporter.cpp",
     "cpp/test/test-diagnostic-formatter.cpp",
     "cpp/test/test-diagnostic.cpp",
+    "cpp/test/test-integer-hexadecimal.cpp", # Not needed in Rust.
     "cpp/test/test-lex.cpp",
     "cpp/test/test-linked-bump-allocator.cpp",
     "cpp/test/test-linked-vector.cpp",
