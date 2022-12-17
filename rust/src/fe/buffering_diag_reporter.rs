@@ -4,9 +4,9 @@ use crate::fe::diagnostic_types::*;
 use crate::port::allocator::*;
 use crate::port::maybe_uninit::*;
 
-// TODO(port): Shouldn't this be bound by 'code? How else does SourceCodeSpan work inside AnyDiag?
+// TODO(port): Shouldn't this be bound by 'code? How else does SourceCodeSpan work inside StoredDiag?
 pub struct BufferingDiagReporter<'alloc> {
-    diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, AnyDiag>>,
+    diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, StoredDiag>>,
 }
 
 impl<'alloc> BufferingDiagReporter<'alloc> {
@@ -17,7 +17,7 @@ impl<'alloc> BufferingDiagReporter<'alloc> {
     }
 
     pub fn copy_into(&self, other: &dyn DiagReporter) {
-        unsafe { &mut *self.diagnostics.get() }.for_each(|diag: &AnyDiag| {
+        unsafe { &mut *self.diagnostics.get() }.for_each(|diag: &StoredDiag| {
             // TODO(strager): Make report_impl accept a const pointer to reduce casting.
             other.report_impl(diag.type_, &diag.diag as *const _ as *mut u8);
         });
@@ -46,14 +46,14 @@ impl<'alloc> DiagReporter for BufferingDiagReporter<'alloc> {
                 std::slice::from_raw_parts(diag, diag_byte_size),
             );
         }
-        unsafe { &mut *self.diagnostics.get() }.push(AnyDiag {
+        unsafe { &mut *self.diagnostics.get() }.push(StoredDiag {
             type_: type_,
             diag: diag_data,
         });
     }
 }
 
-struct AnyDiag {
+struct StoredDiag {
     type_: DiagType,
     diag: [std::mem::MaybeUninit<u8>; MAX_SIZE_OF_DIAGNOSTIC_TYPE],
 }
