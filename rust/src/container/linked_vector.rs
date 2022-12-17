@@ -101,7 +101,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         }
     }
 
-    // TODO(port): noinline
+    #[inline(never)]
     fn append_new_chunk_slow(&mut self) -> *mut ChunkHeader<T> {
         unsafe {
             let c: &mut ChunkHeader<T> = {
@@ -129,7 +129,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         }
     }
 
-    // TODO(port): noinline
+    #[inline(never)]
     fn remove_tail_chunk_slow(&mut self) {
         unsafe {
             let old_tail: *mut ChunkHeader<T> = self.tail;

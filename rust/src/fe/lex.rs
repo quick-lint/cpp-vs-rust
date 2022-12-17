@@ -184,7 +184,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     // Skips leading whitespace and comments. Initializes self.last_token and
     // self.last_last_token_end.
-    // TODO(port): noinline
+    #[inline(never)]
     fn parse_current_token(&mut self) {
         self.last_last_token_end = self.last_token.end;
         self.last_token.has_leading_newline = false;
