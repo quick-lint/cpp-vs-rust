@@ -135,8 +135,46 @@ fn lex_unopened_block_comment() {
     }
 }
 
-// TODO(port): lex_regexp_literal_starting_with_star_slash
-// TODO(port): lex_regexp_literal_starting_with_star_star_slash
+#[test]
+fn lex_regexp_literal_starting_with_star_slash() {
+    {
+        // '/*' is not an end of block comment because it precedes a regexp literal
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"*/ hello/");
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Star);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert_eq!(l.peek().begin, unsafe { input.c_str().add(1) });
+        assert_eq!(l.peek().end, input.null_terminator());
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+        qljs_assert_no_diags!(v.clone_errors(), code.view());
+    }
+}
+
+#[test]
+fn lex_regexp_literal_starting_with_star_star_slash() {
+    {
+        let input = PaddedString::from_slice(b"3 **/ banana/");
+        let v = DiagCollector::new();
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Number);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::StarStar);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::Slash);
+        l.reparse_as_regexp();
+        assert_eq!(l.peek().type_, TokenType::Regexp);
+        assert_eq!(l.peek().begin, unsafe { input.c_str().add(4) });
+        assert_eq!(l.peek().end, input.null_terminator());
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+        qljs_assert_no_diags!(v.clone_errors(), code.view());
+    }
+}
 
 #[test]
 fn lex_line_comments() {
