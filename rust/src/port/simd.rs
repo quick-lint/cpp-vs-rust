@@ -1,12 +1,119 @@
 use crate::qljs_assert;
 use crate::util::array::*;
 
+#[cfg(target_arch = "aarch64")]
+use std::arch::aarch64::*;
+#[cfg(target_arch = "arm")]
+use std::arch::arm::*;
+#[cfg(target_arch = "wasm32")]
+use std::arch::wasm32::*;
+#[cfg(target_arch = "wasm64")]
+use std::arch::wasm64::*;
 #[cfg(target_arch = "x86")]
 use std::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::*;
 
 // TODO(port): forceinline attributes
+
+#[cfg(target_feature = "simd128")]
+#[derive(Clone, Copy)]
+pub struct CharVector16WASMSIMD128(v128);
+
+#[cfg(target_feature = "simd128")]
+impl CharVector16WASMSIMD128 {
+    // data must point to at least 16 elements.
+    pub fn load(data: &[u8]) -> CharVector16WASMSIMD128 {
+        qljs_assert!(data.len() >= 16);
+        unsafe { CharVector16WASMSIMD128(v128_load(data.as_ptr() as *const v128)) }
+    }
+
+    // data must point to at least 16 elements.
+    pub unsafe fn load_raw(data: *const u8) -> CharVector16WASMSIMD128 {
+        Self::load(std::slice::from_raw_parts(data, 16))
+    }
+
+    // out_data must point to at least 16 elements.
+    pub fn store(&self, out_data: &mut [u8]) {
+        qljs_assert!(out_data.len() >= 16);
+        unsafe {
+            v128_store(out_data.as_mut_ptr() as *mut v128, self.0);
+        }
+    }
+
+    pub fn repeated(x: u8) -> CharVector16WASMSIMD128 {
+        CharVector16WASMSIMD128(u8x16_splat(x))
+    }
+
+    pub fn lane_eq(&self, rhs: CharVector16WASMSIMD128) -> BoolVector16WASMSIMD128 {
+        BoolVector16WASMSIMD128(i8x16_eq(self.0, rhs.0))
+    }
+
+    pub fn lane_lt(&self, rhs: CharVector16WASMSIMD128) -> BoolVector16WASMSIMD128 {
+        BoolVector16WASMSIMD128(u8x16_lt(self.0, rhs.0))
+    }
+
+    pub fn lane_gt(&self, rhs: CharVector16WASMSIMD128) -> BoolVector16WASMSIMD128 {
+        BoolVector16WASMSIMD128(u8x16_gt(self.0, rhs.0))
+    }
+
+    pub const fn len(&self) -> usize {
+        16
+    }
+}
+
+#[cfg(target_feature = "simd128")]
+impl std::ops::BitOr<CharVector16WASMSIMD128> for CharVector16WASMSIMD128 {
+    type Output = CharVector16WASMSIMD128;
+
+    fn bitor(self, rhs: CharVector16WASMSIMD128) -> CharVector16WASMSIMD128 {
+        CharVector16WASMSIMD128(v128_or(self.0, rhs.0))
+    }
+}
+
+#[cfg(target_feature = "simd128")]
+#[derive(Clone, Copy, Debug)]
+pub struct BoolVector16WASMSIMD128(v128);
+
+#[cfg(target_feature = "simd128")]
+impl BoolVector16WASMSIMD128 {
+    // data must point to at least 16 elements.
+    pub fn load_slow(data: &[bool]) -> BoolVector16WASMSIMD128 {
+        qljs_assert!(data.len() >= 16);
+        let bytes: [u8; 16] = generate_array_n(|i: usize| if data[i] { 0xff } else { 0x00 });
+        unsafe { BoolVector16WASMSIMD128(v128_load(bytes.as_ptr() as *const v128)) }
+    }
+
+    pub fn find_first_false(&self) -> u32 {
+        self.mask().trailing_ones()
+    }
+
+    pub fn mask(&self) -> u32 {
+        i8x16_bitmask(self.0) as u32
+    }
+
+    pub const fn len(&self) -> usize {
+        16
+    }
+}
+
+#[cfg(target_feature = "simd128")]
+impl std::ops::BitAnd<BoolVector16WASMSIMD128> for BoolVector16WASMSIMD128 {
+    type Output = BoolVector16WASMSIMD128;
+
+    fn bitand(self, rhs: BoolVector16WASMSIMD128) -> BoolVector16WASMSIMD128 {
+        BoolVector16WASMSIMD128(v128_and(self.0, rhs.0))
+    }
+}
+
+#[cfg(target_feature = "simd128")]
+impl std::ops::BitOr<BoolVector16WASMSIMD128> for BoolVector16WASMSIMD128 {
+    type Output = BoolVector16WASMSIMD128;
+
+    fn bitor(self, rhs: BoolVector16WASMSIMD128) -> BoolVector16WASMSIMD128 {
+        BoolVector16WASMSIMD128(v128_or(self.0, rhs.0))
+    }
+}
 
 #[cfg(target_feature = "sse2")]
 #[derive(Clone, Copy)]
@@ -117,11 +224,6 @@ impl std::ops::BitOr<BoolVector16SSE2> for BoolVector16SSE2 {
         unsafe { BoolVector16SSE2(_mm_or_si128(self.0, rhs.0)) }
     }
 }
-
-#[cfg(target_arch = "aarch64")]
-use std::arch::aarch64::*;
-#[cfg(target_arch = "arm")]
-use std::arch::arm::*;
 
 #[cfg(target_feature = "neon")]
 #[derive(Clone, Copy)]

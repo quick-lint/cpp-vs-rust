@@ -3,7 +3,8 @@ use cpp_vs_rust::scoped_trace;
 
 // TODO(port-later): Run tests with each supported CharVector16 implementation, rather than run
 // with just one.
-// TODO(port): WASMSIMD128.
+#[cfg(target_feature = "simd128")]
+type CharVector16 = CharVector16WASMSIMD128;
 #[cfg(target_feature = "sse2")]
 type CharVector16 = CharVector16SSE2;
 #[cfg(target_feature = "neon")]
@@ -39,7 +40,8 @@ fn char16_bitwise_or() {
 
 // TODO(port-later): Run tests with each supported BoolVector16 implementation, rather than run
 // with just one.
-// TODO(port): WASMSIMD128.
+#[cfg(target_feature = "simd128")]
+type BoolVector16 = BoolVector16WASMSIMD128;
 #[cfg(target_feature = "sse2")]
 type BoolVector16 = BoolVector16SSE2;
 #[cfg(target_feature = "neon")]

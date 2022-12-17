@@ -2004,7 +2004,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
         #[cfg(target_feature = "neon")]
         type CharVector = CharVector16NEON;
-        // TODO(port): char_vector_16_wasm_simd128
+        #[cfg(target_feature = "simd128")]
+        type CharVector = CharVector16WASMSIMD128;
         #[cfg(target_feature = "sse2")]
         type CharVector = CharVector16SSE2;
         // TODO(port): char_vector_1
@@ -2039,7 +2040,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             {
                 #[cfg(target_feature = "neon")]
                 type BoolVector = BoolVector16NEON;
-                // TODO(port): bool_vector_16_wasm_simd128
+                #[cfg(target_feature = "simd128")]
+                type BoolVector = BoolVector16WASMSIMD128;
                 #[cfg(target_feature = "sse2")]
                 type BoolVector = BoolVector16SSE2;
                 // TODO(port): bool_vector_1
@@ -2492,7 +2494,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         type BoolVector = BoolVector16NEON;
         #[cfg(target_feature = "neon")]
         type CharVector = CharVector16NEON;
-        // TODO(port): char_vector_16_wasm_simd128, bool_vector_16_wasm_simd128
+        #[cfg(target_feature = "simd128")]
+        type BoolVector = BoolVector16WASMSIMD128;
+        #[cfg(target_feature = "simd128")]
+        type CharVector = CharVector16WASMSIMD128;
         #[cfg(target_feature = "sse2")]
         type BoolVector = BoolVector16SSE2;
         #[cfg(target_feature = "sse2")]
