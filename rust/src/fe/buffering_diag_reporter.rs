@@ -4,13 +4,12 @@ use crate::fe::diagnostic_types::*;
 use crate::port::allocator::*;
 use crate::port::maybe_uninit::*;
 
-// TODO(port): Shouldn't this be bound by 'code? How else does SourceCodeSpan work inside StoredDiag?
-pub struct BufferingDiagReporter<'alloc> {
-    diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, StoredDiag>>,
+pub struct BufferingDiagReporter<'alloc, 'code> {
+    diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, StoredDiag<'code>>>,
 }
 
-impl<'alloc> BufferingDiagReporter<'alloc> {
-    pub fn new(allocator: &'alloc dyn Allocator) -> BufferingDiagReporter<'alloc> {
+impl<'alloc, 'code> BufferingDiagReporter<'alloc, 'code> {
+    pub fn new(allocator: &'alloc dyn Allocator) -> BufferingDiagReporter<'alloc, 'code> {
         BufferingDiagReporter {
             diagnostics: std::cell::UnsafeCell::new(LinkedVector::new(allocator)),
         }
@@ -36,7 +35,7 @@ impl<'alloc> BufferingDiagReporter<'alloc> {
     }
 }
 
-impl<'alloc> DiagReporter for BufferingDiagReporter<'alloc> {
+impl<'alloc, 'code> DiagReporter for BufferingDiagReporter<'alloc, 'code> {
     fn report_impl(&self, type_: DiagType, diag: *const u8) {
         let mut diag_data = [std::mem::MaybeUninit::uninit(); MAX_SIZE_OF_DIAGNOSTIC_TYPE];
         let diag_byte_size: usize = unsafe { *DIAG_SIZES.get_unchecked(type_ as usize) as usize };
@@ -49,11 +48,13 @@ impl<'alloc> DiagReporter for BufferingDiagReporter<'alloc> {
         unsafe { &mut *self.diagnostics.get() }.push(StoredDiag {
             type_: type_,
             diag: diag_data,
+            phantom: std::marker::PhantomData,
         });
     }
 }
 
-struct StoredDiag {
+struct StoredDiag<'code> {
     type_: DiagType,
     diag: [std::mem::MaybeUninit<u8>; MAX_SIZE_OF_DIAGNOSTIC_TYPE],
+    phantom: std::marker::PhantomData<&'code u8>,
 }

@@ -131,7 +131,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     // Return information about the current token.
     pub fn peek<'this>(&'this self) -> &'this Token<'this, 'code> {
-        &self.last_token
+        // HACK(strager): Work around lifetime confusion. There might be a better solution.
+        unsafe { std::mem::transmute(&self.last_token) }
     }
 
     // Advance to the next token. Use self.peek() after to observe the next
@@ -952,15 +953,13 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.end = body.end;
     }
 
-    fn parse_template_body(
-        &mut self,
+    fn parse_template_body<'this, /* HACK(strager) */ 'alloc: 'this>(
+        &'this mut self,
         input: InputPointer,
         template_begin: *const u8,
         diag_reporter: &dyn DiagReporter,
-    ) -> ParsedTemplateBody</* HACK(strager) */ 'code, 'code> {
-        let mut escape_sequence_diagnostics: Option<
-            & /* HACK(strager) */ 'code mut BufferingDiagReporter,
-        > = None;
+    ) -> ParsedTemplateBody<'alloc, 'code> {
+        let mut escape_sequence_diagnostics: Option<&'alloc mut BufferingDiagReporter> = None;
         let mut c: InputPointer = input;
         loop {
             match c[0] {
@@ -2626,7 +2625,7 @@ struct ParsedUnicodeEscape {
 struct ParsedTemplateBody<'alloc, 'code> {
     type_: TokenType,
     end: *const u8,
-    escape_sequence_diagnostics: Option<&'alloc mut BufferingDiagReporter<'code>>,
+    escape_sequence_diagnostics: Option<&'alloc mut BufferingDiagReporter<'alloc, 'code>>,
 }
 
 // The result of parsing an identifier.
@@ -2665,7 +2664,7 @@ pub struct LexerTransaction<'code, 'reporter, 'alloc> {
     old_last_last_token_end: *const u8,
     old_input: *const u8,
     // NOTE(port): In C++, this was stored inline. In Rust, we must store it on the heap.
-    _reporter: &'alloc BufferingDiagReporter<'alloc>,
+    _reporter: &'alloc BufferingDiagReporter<'alloc, 'code>,
     old_diag_reporter: &'reporter dyn DiagReporter,
 }
 

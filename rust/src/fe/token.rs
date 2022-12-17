@@ -612,7 +612,7 @@ pub union TokenExtras<'alloc, 'code> {
     pub identifier_escape_sequences: &'alloc EscapeSequenceList<'alloc, 'code>,
     // Used only if this is a CompleteTemplate or IncompleteTemplate token.
     pub template_escape_sequence_diagnostics:
-        std::mem::ManuallyDrop<Option<&'alloc mut BufferingDiagReporter<'code>>>,
+        std::mem::ManuallyDrop<Option<&'alloc mut BufferingDiagReporter<'alloc, 'code>>>,
 }
 
 impl<'alloc, 'code> std::fmt::Debug for TokenExtras<'alloc, 'code> {
