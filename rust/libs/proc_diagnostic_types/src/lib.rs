@@ -201,6 +201,11 @@ fn parse_arg_type(parser: &mut TokenStreamParser) -> DiagnosticArgType {
         }
     };
 
+    if parser.try_parse_keyword("Identifier").is_some() {
+        skip_generic_args(parser);
+        return DiagnosticArgType::Identifier;
+    }
+
     if parser.try_parse_keyword("SourceCodeSpan").is_some() {
         skip_generic_args(parser);
         return DiagnosticArgType::SourceCodeSpan;
@@ -208,6 +213,18 @@ fn parse_arg_type(parser: &mut TokenStreamParser) -> DiagnosticArgType {
 
     if parser.try_parse_keyword("u8").is_some() {
         return DiagnosticArgType::Char8;
+    }
+
+    if parser.try_parse_keyword("EnumKind").is_some() {
+        return DiagnosticArgType::EnumKind;
+    }
+
+    if parser.try_parse_keyword("StatementKind").is_some() {
+        return DiagnosticArgType::StatementKind;
+    }
+
+    if parser.try_parse_keyword("VariableKind").is_some() {
+        return DiagnosticArgType::VariableKind;
     }
 
     // &'code [u8]
@@ -532,7 +549,6 @@ struct QLJSDiagnosticField {
     type_: DiagnosticArgType,
 }
 
-#[allow(dead_code)] // TODO(port)
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum DiagnosticArgType {
     Char8,          // u8
