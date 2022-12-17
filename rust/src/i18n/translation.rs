@@ -2,6 +2,7 @@ use crate::i18n::locale::*;
 use crate::i18n::translation_table::*;
 use crate::i18n::translation_table_generated::*;
 use crate::qljs_assert;
+use crate::util::c_string::*;
 
 #[macro_export]
 macro_rules! qljs_translatable {
@@ -86,13 +87,8 @@ impl Translator {
         }
         let string_and_other_stuff: &[u8] =
             &TRANSLATION_DATA_STRING_TABLE[string_offset as usize..];
-        unsafe { read_utf8_c_string(string_and_other_stuff) }
+        unsafe { read_utf8_c_string_from_slice(string_and_other_stuff) }
     }
-}
-
-// Returns a str for data up until (but not including) a null terminator.
-unsafe fn read_utf8_c_string(bytes: &[u8]) -> &str {
-    std::str::from_utf8_unchecked(&bytes[0..bytes.iter().position(|c| *c == 0).unwrap_unchecked()])
 }
 
 // An un-translated message.

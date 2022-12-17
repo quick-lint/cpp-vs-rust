@@ -1,6 +1,5 @@
 use crate::fe::diagnostic_types::*;
 use crate::i18n::translation::*;
-use crate::qljs_assert;
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -103,7 +102,6 @@ impl DiagnosticInfo {
         message_formats: [TranslatableMessage; DIAGNOSTIC_MAX_MESSAGE_COUNT],
         message_args: [DiagnosticMessageArgs; DIAGNOSTIC_MAX_MESSAGE_COUNT],
     ) -> DiagnosticInfo {
-        qljs_assert!((code & DIAGNOSTIC_INFO_CODE_MASK) == code);
         DiagnosticInfo {
             code_and_severity: code | ((severity as u16) << DIAGNOSTIC_INFO_SEVERITY_SHIFT),
             message_formats: message_formats,
@@ -113,7 +111,6 @@ impl DiagnosticInfo {
 
     pub const fn code_string(&self) -> [u8; 5] {
         let diag_code: u16 = self.code();
-        qljs_assert!(diag_code <= 9999);
         [
             b'E',
             b'0' + (((diag_code / 1000) % 10) as u8),

@@ -7,6 +7,7 @@ fn failing_assert_crashes() {
         qljs_always_assert!(everything_is_okay);
     });
     assert!(result.is_err());
+    // TODO(port-later): Check the printed message.
 }
 
 #[test]
