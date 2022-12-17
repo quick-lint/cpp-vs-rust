@@ -16,7 +16,6 @@
 #include <quick-lint-js/dirty-set.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
-#include <quick-lint-js/spy-visitor.h>
 #include <string>
 #include <string_view>
 #include <vector>
