@@ -93,7 +93,7 @@ pub enum IdentifierKind {
 }
 
 pub struct Lexer<'code, 'reporter> {
-    last_token: Token</* HACK(strager) */ 'code, 'code>,
+    last_token: Token</* HACK(strager) */ 'reporter, 'code>,
     last_last_token_end: *const u8,
     input: InputPointer,
     diag_reporter: &'reporter dyn DiagReporter,
@@ -1341,6 +1341,87 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.end = self.input.0;
     }
 
+    // Save lexer state.
+    //
+    // After calling begin_transaction, you must call either commit_transaction or
+    // roll_back_transaction with the returned transaction.
+    //
+    // You can call begin_transaction again before calling commit_transaction
+    // or roll_back_transaction. Doing so begins a nested transaction.
+    //
+    // Inside a transaction, diagnostics are not reported until commit_transaction
+    // is called for the outer-most nested transaction.
+    pub fn begin_transaction(
+        &mut self,
+    ) -> LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter> {
+        let allocator: &MonotonicAllocator = self.get_transaction_allocator();
+        LexerTransaction::new(
+            /*old_last_token=*/ self.last_token.clone(),
+            /*old_last_last_token_end=*/ self.last_last_token_end,
+            /*old_input=*/ self.input.0,
+            /*diag_reporter_pointer=*/ &mut self.diag_reporter,
+            /*memory=*/ allocator,
+        )
+    }
+
+    // After calling commit_transaction, it's almost as if you never called
+    // begin_transaction in the first place.
+    //
+    // commit_transaction does not restore the state of the lexer when
+    // begin_transaction was called.
+    pub fn commit_transaction(
+        &mut self,
+        transaction: LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter>,
+    ) {
+        let buffered_diagnostics: &mut BufferingDiagReporter = unsafe {
+            &mut *(self.diag_reporter as *const dyn DiagReporter as *mut BufferingDiagReporter)
+        };
+        buffered_diagnostics.move_into(transaction.old_diag_reporter);
+
+        self.diag_reporter = transaction.old_diag_reporter;
+
+        std::mem::drop(transaction); // Deallocate the reporter.
+    }
+
+    // Restore lexer state to a prior version.
+    //
+    // After calling roll_back_transaction, it's as if you never called
+    // begin_transaction or subsequently called skip, insert_semicolon, or
+    // other functions.
+    //
+    // roll_back_transaction effectively undoes calls to skip, insert_semicolon,
+    // etc.
+    //
+    // Calling roll_back_transaction will not report lexer diagnostics which might
+    // have been reported if it weren't for begin_transaction.
+    pub fn roll_back_transaction(
+        &mut self,
+        transaction: LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter>,
+    ) {
+        self.last_token = transaction.old_last_token.clone();
+        self.last_last_token_end = transaction.old_last_last_token_end;
+        self.input = InputPointer(transaction.old_input);
+        self.diag_reporter = transaction.old_diag_reporter;
+
+        let rewind_state: LinkedBumpAllocatorRewindState = transaction.allocator_rewind.clone();
+        std::mem::drop(transaction); // Deallocate the reporter.
+        unsafe {
+            self.transaction_allocator.rewind(rewind_state);
+        }
+    }
+
+    // transaction_has_lex_diagnostics can only be called while the given
+    // transaction is the most recent active transaction.
+    pub fn transaction_has_lex_diagnostics(
+        &self,
+        _transaction: &LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter>,
+    ) -> bool {
+        let buffered_diagnostics: &mut BufferingDiagReporter = unsafe {
+            &mut *(self.diag_reporter as *const dyn DiagReporter as *mut BufferingDiagReporter)
+        };
+        !buffered_diagnostics.is_empty()
+    }
+
     pub fn insert_semicolon(&mut self) {
         qljs_assert!(!self.last_last_token_end.is_null());
         self.input = InputPointer(self.last_last_token_end);
@@ -2520,6 +2601,14 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     fn get_allocator(&self) -> &'code MonotonicAllocator {
         unsafe { std::mem::transmute(&self.allocator) }
     }
+
+    // HACK(port): Hack lifetimes to prevent Rust getting confused by code like the following:
+    //
+    //   let thing = use_it(&self.transaction_allocator);  // shared borrow of self
+    //   self.mut_method();                                // mutable borrow of self (error!)
+    fn get_transaction_allocator(&self) -> &'reporter MonotonicAllocator {
+        unsafe { std::mem::transmute(&self.transaction_allocator) }
+    }
 }
 
 struct ParsedUnicodeEscape {
@@ -2557,6 +2646,41 @@ struct ParsedIdentifier<'alloc, 'code> {
     normalized: &'alloc [u8],
 
     escape_sequences: Option<&'alloc EscapeSequenceList<'alloc, 'code>>,
+}
+
+pub struct LexerTransaction<'code, 'reporter, 'alloc> {
+    // Rewinds memory allocated by 'reporter'. Must be initialized before
+    // 'reporter' is constructed. 'allocator_type::rewind' must be called before
+    // 'reporter' is dropped.
+    allocator_rewind: LinkedBumpAllocatorRewindState,
+
+    old_last_token: Token<'alloc, 'code>,
+    old_last_last_token_end: *const u8,
+    old_input: *const u8,
+    // NOTE(port): In C++, this was stored inline. In Rust, we must store it on the heap.
+    reporter: &'alloc BufferingDiagReporter<'alloc>,
+    old_diag_reporter: &'reporter dyn DiagReporter,
+}
+
+impl<'code: 'alloc, 'reporter, 'alloc: 'reporter> LexerTransaction<'code, 'reporter, 'alloc> {
+    fn new(
+        old_last_token: Token<'alloc, 'code>,
+        old_last_last_token_end: *const u8,
+        old_input: *const u8,
+        diag_reporter_pointer: &'_ mut &'reporter dyn DiagReporter,
+        allocator: &'alloc MonotonicAllocator,
+    ) -> LexerTransaction<'code, 'reporter, 'alloc> {
+        let reporter: &'alloc BufferingDiagReporter =
+            unsafe { &mut *allocator.new_object(BufferingDiagReporter::new(allocator)) };
+        LexerTransaction {
+            allocator_rewind: allocator.prepare_for_rewind(),
+            old_last_token: old_last_token,
+            old_last_last_token_end: old_last_last_token_end,
+            old_input: old_input,
+            reporter: reporter,
+            old_diag_reporter: std::mem::replace(diag_reporter_pointer, reporter),
+        }
+    }
 }
 
 fn is_binary_digit(c: u8) -> bool {

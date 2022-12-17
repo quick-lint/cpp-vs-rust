@@ -36,6 +36,7 @@ struct LinkedBumpAllocatorState<const ALIGNMENT: usize> {
     disabled_count: i32,
 }
 
+#[derive(Clone)]
 pub struct LinkedBumpAllocatorRewindState {
     chunk: *mut u8, // ChunkHeader<ALIGNMENT>
     next_allocation: *mut u8,

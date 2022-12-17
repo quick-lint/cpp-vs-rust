@@ -71,3 +71,7 @@
 %s/\<QLJS_ASSERT(\(.*\));/qljs_assert!(\1);/
 %s/\<QLJS_ALWAYS_ASSERT(\(.*\));/qljs_always_assert!(\1);/
 %s/\<QLJS_SLOW_ASSERT(\(.*\));/qljs_slow_assert!(\1);/
+
+%s/EXPECT_THAT(errors.errors, IsEmpty())/qljs_assert_no_diags!(errors.clone_errors(), code.view())/
+%s/\<lexer_transaction \(\k\+\) = l.begin_transaction();/let \1: LexerTransaction = l.begin_transaction();/
+%s/\<l.\(roll_back_transaction\|commit_transaction\)(std::move(\(\k\+\)));/l.\1(\2);/

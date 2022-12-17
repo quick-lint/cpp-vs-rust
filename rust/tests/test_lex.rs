@@ -3263,15 +3263,252 @@ fn inserting_semicolon_at_right_curly_remembers_next_token() {
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
 }
 
-// TODO(port): transaction_buffers_errors_until_commit
-// TODO(port): nested_transaction_buffers_errors_until_outer_commit
-// TODO(port): rolled_back_inner_transaction_discards_errors
-// TODO(port): rolled_back_outer_transaction_discards_errors
-// TODO(port): errors_after_transaction_commit_are_reported_unbuffered
-// TODO(port): errors_after_transaction_rollback_are_reported_unbuffered
-// TODO(port): rolling_back_transaction
-// TODO(port): insert_semicolon_after_rolling_back_transaction
-// TODO(port): unfinished_transaction_does_not_leak_memory
+#[test]
+fn transaction_buffers_errors_until_commit() {
+    let code = PaddedString::from_slice(b"x 0b y");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+    qljs_assert_no_diags!(
+        errors.clone_errors(),
+        code.view(),
+        "0b error shouldn't be written to error reporter"
+    );
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.commit_transaction(transaction);
+    qljs_assert_diags!(errors.clone_errors(), DiagNoDigitsInBinaryNumber);
+}
+
+#[test]
+fn nested_transaction_buffers_errors_until_outer_commit() {
+    let code = PaddedString::from_slice(b"x y 0b z");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier); // x
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let outer_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier); // y
+
+    let inner_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number); // 0b
+    qljs_assert_no_diags!(
+        errors.clone_errors(),
+        code.view(),
+        "0b error shouldn't be written to error reporter",
+    );
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier); // z
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.commit_transaction(inner_transaction);
+    qljs_assert_no_diags!(
+        errors.clone_errors(),
+        code.view(),
+        "committing inner_transaction should not report 0b error",
+    );
+
+    l.commit_transaction(outer_transaction);
+    qljs_assert_diags!(
+        errors.clone_errors(),
+        DiagNoDigitsInBinaryNumber,
+        "committing outer_transaction should report 0b error",
+    );
+}
+
+#[test]
+fn rolled_back_inner_transaction_discards_errors() {
+    let code = PaddedString::from_slice(b"x y 0b z");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier); // x
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let outer_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier); // y
+
+    let inner_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number); // 0b
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier); // z
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.roll_back_transaction(inner_transaction);
+    l.commit_transaction(outer_transaction);
+    qljs_assert_no_diags!(
+        errors.clone_errors(),
+        code.view(),
+        "0b error shouldn't be written to error reporter",
+    );
+}
+
+#[test]
+fn rolled_back_outer_transaction_discards_errors() {
+    let code = PaddedString::from_slice(b"x y 0b z");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier); // x
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let outer_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier); // y
+
+    let inner_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number); // 0b
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Identifier); // z
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.commit_transaction(inner_transaction);
+    l.roll_back_transaction(outer_transaction);
+    qljs_assert_no_diags!(
+        errors.clone_errors(),
+        code.view(),
+        "0b error shouldn't be written to error reporter",
+    );
+}
+
+#[test]
+fn errors_after_transaction_commit_are_reported_unbuffered() {
+    let code = PaddedString::from_slice(b"x 'y' 0b");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+
+    l.commit_transaction(transaction);
+    assert_eq!(l.peek().type_, TokenType::String);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+    qljs_assert_diags!(errors.clone_errors(), DiagNoDigitsInBinaryNumber);
+}
+
+#[test]
+fn errors_after_transaction_rollback_are_reported_unbuffered() {
+    let code = PaddedString::from_slice(b"x 'y' 0b");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+
+    l.roll_back_transaction(transaction);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+    qljs_assert_diags!(errors.clone_errors(), DiagNoDigitsInBinaryNumber);
+}
+
+#[test]
+fn rolling_back_transaction() {
+    let code = PaddedString::from_slice(b"x 'y' 3");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    let transaction: LexerTransaction = l.begin_transaction();
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+
+    l.roll_back_transaction(transaction);
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+}
+
+#[test]
+fn insert_semicolon_after_rolling_back_transaction() {
+    let code = PaddedString::from_slice(b"x 'y' 3");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    assert_eq!(l.peek().type_, TokenType::Identifier);
+    qljs_assert_no_diags!(errors.clone_errors(), code.view());
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+
+    let transaction: LexerTransaction = l.begin_transaction();
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+
+    l.roll_back_transaction(transaction);
+    l.insert_semicolon();
+    assert_eq!(l.peek().type_, TokenType::Semicolon);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::String);
+
+    l.skip();
+    assert_eq!(l.peek().type_, TokenType::Number);
+}
+
+#[test]
+fn unfinished_transaction_does_not_leak_memory() {
+    // This test relies on a leak checker such as Valgrind's memtest or
+    // Clang's LeakSanitizer.
+
+    let code = PaddedString::from_slice(b"a b c d e f g");
+    let errors = DiagCollector::new();
+    let mut l = Lexer::new(code.view(), &errors);
+
+    let _outer_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+
+    let _inner_transaction: LexerTransaction = l.begin_transaction();
+    l.skip();
+
+    // Don't end either transaction. The leak checker should report no leaks.
+}
 
 #[test]
 fn is_initial_identifier_byte_agrees_with_is_initial_identifier_character() {

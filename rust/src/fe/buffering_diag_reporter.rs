@@ -4,6 +4,7 @@ use crate::fe::diagnostic_types::*;
 use crate::port::allocator::*;
 use crate::port::maybe_uninit::*;
 
+// TODO(port): Shouldn't this be bound by 'code? How else does SourceCodeSpan work inside AnyDiag?
 pub struct BufferingDiagReporter<'alloc> {
     diagnostics: std::cell::UnsafeCell<LinkedVector<'alloc, AnyDiag>>,
 }
@@ -24,6 +25,14 @@ impl<'alloc> BufferingDiagReporter<'alloc> {
 
     pub fn move_into(&mut self, other: &dyn DiagReporter) {
         self.copy_into(other);
+    }
+
+    pub fn is_empty(&self) -> bool {
+        unsafe { &mut *self.diagnostics.get() }.is_empty()
+    }
+
+    pub fn clear(&mut self) {
+        unsafe { &mut *self.diagnostics.get() }.clear()
     }
 }
 
