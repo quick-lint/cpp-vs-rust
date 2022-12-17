@@ -68,8 +68,6 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
         (*self.state.get()).rewind(r);
     }
 
-    // TODO(port): make_rewind_guard
-
     pub fn new_object<T: Sized>(&self, value: T) -> *mut T {
         qljs_const_assert!(
             std::mem::align_of::<T>() <= ALIGNMENT,
