@@ -16,8 +16,6 @@ use std::arch::x86::*;
 #[cfg(target_arch = "x86_64")]
 use std::arch::x86_64::*;
 
-// TODO(port): forceinline attributes
-
 #[cfg(target_feature = "simd128")]
 #[derive(Clone, Copy)]
 pub struct CharVector16WASMSIMD128(v128);
