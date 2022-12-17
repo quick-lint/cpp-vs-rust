@@ -239,14 +239,18 @@ fn look_up(input: &[u8]) -> Option<&'static KeywordEntry> {
         let key: u32 = hash(input);
 
         if key <= MAX_HASH_VALUE {
-            // TODO(port): Do unchecked lookups.
-            let entry: &KeywordEntry = &WORDLIST[key as usize];
-            let o: i32 = entry.string_offset;
-            if o >= 0 {
-                let s: &[u8] = &STRINGPOOL[(o as usize)..];
+            unsafe {
+                let entry: &KeywordEntry = &WORDLIST.get_unchecked(key as usize);
+                let o: i32 = entry.string_offset;
+                if o >= 0 {
+                    let s: &[u8] = &STRINGPOOL.get_unchecked((o as usize)..);
 
-                if input[0] == s[0] && input[1..len - 1] == s[1..len - 1] && s[len] == b'\0' {
-                    return Some(entry);
+                    if input.get_unchecked(0) == s.get_unchecked(0)
+                        && input.get_unchecked(1..len - 1) == s.get_unchecked(1..len - 1)
+                        && *s.get_unchecked(len) == b'\0'
+                    {
+                        return Some(entry);
+                    }
                 }
             }
         }
