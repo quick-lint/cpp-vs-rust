@@ -8,6 +8,7 @@ members = [ "libs/test", "libs/proc_diagnostic_types" ]
 
 [dependencies]
 cpp_vs_rust_proc_diagnostic_types = { path = "libs/proc_diagnostic_types" }
+libc = { version = "0.2.138" }
 
 [dev-dependencies]
 cpp_vs_rust_test = { path = "libs/test" }

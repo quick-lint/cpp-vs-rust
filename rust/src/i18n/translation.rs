@@ -2,6 +2,7 @@ use crate::i18n::locale::*;
 use crate::i18n::translation_table::*;
 use crate::i18n::translation_table_generated::*;
 use crate::qljs_assert;
+use crate::qljs_c_string;
 use crate::util::c_string::*;
 
 #[macro_export]
@@ -16,8 +17,9 @@ macro_rules! qljs_translatable {
 pub static mut QLJS_MESSAGES: Translator = Translator::new_using_messages_from_source_code();
 
 pub fn initialize_locale() {
-    // TODO(port): Call C's setlocale:
-    // std::setlocale(LC_ALL, "")
+    unsafe {
+        libc::setlocale(libc::LC_ALL, qljs_c_string!("") as *const std::ffi::c_char);
+    }
 }
 
 pub fn initialize_translations_from_locale(locale_name: &str) {
