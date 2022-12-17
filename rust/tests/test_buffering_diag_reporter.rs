@@ -5,7 +5,7 @@ use cpp_vs_rust::fe::buffering_diag_reporter::*;
 use cpp_vs_rust::fe::diag_reporter::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
 use cpp_vs_rust::fe::source_code_span::*;
-use cpp_vs_rust::test::diag_collector::*;
+use cpp_vs_rust_test::diag_collector::*;
 
 #[test]
 fn buffers_all_visits() {

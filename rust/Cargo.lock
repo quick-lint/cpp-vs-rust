@@ -13,13 +13,21 @@ name = "cpp_vs_rust"
 version = "0.1.0"
 dependencies = [
  "cpp_vs_rust_proc_diagnostic_types",
- "lazy_static",
+ "cpp_vs_rust_test",
  "memoffset",
 ]
 
 [[package]]
 name = "cpp_vs_rust_proc_diagnostic_types"
 version = "0.1.0"
+
+[[package]]
+name = "cpp_vs_rust_test"
+version = "0.1.0"
+dependencies = [
+ "cpp_vs_rust",
+ "lazy_static",
+]
 
 [[package]]
 name = "lazy_static"

@@ -1,6 +1,6 @@
 // TODO(port-later): Avoid specifying generic arguments to 'concat'.
 
-use crate::test::array::*;
+use crate::array::*;
 
 pub const LINE_TERMINATORS_EXCEPT_LS_PS: [&'static str; 3] = ["\n", "\r", "\r\n"];
 

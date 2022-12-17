@@ -8,14 +8,14 @@ use cpp_vs_rust::fe::identifier::*;
 use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::fe::token::*;
-use cpp_vs_rust::qljs_assert_diags;
-use cpp_vs_rust::qljs_assert_no_diags;
-use cpp_vs_rust::scoped_trace;
-use cpp_vs_rust::test::characters::*;
-use cpp_vs_rust::test::diag_collector::*;
-use cpp_vs_rust::test::diag_matcher::*;
-use cpp_vs_rust::test::parse_support::*;
 use cpp_vs_rust::util::utf_8::*;
+use cpp_vs_rust_test::characters::*;
+use cpp_vs_rust_test::diag_collector::*;
+use cpp_vs_rust_test::diag_matcher::*;
+use cpp_vs_rust_test::parse_support::*;
+use cpp_vs_rust_test::qljs_assert_diags;
+use cpp_vs_rust_test::qljs_assert_no_diags;
+use cpp_vs_rust_test::scoped_trace;
 
 #[test]
 fn lex_block_comments() {

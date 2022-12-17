@@ -8,7 +8,7 @@
 
 use cpp_vs_rust::i18n::translation::*;
 use cpp_vs_rust::qljs_translatable;
-use cpp_vs_rust::scoped_trace;
+use cpp_vs_rust_test::scoped_trace;
 
 #[rustfmt::skip]
 pub const TEST_LOCALE_NAMES: [&'static str; 6] = [

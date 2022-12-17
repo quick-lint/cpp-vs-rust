@@ -1,6 +1,6 @@
-use crate::container::padded_string::*;
-use crate::fe::source_code_span::*;
-use crate::util::narrow_cast::*;
+use cpp_vs_rust::container::padded_string::*;
+use cpp_vs_rust::fe::source_code_span::*;
+use cpp_vs_rust::util::narrow_cast::*;
 
 // Checks that the SourceCodeSpan begins at begin_offset and ends at begin_offset+text.len().
 //
@@ -239,9 +239,9 @@ macro_rules! qljs_match_diag_field {
         $field:ident: $begin:tt..$end:tt $(,)?
     ) => {{
         let expected_begin_offset: usize =
-            $crate::test::diag_matcher::BeginOffsetLike::to_begin_offset($begin);
+            $crate::diag_matcher::BeginOffsetLike::to_begin_offset($begin);
         let expected_end_offset: usize =
-            $crate::test::diag_matcher::EndOffsetLike::to_end_offset($end, expected_begin_offset);
+            $crate::diag_matcher::EndOffsetLike::to_end_offset($end, expected_begin_offset);
         offsets_match_begin_end(
             &$diag.$field,
             $input,

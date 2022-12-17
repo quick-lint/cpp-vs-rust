@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [ "libs/proc_diagnostic_types" ]
+members = [ "libs/test", "libs/proc_diagnostic_types" ]
 
 [dependencies]
-# TODO(port): Make lazy_static test-only.
-lazy_static = { version = "1.4.0" }
 memoffset = { version = "0.7.1", optional = true }
+
+[dev-dependencies]
+cpp_vs_rust_test = { path = "libs/test" }
 
 [dependencies.cpp_vs_rust_proc_diagnostic_types]
 path = "libs/proc_diagnostic_types"

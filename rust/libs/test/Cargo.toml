@@ -1,0 +1,8 @@
+[package]
+name = "cpp_vs_rust_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cpp_vs_rust = { path = "../.." }
+lazy_static = { version = "1.4.0" }
