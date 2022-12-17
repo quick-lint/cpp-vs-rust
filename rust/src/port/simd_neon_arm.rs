@@ -16,6 +16,7 @@ use std::arch::arm::*;
 #[cfg(target_feature = "neon")]
 impl BoolVector16NEON {
     #[cfg(target_arch = "aarch64")]
+    #[inline(always)]
     pub fn find_first_false(&self) -> u32 {
         unsafe {
             // You might expect a magic pattern to look like the following:
@@ -69,10 +70,12 @@ impl BoolVector16NEON {
     }
 
     #[cfg(target_arch = "arm")]
+    #[inline(always)]
     pub fn find_first_false() -> u32 {
         self.mask().trailing_ones()
     }
 
+    #[inline(always)]
     #[rustfmt::skip]
     pub fn mask(&self) -> u32 {
         unsafe {
