@@ -3,7 +3,7 @@ use crate::container::winkable::*;
 use crate::qljs_assert;
 use crate::util::narrow_cast::*;
 
-// TODO(port): Use InstrumentedVector if vector instrumentation is enabled.
+// TODO(port-later): Use InstrumentedVector if vector instrumentation is enabled.
 pub type BumpVector<'alloc, T, BumpAllocator> =
     UninstrumentedVector<RawBumpVector<'alloc, T, BumpAllocator>>;
 
@@ -11,7 +11,6 @@ pub type BumpVector<'alloc, T, BumpAllocator> =
 // InstrumentedVector<Vector> (but without the instrumentation overhead).
 //
 // NOTE(port): We're not porting InstrumentedVector right now.
-// TODO(port): Make this interface more like Rust's Vec.
 pub struct UninstrumentedVector<Vector>(Vector);
 
 pub trait VectorLike {
@@ -98,7 +97,7 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
         self.0.release()
     }
 
-    // TODO(port): Expose more RawBumpVector functions.
+    // TODO(port-later): Expose more RawBumpVector functions.
 }
 
 pub struct RawBumpVector<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> {

@@ -15,7 +15,7 @@ pub enum DiagnosticSeverity {
 pub enum DiagnosticArgType {
     Invalid = 0,
 
-    // TODO(port): Rename some of these.
+    // TODO(port-later): Rename some of these.
     Char8,
     EnumKind,
     Identifier,

@@ -2,8 +2,6 @@ use crate::container::padded_string::*;
 use crate::fe::source_code_span::*;
 use crate::util::narrow_cast::*;
 
-// TODO(port): Create a higher-fidelity analog to diag_matcher from the C++ code.
-
 // Checks that the SourceCodeSpan begins at begin_offset and ends at begin_offset+text.len().
 //
 // TODO(strager): Also ensure the SourceCodeSpan's content equals text.
@@ -37,7 +35,7 @@ macro_rules! qljs_assert_no_diags {
         $input:expr,       // PaddedStringView
         $message:expr $(,)?
     ) => {
-        // TODO(port): Better error messages on failure.
+        // TODO(port-later): Better error messages on failure.
         assert_matches!(&$errors[..], [], $message);
     };
 
@@ -45,7 +43,7 @@ macro_rules! qljs_assert_no_diags {
         $errors:expr,      // &Vec<AnyDiag>
         $input:expr $(,)?  // PaddedStringView
     ) => {
-        // TODO(port): Better error messages on failure.
+        // TODO(port-later): Better error messages on failure.
         assert_matches!(&$errors[..], []);
     };
 }
@@ -89,7 +87,7 @@ macro_rules! qljs_assert_diags {
         $input:expr,  // PaddedStringView
         $diag_0_name:ident $diag_0_fields:tt $(,)?
     ) => {
-        // TODO(port): Better error messages on failure.
+        // TODO(port-later): Better error messages on failure.
         assert_matches!(
             &$errors[..],
             [AnyDiag::$diag_0_name(diag)]
@@ -107,7 +105,7 @@ macro_rules! qljs_assert_diags {
         $diag_0_name:ident $diag_0_fields:tt,
         $diag_1_name:ident $diag_1_fields:tt $(,)?
     ) => {
-        // TODO(port): Better error messages on failure.
+        // TODO(port-later): Better error messages on failure.
         assert_matches!(
             &$errors[..],
             [AnyDiag::$diag_0_name(diag_0), AnyDiag::$diag_1_name(diag_1)]
@@ -129,7 +127,7 @@ macro_rules! qljs_assert_diags {
         $diag_0_name:ident,
         $diag_1_name:ident $diag_1_fields:tt $(,)?
     ) => {
-        // TODO(port): Better error messages on failure.
+        // TODO(port-later): Better error messages on failure.
         assert_matches!(
             &$errors[..],
             [AnyDiag::$diag_0_name(_), AnyDiag::$diag_1_name(diag)]

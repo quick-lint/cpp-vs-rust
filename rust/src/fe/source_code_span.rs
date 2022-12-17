@@ -1,7 +1,7 @@
 use crate::container::winkable::*;
 use crate::util::narrow_cast::*;
 
-// TODO(port): Custom implementation of Debug.
+// TODO(port-later): Custom implementation of Debug.
 #[derive(Clone, Copy, Debug)]
 pub struct SourceCodeSpan<'code> {
     begin: *const u8,
@@ -12,7 +12,7 @@ pub struct SourceCodeSpan<'code> {
 
 impl<'code> SourceCodeSpan<'code> {
     // A source_code_span with no contained characters.
-    // TODO(port): Is this interface sane?
+    // TODO(port-later): Is this interface sane?
     pub unsafe fn unit(c: *const u8) -> SourceCodeSpan<'code> {
         SourceCodeSpan {
             begin: c,
@@ -21,7 +21,7 @@ impl<'code> SourceCodeSpan<'code> {
         }
     }
 
-    // TODO(port): Is this interface sane?
+    // TODO(port-later): Is this interface sane?
     pub unsafe fn new(begin: *const u8, end: *const u8) -> SourceCodeSpan<'code> {
         SourceCodeSpan {
             begin: begin,

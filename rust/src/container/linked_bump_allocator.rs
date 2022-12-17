@@ -131,8 +131,8 @@ impl<const ALIGNMENT: usize> BumpAllocatorLike for LinkedBumpAllocator<ALIGNMENT
         unsafe { std::slice::from_raw_parts_mut(data, len) }
     }
 
-    // TODO(port): Should this accept MaybeUninit?
-    // TODO(port): Should this return MaybeUninit?
+    // TODO(port-later): Should this accept MaybeUninit?
+    // TODO(port-later): Should this return MaybeUninit?
     fn try_grow_array_in_place<'b, T>(
         &self,
         array: &'b mut [T],
@@ -251,12 +251,12 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
 
     fn did_allocate_bytes(&self, _p: *mut u8, _size: usize) {
         // TODO(strager): Mark memory as usable for Valgrind.
-        // TODO(port): Mark memory as usable for ASAN.
+        // TODO(port-later): Mark memory as usable for ASAN.
     }
 
     fn did_deallocate_bytes(&self, _p: *mut u8, _size: usize) {
         // TODO(strager): Mark memory as unusable for Valgrind.
-        // TODO(port): Mark memory as unusable for Valgrind.
+        // TODO(port-later): Mark memory as unusable for Valgrind.
     }
 
     fn append_chunk(&mut self, len: usize) {
@@ -281,8 +281,8 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
     }
 }
 
-// TODO(port): Do we need repr(C)? We pack ChunkHeader and the data in a single allocation, so I
-// thought I'd add repr(C) just to be safe.
+// TODO(port-later): Do we need repr(C)? We pack ChunkHeader and the data in a single allocation,
+// so I thought I'd add repr(C) just to be safe.
 #[repr(C)]
 struct ChunkHeader<const ALIGNMENT: usize> {
     previous: *mut ChunkHeader<ALIGNMENT>, // Linked list.
@@ -341,7 +341,7 @@ impl<const ALIGNMENT: usize> Drop for LinkedBumpAllocator<ALIGNMENT> {
 impl<const ALIGNMENT: usize> Allocator for LinkedBumpAllocator<ALIGNMENT> {
     fn allocate(&self, layout: std::alloc::Layout) -> Result<std::ptr::NonNull<[u8]>, AllocError> {
         unsafe {
-            // TODO(port): Does an allocation size of 0 work?
+            // TODO(port-later): Does an allocation size of 0 work?
             let result: *mut u8 = self.allocate(layout.size(), layout.align());
             Ok(std::ptr::NonNull::new_unchecked(
                 std::ptr::slice_from_raw_parts_mut(result, layout.size()),

@@ -155,7 +155,7 @@ impl TokenStreamParser {
 }
 
 fn decode_rust_string_literal(s: &str) -> String {
-    // TODO(port): Implement a proper algorithm.
+    // TODO(port-later): Implement a proper algorithm.
     let s = &s[1..(s.len() - 1)];
     s.replace("\\\\", "\\")
 }

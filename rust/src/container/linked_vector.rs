@@ -9,7 +9,7 @@ use crate::qljs_slow_assert;
 // * Items are ordered by insertion (like std::vec::Vec and std::collections::VecDeque when only
 //   calling push).
 // * Items are never copied or moved when adding or removing different items. Pointer stability.
-//   * TODO(port): Is pointer stability important in the Rust port?
+//   * TODO(port-later): Is pointer stability important in the Rust port?
 pub struct LinkedVector<'alloc, T> {
     head: *mut ChunkHeader<T>,
     tail: *mut ChunkHeader<T>,
@@ -36,7 +36,6 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         items_per_chunk::<T>()
     }
 
-    // TODO(port): Rename to 'push'.
     pub fn push(&mut self, value: T) -> &mut T {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.tail;

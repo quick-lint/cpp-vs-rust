@@ -2,7 +2,7 @@ edition = "2021"
 
 newline_style = "Unix"
 
-# TODO(port): Enable these when they become stable:
+# TODO(strager): Enable these when they become stable:
 # format_code_in_doc_comments = true
 # format_macro_bodies = true
 # format_macro_matchers = true

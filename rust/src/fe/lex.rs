@@ -1703,8 +1703,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 todo!();
             }
         };
-        // TODO(port): Avoid this heap allocation to make this similar to the C++ code. (Really, we
-        // should redesign this code anyway...)
+        // TODO(port-later): Avoid this heap allocation to make this similar to the C++ code.
+        // (Really, we should redesign this code anyway...)
         let result_string: String = format!("{num:.0}");
         qljs_always_assert!(result_string.len() <= MAX_ACC_LENGTH);
         if cleaned_string != result_string {
@@ -2046,9 +2046,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 // TODO(port): bool_vector_1
 
                 const UPPER_TO_LOWER_MASK: u8 = b'a' - b'A';
-                /* TODO(port):
-                const_assert!((b'A' | UPPER_TO_LOWER_MASK) == b'a');
-                */
+                qljs_const_assert!((b'A' | UPPER_TO_LOWER_MASK) == b'a');
 
                 let lower_cased_characters: CharVector =
                     chars | CharVector::repeated(UPPER_TO_LOWER_MASK);
