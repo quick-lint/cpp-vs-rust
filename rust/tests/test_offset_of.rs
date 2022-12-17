@@ -1,9 +1,7 @@
 use cpp_vs_rust::qljs_offset_of;
 
-#[cfg(feature = "qljs_memoffset")]
 use memoffset::offset_of;
 
-#[cfg(feature = "qljs_memoffset")]
 #[test]
 fn matches_memoffset_for_reference_fields() {
     struct Test<'a> {
@@ -17,7 +15,6 @@ fn matches_memoffset_for_reference_fields() {
     assert_eq!(qljs_offset_of!(Test, z), offset_of!(Test, z));
 }
 
-#[cfg(feature = "qljs_memoffset")]
 #[test]
 fn matches_memoffset_for_primitive_fields() {
     struct Test {
