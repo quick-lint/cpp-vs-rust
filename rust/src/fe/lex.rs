@@ -1701,7 +1701,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         let num: f64 = match num {
             Ok(num) => num,
             Err(_) => {
-                // TODO(port)
+                // TODO(port-later)
                 todo!();
             }
         };
@@ -2309,7 +2309,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 input += 1;
                 continue;
             } else if c0 >= 0xc2 {
-                // TODO(port): [[unlikely]]
+                // TODO(port-later): [[unlikely]]
                 match c0 {
                     0xe1 => {
                         if c1 == 0x9a && c2 == 0x80 {
