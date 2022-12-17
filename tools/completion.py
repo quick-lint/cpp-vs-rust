@@ -57,6 +57,7 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/port/char8-debug.cpp",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/char8.cpp",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/char8.h",  # Not needed in Rust.
+    "cpp/src/quick-lint-js/port/crash.h",
     "cpp/src/quick-lint-js/port/have.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/in-range.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/integer.cpp", # Not needed in Rust.
@@ -68,7 +69,9 @@ CONVERTED_CPP_FILES = [
     "cpp/src/quick-lint-js/port/memory-resource.h",
     "cpp/src/quick-lint-js/port/simd-neon-arm.h",
     "cpp/src/quick-lint-js/port/simd.h",
+    "cpp/src/quick-lint-js/port/source-location.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/type-traits.h",  # Not needed in Rust.
+    "cpp/src/quick-lint-js/port/unreachable.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/vector-erase.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/port/warning.h",  # Not needed in Rust.
     "cpp/src/quick-lint-js/util/algorithm.h", # Not needed in Rust.
