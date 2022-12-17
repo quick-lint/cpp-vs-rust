@@ -359,7 +359,7 @@ qljs_make_has_diag_type_impls!();
 // NOTE(port): This was called diag_collector::diag in the C++ code.
 qljs_make_any_diag_enum!();
 
-const DIAG_TYPE_COUNT: i32 = qljs_diag_type_count!() as i32;
+pub const DIAG_TYPE_COUNT: i32 = qljs_diag_type_count!() as i32;
 
 pub(crate) const ALL_DIAGNOSTIC_INFOS: &[DiagnosticInfo] = &qljs_make_diag_type_infos!();
 

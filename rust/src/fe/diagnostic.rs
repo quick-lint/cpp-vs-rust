@@ -138,4 +138,14 @@ pub fn get_diagnostic_info(type_: DiagType) -> &'static DiagnosticInfo {
     &ALL_DIAGNOSTIC_INFOS[type_ as usize]
 }
 
-// TODO(port): diag_type_from_code_slow
+pub fn diag_type_from_code_slow(code: &str) -> Option<DiagType> {
+    for i in 0..(DIAG_TYPE_COUNT as usize) {
+        // TODO(strager): Parse the incoming code instead of stringifying each code
+        // in the table.
+        let diag_code_string: [u8; 5] = ALL_DIAGNOSTIC_INFOS[i].code_string();
+        if diag_code_string == code.as_bytes() {
+            return Some(unsafe { std::mem::transmute::<_, DiagType>(i as u16) });
+        }
+    }
+    None
+}

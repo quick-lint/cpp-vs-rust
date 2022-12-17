@@ -231,6 +231,7 @@ fn parse_arg_type(parser: &mut TokenStreamParser) -> DiagnosticArgType {
 // Write:
 //
 // #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+// #[repr(u16)]
 // pub enum $name {
 //     Diag1,
 //     Diag2,
@@ -246,6 +247,13 @@ pub fn qljs_make_diag_type_enum(item: proc_macro::TokenStream) -> proc_macro::To
 
     let mut enum_writer = TokenWriter::new();
     enum_writer.derive_attribute(&["Clone", "Copy", "Debug", "Eq", "PartialEq"]);
+    enum_writer.punct("#");
+    enum_writer.build_bracket(|attribute: &mut TokenWriter| {
+        attribute.ident("repr");
+        attribute.build_paren(|repr: &mut TokenWriter| {
+            repr.ident("u16");
+        });
+    });
     enum_writer.ident("pub");
     enum_writer.ident("enum");
     enum_writer.token(proc_macro::TokenTree::Ident(name));
