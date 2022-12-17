@@ -21,6 +21,9 @@ use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 use crate::util::utf_8::*;
 
+#[cfg(target_feature = "sse4.2")]
+use std::arch::x86_64::*;
+
 macro_rules! qljs_case_identifier_start {
     () => {
       b'\\' | b'$' | b'_' |
@@ -2016,21 +2019,19 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         type CharVector = CharVector1;
 
         fn count_identifier_characters(chars: CharVector) -> u32 {
-            // TODO(port): Test code gen carefully.
             #[cfg(target_feature = "sse4.2")]
-            {
-                // TODO(port)
+            unsafe {
                 let ranges: __m128i = _mm_setr_epi8(
-                    '$', '$', //
-                    '_', '_', //
-                    '0', '9', //
-                    'a', 'z', //
-                    'A', 'Z', //
+                    b'$' as i8, b'$' as i8, //
+                    b'_' as i8, b'_' as i8, //
+                    b'0' as i8, b'9' as i8, //
+                    b'a' as i8, b'z' as i8, //
+                    b'A' as i8, b'Z' as i8, //
                     // For unused table entries, duplicate a previous entry.
                     // (If we zero-filled, we would match null bytes!)
-                    '$', '$', //
-                    '$', '$', //
-                    '$', '$',
+                    b'$' as i8, b'$' as i8, //
+                    b'$' as i8, b'$' as i8, //
+                    b'$' as i8, b'$' as i8,
                 );
                 _mm_cmpistri(
                     ranges,
@@ -2039,7 +2040,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         | _SIDD_LEAST_SIGNIFICANT
                         | _SIDD_NEGATIVE_POLARITY
                         | _SIDD_UBYTE_OPS,
-                )
+                ) as u32
             }
             #[cfg(not(target_feature = "sse4.2"))]
             {
