@@ -14,7 +14,6 @@
 #include <quick-lint-js/diag-collector.h>
 #include <quick-lint-js/diag-matcher.h>
 #include <quick-lint-js/dirty-set.h>
-#include <quick-lint-js/failing-diag-reporter.h>
 #include <quick-lint-js/port/char8.h>
 #include <quick-lint-js/port/memory-resource.h>
 #include <quick-lint-js/spy-visitor.h>
