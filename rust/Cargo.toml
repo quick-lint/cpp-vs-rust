@@ -6,12 +6,12 @@ edition = "2021"
 [workspace]
 members = [ "libs/test", "libs/proc_diagnostic_types" ]
 
+[dependencies]
+cpp_vs_rust_proc_diagnostic_types = { path = "libs/proc_diagnostic_types" }
+
 [dev-dependencies]
 cpp_vs_rust_test = { path = "libs/test" }
 memoffset = { version = "0.7.1" }
-
-[dependencies.cpp_vs_rust_proc_diagnostic_types]
-path = "libs/proc_diagnostic_types"
 
 [features]
 default = []
