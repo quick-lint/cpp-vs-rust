@@ -5,8 +5,8 @@ use cpp_vs_rust::util::utf_8::*;
 #[test]
 fn encode_ascii() {
     let mut buffer: [u8; 1] = [0];
-    let rest: &mut [u8] = encode_utf_8('x' as u32, &mut buffer);
-    assert_eq!(unsafe { rest.as_ptr().offset_from(buffer.as_ptr()) }, 1);
+    let len: usize = encode_utf_8('x' as u32, &mut buffer);
+    assert_eq!(len, 1);
     assert_eq!(buffer, [b'x']);
 }
 
@@ -66,11 +66,8 @@ fn encode_non_standard_four_byte_output_extremes() {
 
 fn expect_encode_utf_8(code_point: u32, expected: &[u8]) {
     let mut out: Vec<u8> = vec![0; expected.len()];
-    let end: &mut [u8] = encode_utf_8(code_point, &mut out);
-    assert_eq!(
-        unsafe { end.as_ptr().offset_from(out.as_ptr()) },
-        expected.len() as isize,
-    );
+    let len: usize = encode_utf_8(code_point, &mut out);
+    assert_eq!(len, expected.len());
     assert_eq!(out, expected);
 }
 
