@@ -14,18 +14,18 @@ fn separate_allocations_are_contiguous_without_padding() {
             let c = alloc.new_object::<$type>($value);
             let d = alloc.new_object::<$type>($value);
 
-            let delta: isize = byte_difference(a, b);
+            let delta: isize = byte_offset_from(a, b);
             assert!(
                 delta == (ALIGNMENT as isize) || delta == -(ALIGNMENT as isize),
                 "addresses should either go up or down with no padding"
             );
             assert_eq!(
-                byte_difference(b, c),
+                byte_offset_from(b, c),
                 delta,
                 "delta should be consistent between allocations"
             );
             assert_eq!(
-                byte_difference(c, d),
+                byte_offset_from(c, d),
                 delta,
                 "delta should be consistent between allocations"
             );
@@ -327,9 +327,4 @@ fn assert_valid_memory<T>(begin: *mut T, len: usize, alignment: usize) {
 
 fn assert_valid_object<T>(object: *mut T) {
     assert_valid_memory(object, 1, std::mem::align_of::<T>());
-}
-
-fn byte_difference<T, U>(a: *const T, b: *const U) -> isize {
-    // TODO(port): Use nightly byte_offset_from instead.
-    unsafe { (a as *const u8).offset_from(b as *const u8) }
 }
