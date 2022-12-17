@@ -30,8 +30,7 @@ pub trait VectorLike {
     where
         Self::T: Default;
     // Similar to std::basic_string::append.
-    // TODO(port): Rename to extend_from_slice.
-    fn append(&mut self, data: &[Self::T])
+    fn extend_from_slice(&mut self, data: &[Self::T])
     where
         Self::T: Clone;
     // Similar to std::basic_string::append.
@@ -75,11 +74,11 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
     pub fn pop(&mut self) {
         self.0.pop();
     }
-    pub fn append(&mut self, data: &[Vector::T])
+    pub fn extend_from_slice(&mut self, data: &[Vector::T])
     where
         Vector::T: Clone,
     {
-        self.0.append(data);
+        self.0.extend_from_slice(data);
     }
     pub fn append_count(&mut self, count: usize, value: Vector::T)
     where
@@ -158,7 +157,7 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
         }
     }
 
-    fn append(&mut self, data: &[T])
+    fn extend_from_slice(&mut self, data: &[T])
     where
         T: Clone,
     {

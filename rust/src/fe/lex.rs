@@ -2112,8 +2112,9 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
         let mut normalized: BumpVector<u8, MonotonicAllocator> =
             BumpVector::new("parse_identifier_slow normalized", self.get_allocator());
-        normalized
-            .append(unsafe { SourceCodeSpan::new(private_identifier_begin, input.0) }.as_slice());
+        normalized.extend_from_slice(
+            unsafe { SourceCodeSpan::new(private_identifier_begin, input.0) }.as_slice(),
+        );
 
         let escape_sequences: &mut EscapeSequenceList = unsafe {
             &mut *self.allocator.new_object(EscapeSequenceList::new(
@@ -2142,7 +2143,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                     if code_point >= 0x110000 {
                         // parse_unicode_escape reported
                         // DiagEscapedCodePointInIdentifierOutOfRange already.
-                        normalized.append(escape_span.as_slice());
+                        normalized.extend_from_slice(escape_span.as_slice());
                     } else if !is_identifier_initial
                         && kind == IdentifierKind::JSX
                         && code_point == ('-' as u32)
@@ -2153,7 +2154,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                                 escape_sequence: escape_span,
                             },
                         );
-                        normalized.append(escape_span.as_slice());
+                        normalized.extend_from_slice(escape_span.as_slice());
                     } else if !(if is_identifier_initial {
                         is_initial_identifier_character(code_point)
                     } else {
@@ -2165,7 +2166,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                                 escape_sequence: escape_span,
                             },
                         );
-                        normalized.append(escape_span.as_slice());
+                        normalized.extend_from_slice(escape_span.as_slice());
                     } else {
                         let normalized_len_before: usize = normalized.len();
                         normalized.append_count(4, b'\0');
@@ -2178,7 +2179,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 }
 
                 None => {
-                    normalized.append(escape_span.as_slice());
+                    normalized.extend_from_slice(escape_span.as_slice());
                 }
             }
 
@@ -2217,7 +2218,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         sequence: sequence_span,
                     },
                 );
-                normalized.append(sequence_span.as_slice());
+                normalized.extend_from_slice(sequence_span.as_slice());
                 continue;
             }
 
@@ -2243,7 +2244,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                             backslash: backslash_span,
                         },
                     );
-                    normalized.append(backslash_span.as_slice());
+                    normalized.extend_from_slice(backslash_span.as_slice());
                 }
             } else {
                 qljs_assert!(decode_result.size >= 1);
@@ -2278,7 +2279,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                     }
                 }
 
-                normalized.append(character_span.as_slice());
+                normalized.extend_from_slice(character_span.as_slice());
                 input = character_end;
             }
         }
