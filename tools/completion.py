@@ -10,7 +10,8 @@ import subprocess
 import typing
 
 CONVERTED_CPP_FILES = [
-    "cpp/src/quick-lint-js/assert.h",  # Sorta.
+    "cpp/src/quick-lint-js/assert.cpp",
+    "cpp/src/quick-lint-js/assert.h",
     "cpp/src/quick-lint-js/container/allocator.h",
     "cpp/src/quick-lint-js/container/linked-bump-allocator.h",
     "cpp/src/quick-lint-js/container/linked-vector.h",
