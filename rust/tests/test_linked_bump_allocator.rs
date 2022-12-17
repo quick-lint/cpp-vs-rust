@@ -1,4 +1,5 @@
 use cpp_vs_rust::container::linked_bump_allocator::*;
+use cpp_vs_rust::port::ptr::*;
 
 #[test]
 fn separate_allocations_are_contiguous_without_padding() {
@@ -300,11 +301,8 @@ fn can_allocate_after_disabling_then_reenabling() {
 }
 
 fn assert_is_aligned<T>(p: *mut T, alignment: usize) {
-    // TODO(port): Use nightly is_aligned_to.
-    let alignment_mask = alignment - 1;
-    assert_eq!(
-        (p as usize) & alignment_mask,
-        0,
+    assert!(
+        is_aligned_to(p, alignment),
         "pointer {:#x} should be aligned to {:#x} bytes",
         p as usize,
         alignment
