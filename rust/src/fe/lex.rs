@@ -2008,7 +2008,12 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         type CharVector = CharVector16WASMSIMD128;
         #[cfg(target_feature = "sse2")]
         type CharVector = CharVector16SSE2;
-        // TODO(port): char_vector_1
+        #[cfg(not(any(
+            target_feature = "neon",
+            target_feature = "simd128",
+            target_feature = "sse2"
+        )))]
+        type CharVector = CharVector1;
 
         fn count_identifier_characters(chars: CharVector) -> u32 {
             // TODO(port): Test code gen carefully.
@@ -2044,7 +2049,12 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                 type BoolVector = BoolVector16WASMSIMD128;
                 #[cfg(target_feature = "sse2")]
                 type BoolVector = BoolVector16SSE2;
-                // TODO(port): bool_vector_1
+                #[cfg(not(any(
+                    target_feature = "neon",
+                    target_feature = "simd128",
+                    target_feature = "sse2"
+                )))]
+                type BoolVector = BoolVector1;
 
                 const UPPER_TO_LOWER_MASK: u8 = b'a' - b'A';
                 qljs_const_assert!((b'A' | UPPER_TO_LOWER_MASK) == b'a');
@@ -2502,7 +2512,18 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         type BoolVector = BoolVector16SSE2;
         #[cfg(target_feature = "sse2")]
         type CharVector = CharVector16SSE2;
-        // TODO(port): bool_vector_1, char_vector_1
+        #[cfg(not(any(
+            target_feature = "neon",
+            target_feature = "simd128",
+            target_feature = "sse2"
+        )))]
+        type BoolVector = BoolVector1;
+        #[cfg(not(any(
+            target_feature = "neon",
+            target_feature = "simd128",
+            target_feature = "sse2"
+        )))]
+        type CharVector = CharVector1;
 
         let new_line: CharVector = CharVector::repeated(b'\n');
         let carriage_return: CharVector = CharVector::repeated(b'\r');

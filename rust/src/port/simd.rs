@@ -1,4 +1,6 @@
+#[allow(unused)]
 use crate::qljs_assert;
+#[allow(unused)]
 use crate::util::array::*;
 
 #[cfg(target_arch = "aarch64")]
@@ -325,6 +327,7 @@ impl std::ops::BitOr<BoolVector16NEON> for BoolVector16NEON {
 #[cfg(target_feature = "neon")]
 pub use crate::port::simd_neon_arm::*;
 
+#[derive(Clone, Copy, Debug)]
 pub struct CharVector1(u8);
 
 impl CharVector1 {
@@ -369,6 +372,7 @@ impl std::ops::BitOr<CharVector1> for CharVector1 {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct BoolVector1(bool);
 
 impl BoolVector1 {
