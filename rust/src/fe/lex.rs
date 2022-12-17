@@ -2667,7 +2667,7 @@ pub struct LexerTransaction<'code, 'reporter, 'alloc> {
     old_last_last_token_end: *const u8,
     old_input: *const u8,
     // NOTE(port): In C++, this was stored inline. In Rust, we must store it on the heap.
-    reporter: &'alloc BufferingDiagReporter<'alloc>,
+    _reporter: &'alloc BufferingDiagReporter<'alloc>,
     old_diag_reporter: &'reporter dyn DiagReporter,
 }
 
@@ -2686,7 +2686,7 @@ impl<'code: 'alloc, 'reporter, 'alloc: 'reporter> LexerTransaction<'code, 'repor
             old_last_token: old_last_token,
             old_last_last_token_end: old_last_last_token_end,
             old_input: old_input,
-            reporter: reporter,
+            _reporter: reporter,
             old_diag_reporter: std::mem::replace(diag_reporter_pointer, reporter),
         }
     }

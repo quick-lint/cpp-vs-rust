@@ -1,6 +1,3 @@
-// TODO(port): Warn on these after the port is done.
-#![allow(dead_code)]
-#![allow(unused_variables)]
 // Clippy's suggested fix is ugly.
 #![allow(clippy::explicit_counter_loop)]
 // Often we write (x << 0) or (x | 0) for symmetry with other code.

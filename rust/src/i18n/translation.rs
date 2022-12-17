@@ -12,14 +12,14 @@ macro_rules! qljs_translatable {
 }
 
 // Global instance.
-static mut QLJS_MESSAGES: Translator = Translator::new_using_messages_from_source_code();
+pub static mut QLJS_MESSAGES: Translator = Translator::new_using_messages_from_source_code();
 
-fn initialize_locale() {
+pub fn initialize_locale() {
     // TODO(port): Call C's setlocale:
     // std::setlocale(LC_ALL, "")
 }
 
-fn initialize_translations_from_locale(locale_name: &str) {
+pub fn initialize_translations_from_locale(locale_name: &str) {
     initialize_locale();
     unsafe {
         if !QLJS_MESSAGES.use_messages_from_locale(locale_name) {
