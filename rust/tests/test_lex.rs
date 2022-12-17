@@ -49,7 +49,92 @@ fn lex_block_comments() {
     }
 }
 
-// TODO(port): lex_unopened_block_comment
+#[test]
+fn lex_unopened_block_comment() {
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"hello */");
+        let mut l = Lexer::new(input.view(), &v); // identifier
+        assert_eq!(l.peek().type_, TokenType::Identifier);
+        l.skip(); // end of file
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnopenedBlockComment {
+                comment_close: b"hello "..b"*/",
+            },
+        );
+    }
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"*-----*/");
+        let mut l = Lexer::new(input.view(), &v);
+
+        while l.peek().type_ != TokenType::EndOfFile {
+            l.skip();
+        }
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnopenedBlockComment {
+                comment_close: b"*-----"..b"*/",
+            },
+        );
+    }
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"*******/");
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::StarStar);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::StarStar);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::StarStar);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnopenedBlockComment {
+                comment_close: b"******"..b"*/",
+            },
+        );
+    }
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"*/");
+        let l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnopenedBlockComment {
+                comment_close: 0..b"*/",
+            },
+        );
+    }
+    {
+        let v = DiagCollector::new();
+        let input = PaddedString::from_slice(b"**/");
+        let mut l = Lexer::new(input.view(), &v);
+        assert_eq!(l.peek().type_, TokenType::Star);
+        l.skip();
+        assert_eq!(l.peek().type_, TokenType::EndOfFile);
+        qljs_assert_diags!(
+            v.clone_errors(),
+            input.view(),
+            DiagUnopenedBlockComment {
+                comment_close: b"*"..b"*/",
+            },
+        );
+    }
+}
+
 // TODO(port): lex_regexp_literal_starting_with_star_slash
 // TODO(port): lex_regexp_literal_starting_with_star_star_slash
 

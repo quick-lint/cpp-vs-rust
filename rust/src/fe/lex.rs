@@ -146,8 +146,17 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
 
     // Returns true if a valid regexp literal is found
     // Precondition: *regexp_begin == '/'
-    pub fn test_for_regexp(&self, regexp_begin: *const u8) -> bool {
-        todo!();
+    pub fn test_for_regexp(&mut self, regexp_begin: *const u8) -> bool {
+        let transaction: LexerTransaction = self.begin_transaction();
+
+        self.last_token.type_ = TokenType::Slash;
+        self.input = InputPointer(regexp_begin);
+        self.last_token.begin = self.input.0;
+        self.reparse_as_regexp();
+
+        let parsed_ok: bool = !self.transaction_has_lex_diagnostics(&transaction);
+        self.roll_back_transaction(transaction);
+        parsed_ok
     }
 
     fn parse_bom_before_shebang(&mut self) {
