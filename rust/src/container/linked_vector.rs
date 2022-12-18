@@ -42,7 +42,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
             if c.is_null() || (*c).item_count == ChunkHeader::<T>::capacity() {
                 c = self.append_new_chunk_slow();
             }
-            let item: &mut std::mem::MaybeUninit<T> = (*c).slot((*c).item_count);
+            let item: &mut std::mem::MaybeUninit<T> = Self::slot(c, (*c).item_count);
             item.write(value);
             (*c).item_count += 1;
             item.assume_init_mut()
@@ -52,11 +52,11 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     pub fn pop(&mut self) {
         unsafe {
             qljs_assert!(!self.is_empty());
-            let c: &mut ChunkHeader<T> = &mut *self.tail;
-            let item: &mut std::mem::MaybeUninit<T> = c.slot(c.item_count - 1);
+            let c: *mut ChunkHeader<T> = self.tail;
+            let item: &mut std::mem::MaybeUninit<T> = Self::slot(c, (*c).item_count - 1);
             item.assume_init_drop();
-            c.item_count -= 1;
-            if c.item_count == 0 {
+            (*c).item_count -= 1;
+            if (*c).item_count == 0 {
                 self.remove_tail_chunk_slow();
             }
         }
@@ -68,7 +68,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
             while !c.is_null() {
                 let next: *mut ChunkHeader<T> = (*c).next;
                 for i in 0..(*c).item_count {
-                    (*c).slot(i).assume_init_drop();
+                    Self::slot(c, i).assume_init_drop();
                 }
                 self.drop_and_deallocate_chunk(c);
                 c = next;
@@ -85,7 +85,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     pub fn back(&self) -> &T {
         unsafe {
             qljs_assert!(!self.is_empty());
-            (*self.tail).items().last().unwrap_unchecked()
+            Self::items(self.tail).last().unwrap_unchecked()
         }
     }
 
@@ -93,7 +93,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
         unsafe {
             let mut c: *mut ChunkHeader<T> = self.head;
             while !c.is_null() {
-                for item in (*c).items() {
+                for item in Self::items(c) {
                     func(item);
                 }
                 c = (*c).next;
@@ -104,15 +104,16 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     #[inline(never)]
     fn append_new_chunk_slow(&mut self) -> *mut ChunkHeader<T> {
         unsafe {
-            let c: &mut ChunkHeader<T> = {
+            let c: *mut ChunkHeader<T> = {
                 let layout = ChunkHeader::<T>::layout();
                 match self.allocator.allocate(layout) {
                     Err(_) => {
                         std::alloc::handle_alloc_error(layout);
                     }
                     Ok(raw) => {
-                        let raw = raw.as_ptr() as *mut std::mem::MaybeUninit<ChunkHeader<T>>;
-                        (*raw).write(ChunkHeader::<T>::new())
+                        let raw = raw.as_ptr() as *mut ChunkHeader<T>;
+                        std::ptr::write(raw, ChunkHeader::<T>::new());
+                        raw
                     }
                 }
             };
@@ -122,7 +123,7 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
             } else {
                 (*self.tail).next = c;
             }
-            c.prev = self.tail;
+            (*c).prev = self.tail;
             self.tail = c;
             c
         }
@@ -155,6 +156,28 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
             std::ptr::NonNull::new_unchecked(chunk as *mut u8),
             ChunkHeader::<T>::layout(),
         );
+    }
+
+    unsafe fn items<'a>(chunk: *const ChunkHeader<T>) -> &'a [T] {
+        std::slice::from_raw_parts(Self::data_begin(chunk) as *const T, (*chunk).item_count)
+    }
+
+    unsafe fn slot<'a>(
+        chunk: *mut ChunkHeader<T>,
+        index: usize,
+    ) -> &'a mut std::mem::MaybeUninit<T> {
+        qljs_slow_assert!(index < ChunkHeader::<T>::capacity());
+        &mut *Self::data_begin_mut(chunk).add(index)
+    }
+
+    fn data_begin(chunk: *const ChunkHeader<T>) -> *const std::mem::MaybeUninit<T> {
+        // FIXME(port): Data is not guaranteed to be aligned!
+        unsafe { chunk.offset(1) as *const std::mem::MaybeUninit<T> }
+    }
+
+    fn data_begin_mut(chunk: *mut ChunkHeader<T>) -> *mut std::mem::MaybeUninit<T> {
+        // FIXME(port): Data is not guaranteed to be aligned!
+        unsafe { chunk.offset(1) as *mut std::mem::MaybeUninit<T> }
     }
 }
 
@@ -190,25 +213,6 @@ impl<T> ChunkHeader<T> {
             std::cmp::max(std::mem::align_of::<T>(), std::mem::align_of::<Self>()),
         )
         .unwrap()
-    }
-
-    fn items(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.data_begin() as *const T, self.item_count) }
-    }
-
-    fn slot(&mut self, index: usize) -> &mut std::mem::MaybeUninit<T> {
-        qljs_slow_assert!(index < Self::capacity());
-        unsafe { &mut *self.data_begin_mut().add(index) }
-    }
-
-    fn data_begin(&self) -> *const std::mem::MaybeUninit<T> {
-        // FIXME(port): Data is not guaranteed to be aligned!
-        unsafe { (self as *const Self).offset(1) as *const std::mem::MaybeUninit<T> }
-    }
-
-    fn data_begin_mut(&mut self) -> *mut std::mem::MaybeUninit<T> {
-        // FIXME(port): Data is not guaranteed to be aligned!
-        unsafe { (self as *mut Self).offset(1) as *mut std::mem::MaybeUninit<T> }
     }
 
     fn capacity() -> usize {
