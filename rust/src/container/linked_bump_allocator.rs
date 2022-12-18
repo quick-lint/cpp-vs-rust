@@ -211,9 +211,15 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
             if extra_bytes > self.remaining_bytes_in_current_chunk() {
                 return false;
             }
+            // NOTE(strager): new_array_begin should be the same as old_array.as_ptr(). However, we
+            // need to create a new pointer based on self.new_allocation. Otherwise, Miri thinks
+            // that the new slice is created out of bounds.
+            let new_array_begin: *mut T = self.next_allocation.sub(old_byte_size) as *mut T;
+            qljs_assert!(new_array_begin == old_array.as_mut_ptr());
+
             self.did_allocate_bytes(self.next_allocation, extra_bytes);
             self.next_allocation = self.next_allocation.add(extra_bytes);
-            *array = std::slice::from_raw_parts_mut(old_array.as_mut_ptr(), new_len);
+            *array = std::slice::from_raw_parts_mut(new_array_begin, new_len);
             true
         }
     }
