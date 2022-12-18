@@ -50,48 +50,60 @@ impl<Vector: VectorLike> UninstrumentedVector<Vector> {
         UninstrumentedVector(Vector::new(allocator))
     }
 
+    #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+    #[inline(always)]
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    #[inline(always)]
     pub fn capacity(&self) -> usize {
         self.0.capacity()
     }
+    #[inline(always)]
     pub fn as_slice(&self) -> &[Vector::T] {
         self.0.as_slice()
     }
+    #[inline(always)]
     pub fn as_mut_slice(&mut self) -> &mut [Vector::T] {
         self.0.as_mut_slice()
     }
+    #[inline(always)]
     pub fn reserve_to(&mut self, new_capacity: usize) {
         self.0.reserve_to(new_capacity);
     }
+    #[inline(always)]
     pub fn push(&mut self, value: Vector::T) {
         self.0.push(value);
     }
+    #[inline(always)]
     pub fn pop(&mut self) {
         self.0.pop();
     }
+    #[inline(always)]
     pub fn extend_from_slice(&mut self, data: &[Vector::T])
     where
         Vector::T: Clone,
     {
         self.0.extend_from_slice(data);
     }
+    #[inline(always)]
     pub fn append_count(&mut self, count: usize, value: Vector::T)
     where
         Vector::T: Clone,
     {
         self.0.append_count(count, value);
     }
+    #[inline(always)]
     pub fn resize(&mut self, new_size: usize)
     where
         Vector::T: Default,
     {
         self.0.resize(new_size);
     }
+    #[inline(always)]
     pub fn release(&mut self) -> *mut [Vector::T] {
         self.0.release()
     }
