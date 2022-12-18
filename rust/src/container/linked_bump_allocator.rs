@@ -189,8 +189,8 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
                 qljs_assert!(!c.is_null());
             }
             self.chunk = c;
-            self.next_allocation = c.as_mut().unwrap().data_begin();
-            self.chunk_end = c.as_mut().unwrap().data_end();
+            self.next_allocation = Self::data_begin(c);
+            self.chunk_end = Self::data_end(c);
         } else {
             self.chunk = r_chunk;
             self.next_allocation = r.next_allocation;
@@ -264,9 +264,8 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
 
     fn append_chunk(&mut self, len: usize) {
         self.chunk = ChunkHeader::new_chunk(len, self.chunk);
-        let chunk: &mut ChunkHeader<ALIGNMENT> = unsafe { self.chunk.as_mut().unwrap() };
-        self.next_allocation = chunk.data_begin();
-        self.chunk_end = chunk.data_end();
+        self.next_allocation = Self::data_begin(self.chunk);
+        self.chunk_end = Self::data_end(self.chunk);
     }
 
     fn assert_not_disabled(&self) {
@@ -282,6 +281,15 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
     fn align_up(size: usize) -> usize {
         LinkedBumpAllocator::<ALIGNMENT>::align_up(size)
     }
+
+    fn data_begin(chunk: *mut ChunkHeader<ALIGNMENT>) -> *mut u8 {
+        // FIXME(port): Data is not guaranteed to be aligned!
+        unsafe { chunk.offset(1) as *mut u8 }
+    }
+
+    fn data_end(chunk: *mut ChunkHeader<ALIGNMENT>) -> *mut u8 {
+        unsafe { Self::data_begin(chunk).add((*chunk).len) }
+    }
 }
 
 // TODO(port-later): Do we need repr(C)? We pack ChunkHeader and the data in a single allocation,
@@ -293,15 +301,6 @@ struct ChunkHeader<const ALIGNMENT: usize> {
 }
 
 impl<const ALIGNMENT: usize> ChunkHeader<ALIGNMENT> {
-    fn data_begin(&mut self) -> *mut u8 {
-        // FIXME(port): Data is not guaranteed to be aligned!
-        unsafe { (self as *mut Self).offset(1) as *mut u8 }
-    }
-
-    fn data_end<'a>(&'a mut self) -> *mut u8 {
-        unsafe { self.data_begin().add(self.len) }
-    }
-
     fn allocation_layout(len: usize) -> std::alloc::Layout {
         std::alloc::Layout::from_size_align(
             std::mem::size_of::<Self>() + len,
