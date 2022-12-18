@@ -126,11 +126,21 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     }
 
     fn len(&self) -> usize {
-        unsafe { narrow_cast(self.data_end.offset_from(self.data)) }
+        // NOTE(strager): offset_from is UB if data or data_end is null.
+        if self.data.is_null() {
+            0
+        } else {
+            unsafe { narrow_cast(self.data_end.offset_from(self.data)) }
+        }
     }
 
     fn capacity(&self) -> usize {
-        unsafe { narrow_cast(self.capacity_end.offset_from(self.data)) }
+        // NOTE(strager): offset_from is UB if data or capacity_end is null.
+        if self.data.is_null() {
+            0
+        } else {
+            unsafe { narrow_cast(self.capacity_end.offset_from(self.data)) }
+        }
     }
 
     fn as_slice(&self) -> &[T] {

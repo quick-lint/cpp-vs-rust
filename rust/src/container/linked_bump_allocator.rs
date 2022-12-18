@@ -229,7 +229,12 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
     }
 
     pub fn remaining_bytes_in_current_chunk(&self) -> usize {
-        unsafe { narrow_cast(self.chunk_end.offset_from(self.next_allocation)) }
+        // NOTE(strager): offset_from is UB if next_allocator or chunk_end is null.
+        if self.next_allocation.is_null() {
+            0
+        } else {
+            unsafe { narrow_cast(self.chunk_end.offset_from(self.next_allocation)) }
+        }
     }
 
     fn allocate_bytes(&mut self, size: usize) -> *mut u8 {
