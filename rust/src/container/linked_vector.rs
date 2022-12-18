@@ -111,9 +111,8 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
                         std::alloc::handle_alloc_error(layout);
                     }
                     Ok(raw) => {
-                        let raw = raw.as_ptr() as *mut ChunkHeader<T>;
-                        std::ptr::write(raw, ChunkHeader::<T>::new());
-                        &mut *raw
+                        let raw = raw.as_ptr() as *mut std::mem::MaybeUninit<ChunkHeader<T>>;
+                        (*raw).write(ChunkHeader::<T>::new())
                     }
                 }
             };
