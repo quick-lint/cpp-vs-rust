@@ -8,6 +8,7 @@ use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 
 pub trait BumpAllocatorLike {
+    // FIXME(port): This lifetime is unbounded!
     fn allocate_uninitialized_array<'b, T>(&self, len: usize)
         -> &'b mut [std::mem::MaybeUninit<T>];
 
