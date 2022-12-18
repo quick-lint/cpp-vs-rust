@@ -271,19 +271,26 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
             } else {
                 let old_len = self.len();
                 let old_capacity = self.capacity();
-                let mut old_array: &mut [std::mem::MaybeUninit<T>] =
+                let mut array: &mut [std::mem::MaybeUninit<T>] =
                     std::slice::from_raw_parts_mut(self.data, old_capacity);
                 let grew: bool = self
                     .allocator
-                    .try_grow_array_in_place(&mut old_array, new_capacity);
+                    .try_grow_array_in_place(&mut array, new_capacity);
                 if grew {
+                    // NOTE(strager): These are no-ops, but Miri needs to understand that future
+                    // uses of self.data and self.data_end are valid and refer to the "new" array.
+                    qljs_assert!(self.data == array.as_mut_ptr());
+                    self.data = array.as_mut_ptr();
+                    qljs_assert!(self.data_end == self.data.add(old_len));
+                    self.data_end = self.data.add(old_len);
+
                     self.capacity_end = self.data.add(new_capacity);
                 } else {
                     let new_data: &mut [std::mem::MaybeUninit<T>] = self
                         .allocator
                         .allocate_uninitialized_array::<T>(new_capacity);
                     for i in 0..old_len {
-                        new_data[i].write(old_array[i].assume_init_read());
+                        new_data[i].write(array[i].assume_init_read());
                     }
                     self.clear();
                     let new_data_ptr: *mut std::mem::MaybeUninit<T> = new_data.as_mut_ptr();
