@@ -271,28 +271,25 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike>
             } else {
                 let old_len = self.len();
                 let old_capacity = self.capacity();
-                let old_array: &mut [std::mem::MaybeUninit<T>] =
+                let mut old_array: &mut [std::mem::MaybeUninit<T>] =
                     std::slice::from_raw_parts_mut(self.data, old_capacity);
-                let new_array: Option<&mut [std::mem::MaybeUninit<T>]> = self
+                let grew: bool = self
                     .allocator
-                    .try_grow_array_in_place(old_array, new_capacity);
-                match new_array {
-                    Some(_new_array) => {
-                        self.capacity_end = self.data.add(new_capacity);
+                    .try_grow_array_in_place(&mut old_array, new_capacity);
+                if grew {
+                    self.capacity_end = self.data.add(new_capacity);
+                } else {
+                    let new_data: &mut [std::mem::MaybeUninit<T>] = self
+                        .allocator
+                        .allocate_uninitialized_array::<T>(new_capacity);
+                    for i in 0..old_len {
+                        new_data[i].write(old_array[i].assume_init_read());
                     }
-                    None => {
-                        let new_data: &mut [std::mem::MaybeUninit<T>] = self
-                            .allocator
-                            .allocate_uninitialized_array::<T>(new_capacity);
-                        for i in 0..old_len {
-                            new_data[i].write(old_array[i].assume_init_read());
-                        }
-                        self.clear();
-                        let new_data_ptr: *mut std::mem::MaybeUninit<T> = new_data.as_mut_ptr();
-                        self.data = new_data_ptr;
-                        self.data_end = new_data_ptr.add(old_len);
-                        self.capacity_end = new_data_ptr.add(new_capacity);
-                    }
+                    self.clear();
+                    let new_data_ptr: *mut std::mem::MaybeUninit<T> = new_data.as_mut_ptr();
+                    self.data = new_data_ptr;
+                    self.data_end = new_data_ptr.add(old_len);
+                    self.capacity_end = new_data_ptr.add(new_capacity);
                 }
             }
         }

@@ -74,9 +74,9 @@ fn less_aligned_array_keeps_next_allocation_aligned() {
 fn less_aligned_pre_grown_and_grown_array_keeps_next_allocation_aligned() {
     let alloc = LinkedBumpAllocator::<4>::new("test");
 
-    let chars: &mut [std::mem::MaybeUninit<u8>] = alloc.allocate_uninitialized_array::<u8>(3);
-    let new_chars: Option<_> = alloc.try_grow_array_in_place(chars, 6);
-    assert!(new_chars.is_some());
+    let mut chars: &mut [std::mem::MaybeUninit<u8>] = alloc.allocate_uninitialized_array::<u8>(3);
+    let grew: bool = alloc.try_grow_array_in_place(&mut chars, 6);
+    assert!(grew);
 
     let after: *mut u32 = alloc.new_object(42u32);
     assert_valid_object(after);
@@ -86,9 +86,9 @@ fn less_aligned_pre_grown_and_grown_array_keeps_next_allocation_aligned() {
 fn less_aligned_grown_array_keeps_next_allocation_aligned() {
     let alloc = LinkedBumpAllocator::<4>::new("test");
 
-    let chars: &mut [std::mem::MaybeUninit<u8>] = alloc.allocate_uninitialized_array::<u8>(4);
-    let new_chars: Option<_> = alloc.try_grow_array_in_place(chars, 7);
-    assert!(new_chars.is_some());
+    let mut chars: &mut [std::mem::MaybeUninit<u8>] = alloc.allocate_uninitialized_array::<u8>(4);
+    let grew: bool = alloc.try_grow_array_in_place(&mut chars, 7);
+    assert!(grew);
 
     let after: *mut u32 = alloc.new_object(42u32);
     assert_valid_object(after);
@@ -220,13 +220,14 @@ fn rewinding_across_chunk_uses_unallocated_memory_of_first_chunk() {
 #[test]
 fn last_allocation_can_grow_in_place() {
     let alloc = LinkedBumpAllocator::<1>::new("test");
-    let array = alloc.allocate_uninitialized_array::<u8>(10);
-    let new_array: Option<_> = alloc.try_grow_array_in_place(array, 20);
-    let new_array = new_array.unwrap();
-    assert_valid_memory(new_array.as_mut_ptr(), 20, /*alignment=*/ 1);
+    let mut array: &mut [std::mem::MaybeUninit<u8>] = alloc.allocate_uninitialized_array::<u8>(10);
+    let old_array_ptr: isize = array.as_ptr() as isize;
+    let ok: bool = alloc.try_grow_array_in_place(&mut array, 20);
+    assert!(ok);
+    assert_valid_memory(array.as_mut_ptr(), 20, /*alignment=*/ 1);
 
     let next = alloc.allocate_uninitialized_array::<u8>(1);
-    let diff = (next.as_ptr() as isize) - (array.as_ptr() as isize);
+    let diff = (next.as_ptr() as isize) - old_array_ptr;
     assert!(
         diff == 1 || diff == 20,
         "future allocations should not overlap resized array"
@@ -242,11 +243,11 @@ fn last_allocation_cannot_grow_beyond_current_chunk() {
     for _ in 0..(first_chunk_size - 15) {
         let _byte = alloc.new_object(2u8);
     }
-    let array = alloc.allocate_uninitialized_array::<u8>(10);
+    let mut array = alloc.allocate_uninitialized_array::<u8>(10);
     assert_eq!(alloc.remaining_bytes_in_current_chunk(), 5);
 
-    let new_array: Option<_> = alloc.try_grow_array_in_place(array, 20);
-    assert!(new_array.is_none());
+    let ok: bool = alloc.try_grow_array_in_place(&mut array, 20);
+    assert!(!ok);
     assert_valid_memory(array.as_mut_ptr(), 10, /*alignment=*/ 1);
 
     let next = alloc.allocate_uninitialized_array::<u8>(1);
@@ -260,10 +261,10 @@ fn last_allocation_cannot_grow_beyond_current_chunk() {
 #[test]
 fn non_last_allocation_cannot_grow() {
     let alloc = LinkedBumpAllocator::<1>::new("test");
-    let array = alloc.allocate_uninitialized_array::<u8>(10);
+    let mut array = alloc.allocate_uninitialized_array::<u8>(10);
     let last: *mut u8 = alloc.new_object(0u8);
-    let new_array = alloc.try_grow_array_in_place(array, 20);
-    assert!(new_array.is_none());
+    let ok: bool = alloc.try_grow_array_in_place(&mut array, 20);
+    assert!(!ok);
     assert_valid_memory(array.as_mut_ptr(), 10, /*alignment=*/ 1);
 
     let next = alloc.allocate_uninitialized_array::<u8>(1);

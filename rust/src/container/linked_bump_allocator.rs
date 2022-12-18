@@ -11,11 +11,7 @@ pub trait BumpAllocatorLike {
     fn allocate_uninitialized_array<'b, T>(&self, len: usize)
         -> &'b mut [std::mem::MaybeUninit<T>];
 
-    fn try_grow_array_in_place<'b, T>(
-        &self,
-        array: &'b mut [T],
-        new_len: usize,
-    ) -> Option<&'b mut [T]>;
+    fn try_grow_array_in_place<T>(&self, array: &mut &mut [T], new_len: usize) -> bool;
 
     unsafe fn deallocate(&self, p: *mut u8, bytes: usize, align: usize);
 }
@@ -129,13 +125,8 @@ impl<const ALIGNMENT: usize> BumpAllocatorLike for LinkedBumpAllocator<ALIGNMENT
         unsafe { std::slice::from_raw_parts_mut(data, len) }
     }
 
-    // TODO(port-later): Should this accept MaybeUninit?
-    // TODO(port-later): Should this return MaybeUninit?
-    fn try_grow_array_in_place<'b, T>(
-        &self,
-        array: &'b mut [T],
-        new_len: usize,
-    ) -> Option<&'b mut [T]> {
+    // TODO(port-later): Should this accept/return MaybeUninit?
+    fn try_grow_array_in_place<T>(&self, array: &mut &mut [T], new_len: usize) -> bool {
         unsafe { &mut *self.state.get() }.try_grow_array_in_place(array, new_len)
     }
 
@@ -202,29 +193,28 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
         );
     }
 
-    fn try_grow_array_in_place<'b, T>(
-        &mut self,
-        array: &'b mut [T],
-        new_len: usize,
-    ) -> Option<&'b mut [T]> {
+    fn try_grow_array_in_place<T>(&mut self, array: &mut &mut [T], new_len: usize) -> bool {
         unsafe {
             self.assert_not_disabled();
-            qljs_assert!(new_len > array.len());
-            let old_byte_size = Self::align_up(array.len() * std::mem::size_of::<T>());
-            let old_array_end: *mut u8 = (array.as_mut_ptr() as *mut u8).add(old_byte_size);
+            let old_array: &mut [T] = *array;
+            qljs_assert!(new_len > old_array.len());
+            let old_byte_size = Self::align_up(old_array.len() * std::mem::size_of::<T>());
+            let old_array_end: *mut u8 = (old_array.as_mut_ptr() as *mut u8).add(old_byte_size);
             let array_is_last_allocation = old_array_end == self.next_allocation;
             if !array_is_last_allocation {
                 // We can't grow because something else was already allocated.
-                return None;
+                return false;
             }
 
-            let extra_bytes = Self::align_up((new_len - array.len()) * std::mem::size_of::<T>());
+            let extra_bytes =
+                Self::align_up((new_len - old_array.len()) * std::mem::size_of::<T>());
             if extra_bytes > self.remaining_bytes_in_current_chunk() {
-                return None;
+                return false;
             }
             self.did_allocate_bytes(self.next_allocation, extra_bytes);
             self.next_allocation = self.next_allocation.add(extra_bytes);
-            Some(std::slice::from_raw_parts_mut(array.as_mut_ptr(), new_len))
+            *array = std::slice::from_raw_parts_mut(old_array.as_mut_ptr(), new_len);
+            true
         }
     }
 
