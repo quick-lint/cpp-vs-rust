@@ -1381,7 +1381,7 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
     //
     // Inside a transaction, diagnostics are not reported until commit_transaction
     // is called for the outer-most nested transaction.
-    pub fn begin_transaction(&mut self) -> LexerTransaction<'code, 'reporter, 'alloc> {
+    pub fn begin_transaction(&mut self) -> LexerTransaction<'alloc, 'code, 'reporter> {
         LexerTransaction::new(
             /*old_last_token=*/ self.last_token.clone(),
             /*old_last_last_token_end=*/ self.last_last_token_end,
@@ -1396,7 +1396,7 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
     //
     // commit_transaction does not restore the state of the lexer when
     // begin_transaction was called.
-    pub fn commit_transaction(&mut self, transaction: LexerTransaction<'code, 'reporter, 'alloc>) {
+    pub fn commit_transaction(&mut self, transaction: LexerTransaction<'alloc, 'code, 'reporter>) {
         let buffered_diagnostics: &mut BufferingDiagReporter = unsafe {
             &mut *(self.diag_reporter as *const dyn DiagReporter as *mut BufferingDiagReporter)
         };
@@ -1420,7 +1420,7 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
     // have been reported if it weren't for begin_transaction.
     pub fn roll_back_transaction(
         &mut self,
-        transaction: LexerTransaction<'code, 'reporter, 'alloc>,
+        transaction: LexerTransaction<'alloc, 'code, 'reporter>,
     ) {
         self.last_token = transaction.old_last_token.clone();
         self.last_last_token_end = transaction.old_last_last_token_end;
@@ -1438,7 +1438,7 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
     // transaction is the most recent active transaction.
     pub fn transaction_has_lex_diagnostics(
         &self,
-        _transaction: &LexerTransaction<'code, 'reporter, 'alloc>,
+        _transaction: &LexerTransaction<'alloc, 'code, 'reporter>,
     ) -> bool {
         let buffered_diagnostics: &mut BufferingDiagReporter = unsafe {
             &mut *(self.diag_reporter as *const dyn DiagReporter as *mut BufferingDiagReporter)
@@ -2687,7 +2687,7 @@ struct ParsedIdentifier<'alloc, 'code> {
     escape_sequences: Option<&'alloc EscapeSequenceList<'alloc, 'code>>,
 }
 
-pub struct LexerTransaction<'code, 'reporter, 'alloc> {
+pub struct LexerTransaction<'alloc, 'code, 'reporter> {
     // Rewinds memory allocated by 'reporter'. Must be initialized before
     // 'reporter' is constructed. 'allocator_type::rewind' must be called before
     // 'reporter' is dropped.
@@ -2701,15 +2701,14 @@ pub struct LexerTransaction<'code, 'reporter, 'alloc> {
     old_diag_reporter: &'reporter dyn DiagReporter,
 }
 
-// TODO(port): Change order of parameters to match Lexer.
-impl<'alloc: 'reporter, 'code, 'reporter> LexerTransaction<'code, 'reporter, 'alloc> {
+impl<'alloc: 'reporter, 'code, 'reporter> LexerTransaction<'alloc, 'code, 'reporter> {
     fn new(
         old_last_token: Token<'alloc, 'code>,
         old_last_last_token_end: *const u8,
         old_input: *const u8,
         diag_reporter_pointer: &'_ mut &'reporter dyn DiagReporter,
         allocator: &'alloc MonotonicAllocator,
-    ) -> LexerTransaction<'code, 'reporter, 'alloc> {
+    ) -> LexerTransaction<'alloc, 'code, 'reporter> {
         let reporter: &'alloc BufferingDiagReporter =
             unsafe { &mut *allocator.new_object(BufferingDiagReporter::new(allocator)) };
         LexerTransaction {
