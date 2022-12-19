@@ -190,7 +190,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
         }
         self.did_deallocate_bytes(
             self.next_allocation,
-            narrow_cast(self.chunk_end.offset_from(self.next_allocation)),
+            self.remaining_bytes_in_current_chunk(),
         );
     }
 
