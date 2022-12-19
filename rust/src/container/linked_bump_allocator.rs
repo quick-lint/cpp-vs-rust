@@ -8,9 +8,10 @@ use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
 
 pub trait BumpAllocatorLike {
-    // FIXME(port): This lifetime is unbounded!
-    fn allocate_uninitialized_array<'b, T>(&self, len: usize)
-        -> &'b mut [std::mem::MaybeUninit<T>];
+    fn allocate_uninitialized_array<'alloc, T>(
+        &'alloc self,
+        len: usize,
+    ) -> &'alloc mut [std::mem::MaybeUninit<T>];
 
     fn try_grow_array_in_place<T>(&self, array: &mut &mut [T], new_len: usize) -> bool;
 
@@ -113,10 +114,10 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
 }
 
 impl<const ALIGNMENT: usize> BumpAllocatorLike for LinkedBumpAllocator<ALIGNMENT> {
-    fn allocate_uninitialized_array<'b, T>(
-        &self,
+    fn allocate_uninitialized_array<'alloc, T>(
+        &'alloc self,
         len: usize,
-    ) -> &'b mut [std::mem::MaybeUninit<T>] {
+    ) -> &'alloc mut [std::mem::MaybeUninit<T>] {
         qljs_const_assert!(
             std::mem::align_of::<T>() <= ALIGNMENT,
             "T is not allowed by this allocator; this allocator's alignment is insufficient for T",
