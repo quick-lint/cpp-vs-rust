@@ -8,7 +8,6 @@ pub struct TranslationTableMappingEntry(
     pub [u32; (TRANSLATION_TABLE_LOCALE_COUNT + 1) as usize],
 );
 
-// TODO(port): Verify that UNTRANSLATED_STRINGS gets dead code stripped.
 pub const fn translation_table_const_look_up(untranslated: &str) -> u16 {
     let index: Option<usize> = sorted_search(&UNTRANSLATED_STRINGS, untranslated);
     match index {
