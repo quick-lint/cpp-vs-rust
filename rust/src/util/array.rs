@@ -1,6 +1,5 @@
 use crate::port::maybe_uninit::*;
 
-// TODO(port): Make sure this optimizes sanely.
 pub fn generate_array_n<T, const N: usize, Generator: FnMut(usize) -> T>(
     mut generate: Generator,
 ) -> [T; N] {

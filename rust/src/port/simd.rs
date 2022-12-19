@@ -90,7 +90,13 @@ impl BoolVector16WASMSIMD128 {
     #[inline(always)]
     pub fn load_slow(data: &[bool]) -> BoolVector16WASMSIMD128 {
         qljs_assert!(data.len() >= 16);
-        let bytes: [u8; 16] = generate_array_n(|i: usize| if data[i] { 0xff } else { 0x00 });
+        let bytes: [u8; 16] = generate_array_n(|i: usize| {
+            if unsafe { *data.get_unchecked(i) } {
+                0xff
+            } else {
+                0x00
+            }
+        });
         unsafe { BoolVector16WASMSIMD128(v128_load(bytes.as_ptr() as *const v128)) }
     }
 
@@ -209,7 +215,13 @@ impl BoolVector16SSE2 {
     #[inline(always)]
     pub fn load_slow(data: &[bool]) -> BoolVector16SSE2 {
         qljs_assert!(data.len() >= 16);
-        let bytes: [u8; 16] = generate_array_n(|i: usize| if data[i] { 0xff } else { 0x00 });
+        let bytes: [u8; 16] = generate_array_n(|i: usize| {
+            if unsafe { *data.get_unchecked(i) } {
+                0xff
+            } else {
+                0x00
+            }
+        });
         unsafe { BoolVector16SSE2(_mm_loadu_si128(bytes.as_ptr() as *const __m128i)) }
     }
 
@@ -328,7 +340,13 @@ impl BoolVector16NEON {
     #[inline(always)]
     pub fn load_slow(data: &[bool]) -> BoolVector16NEON {
         qljs_assert!(data.len() >= 16);
-        let bytes: [u8; 16] = generate_array_n(|i: usize| if data[i] { 0xff } else { 0x00 });
+        let bytes: [u8; 16] = generate_array_n(|i: usize| {
+            if unsafe { *data.get_unchecked(i) } {
+                0xff
+            } else {
+                0x00
+            }
+        });
         unsafe { BoolVector16NEON(vld1q_u8(bytes.as_ptr())) }
     }
 
