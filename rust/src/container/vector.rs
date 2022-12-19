@@ -156,11 +156,21 @@ impl<'alloc, T: Winkable, BumpAllocator: BumpAllocatorLike> VectorLike
     }
 
     fn as_slice(&self) -> &[T] {
-        unsafe { std::slice::from_raw_parts(self.data as *const T, self.len()) }
+        // NOTE(strager): from_raw_parts is UB if self.data is null, even if the len is 0.
+        if self.data.is_null() {
+            &[]
+        } else {
+            unsafe { std::slice::from_raw_parts(self.data as *const T, self.len()) }
+        }
     }
 
     fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe { std::slice::from_raw_parts_mut(self.data as *mut T, self.len()) }
+        // NOTE(strager): from_raw_parts is UB if self.data is null, even if the len is 0.
+        if self.data.is_null() {
+            &mut []
+        } else {
+            unsafe { std::slice::from_raw_parts_mut(self.data as *mut T, self.len()) }
+        }
     }
 
     fn reserve_to(&mut self, new_capacity: usize) {
