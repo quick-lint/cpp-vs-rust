@@ -1,6 +1,7 @@
 use crate::port::allocator::*;
 use crate::qljs_assert;
 use crate::qljs_slow_assert;
+use crate::util::align::*;
 
 // A linked list of arrays. Optimized for appending then iterating.
 //
@@ -24,6 +25,8 @@ fn items_per_chunk<T>() -> usize {
 }
 
 impl<'alloc, T> LinkedVector<'alloc, T> {
+    const ALIGNMENT: usize = std::mem::align_of::<T>();
+
     pub fn new(allocator: &'alloc dyn Allocator) -> LinkedVector<'alloc, T> {
         LinkedVector {
             head: std::ptr::null_mut(),
@@ -171,13 +174,11 @@ impl<'alloc, T> LinkedVector<'alloc, T> {
     }
 
     fn data_begin(chunk: *const ChunkHeader<T>) -> *const std::mem::MaybeUninit<T> {
-        // FIXME(port): Data is not guaranteed to be aligned!
-        unsafe { chunk.offset(1) as *const std::mem::MaybeUninit<T> }
+        unsafe { chunk.offset(1).align_up(Self::ALIGNMENT) as *const std::mem::MaybeUninit<T> }
     }
 
     fn data_begin_mut(chunk: *mut ChunkHeader<T>) -> *mut std::mem::MaybeUninit<T> {
-        // FIXME(port): Data is not guaranteed to be aligned!
-        unsafe { chunk.offset(1) as *mut std::mem::MaybeUninit<T> }
+        unsafe { chunk.offset(1).align_up(Self::ALIGNMENT) as *mut std::mem::MaybeUninit<T> }
     }
 }
 
@@ -209,7 +210,8 @@ impl<T> ChunkHeader<T> {
 
     fn layout() -> std::alloc::Layout {
         std::alloc::Layout::from_size_align(
-            std::mem::size_of::<Self>() + std::mem::size_of::<T>() * Self::capacity(),
+            std::mem::size_of::<Self>().align_up(std::mem::align_of::<T>())
+                + std::mem::size_of::<T>() * Self::capacity(),
             std::cmp::max(std::mem::align_of::<T>(), std::mem::align_of::<Self>()),
         )
         .unwrap()

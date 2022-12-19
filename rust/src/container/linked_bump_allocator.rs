@@ -5,6 +5,7 @@ use crate::port::allocator::*;
 use crate::qljs_assert;
 use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
+use crate::util::align::*;
 use crate::util::narrow_cast::*;
 
 pub trait BumpAllocatorLike {
@@ -84,7 +85,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocator<ALIGNMENT> {
     }
 
     fn align_up(size: usize) -> usize {
-        (size + ALIGNMENT - 1) & !(ALIGNMENT - 1)
+        size.align_up(ALIGNMENT)
     }
 
     /// After calling disable, be sure to call enable before allocating more memory.
@@ -281,8 +282,7 @@ impl<const ALIGNMENT: usize> LinkedBumpAllocatorState<ALIGNMENT> {
     }
 
     fn data_begin(chunk: *mut ChunkHeader<ALIGNMENT>) -> *mut u8 {
-        // FIXME(port): Data is not guaranteed to be aligned!
-        unsafe { chunk.offset(1) as *mut u8 }
+        unsafe { chunk.offset(1).align_up(ALIGNMENT) as *mut u8 }
     }
 
     fn data_end(chunk: *mut ChunkHeader<ALIGNMENT>) -> *mut u8 {
@@ -301,7 +301,7 @@ struct ChunkHeader<const ALIGNMENT: usize> {
 impl<const ALIGNMENT: usize> ChunkHeader<ALIGNMENT> {
     fn allocation_layout(len: usize) -> std::alloc::Layout {
         std::alloc::Layout::from_size_align(
-            std::mem::size_of::<Self>() + len,
+            std::mem::size_of::<Self>().align_up(ALIGNMENT) + len,
             std::cmp::max(ALIGNMENT, std::mem::align_of::<Self>()),
         )
         .unwrap()
