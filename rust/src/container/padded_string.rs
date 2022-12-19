@@ -231,7 +231,12 @@ impl<'a> PaddedStringView<'a> {
     }
 
     pub fn substr(&self, offset: PaddedStringSizeType) -> PaddedStringView<'a> {
-        PaddedStringView::from_slice(&self.slice()[offset as usize..])
+        unsafe {
+            PaddedStringView::from_begin_end(
+                self.data.add(narrow_cast::<usize, _>(offset)),
+                self.null_terminator(),
+            )
+        }
     }
 }
 
