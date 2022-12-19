@@ -20,6 +20,7 @@ static EMPTY_STRING: [u8; PADDED_STRING_PADDING_LEN as usize] =
 pub struct PaddedString {
     data: *mut u8,
     len_excluding_padding_bytes: PaddedStringSizeType,
+    capacity: PaddedStringSizeType,
 }
 
 impl PaddedString {
@@ -27,6 +28,7 @@ impl PaddedString {
         PaddedString {
             data: EMPTY_STRING.as_ptr() as *mut u8,
             len_excluding_padding_bytes: 0,
+            capacity: 0,
         }
     }
 
@@ -34,8 +36,8 @@ impl PaddedString {
         let len_excluding_padding_bytes: PaddedStringSizeType = narrow_cast(s.len());
         let len_including_padding_bytes = len_excluding_padding_bytes + PADDED_STRING_PADDING_LEN;
         unsafe {
-            let data: *mut u8 =
-                std::alloc::alloc(layout_for_padded_len(len_including_padding_bytes));
+            let layout: std::alloc::Layout = layout_for_padded_len(len_including_padding_bytes);
+            let data: *mut u8 = std::alloc::alloc(layout);
             std::ptr::copy_nonoverlapping(s.as_ptr(), data, len_excluding_padding_bytes as usize);
             std::ptr::write_bytes(
                 data.offset(len_excluding_padding_bytes as isize),
@@ -45,6 +47,7 @@ impl PaddedString {
             PaddedString {
                 data: data,
                 len_excluding_padding_bytes: len_excluding_padding_bytes,
+                capacity: narrow_cast::<PaddedStringSizeType, _>(layout.size()),
             }
         }
     }
@@ -98,12 +101,14 @@ impl PaddedString {
         let new_len_including_padding_bytes = new_len + PADDED_STRING_PADDING_LEN;
 
         unsafe {
+            let new_layout: std::alloc::Layout =
+                layout_for_padded_len(new_len_including_padding_bytes);
             let new_data: *mut u8 = if self.data == (EMPTY_STRING.as_ptr() as *mut u8) {
-                std::alloc::alloc(layout_for_padded_len(new_len_including_padding_bytes))
+                std::alloc::alloc(new_layout)
             } else {
                 std::alloc::realloc(
                     self.data,
-                    layout_for_padded_len(self.padded_len()),
+                    self.layout(),
                     new_len_including_padding_bytes as usize,
                 )
             };
@@ -118,6 +123,7 @@ impl PaddedString {
 
             self.data = new_data;
             self.len_excluding_padding_bytes = new_len;
+            self.capacity = narrow_cast::<PaddedStringSizeType, _>(new_layout.size());
         }
     }
 
@@ -134,13 +140,17 @@ impl PaddedString {
     pub fn view<'a>(&'a self) -> PaddedStringView<'a> {
         PaddedStringView::from(self)
     }
+
+    fn layout(&self) -> std::alloc::Layout {
+        std::alloc::Layout::array::<u8>(narrow_cast::<usize, _>(self.capacity)).unwrap()
+    }
 }
 
 impl Drop for PaddedString {
     fn drop(&mut self) {
         if self.data != (EMPTY_STRING.as_ptr() as *mut u8) {
             unsafe {
-                std::alloc::dealloc(self.data, layout_for_padded_len(self.padded_len()));
+                std::alloc::dealloc(self.data, self.layout());
             }
         }
     }
