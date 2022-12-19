@@ -470,7 +470,7 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
                         self.last_token.type_ = TokenType::StarStarEqual;
                         self.input += 3;
                     } else if self.input[2] == b'/' {
-                        let parsed_ok: bool = self.test_for_regexp(&self.input[2]);
+                        let parsed_ok: bool = self.test_for_regexp((self.input + 2).0);
                         if !parsed_ok {
                             // We saw '**/'. Emit a '*' token now. Later, we will interpret the
                             // following '*/' as a comment.
@@ -488,15 +488,15 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
                     self.last_token.type_ = TokenType::StarEqual;
                     self.input += 2;
                 } else if self.input[1] == b'/' {
-                    let starpos: *const u8 = &self.input[0];
-                    let parsed_ok: bool = self.test_for_regexp(&self.input[1]);
+                    let starpos: InputPointer = self.input;
+                    let parsed_ok: bool = self.test_for_regexp((starpos + 1).0);
 
                     if !parsed_ok {
                         report(
                             self.diag_reporter,
                             DiagUnopenedBlockComment {
                                 comment_close: unsafe {
-                                    SourceCodeSpan::new(starpos, &self.input[2])
+                                    SourceCodeSpan::new(starpos.0, (starpos + 2).0)
                                 },
                             },
                         );
