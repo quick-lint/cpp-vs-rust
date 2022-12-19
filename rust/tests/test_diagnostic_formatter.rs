@@ -14,13 +14,13 @@ fn empty_span() -> SourceCodeSpan<'static> {
 }
 
 struct StringDiagnosticFormatter {
-    message: String,
+    message: Vec<u8>,
 }
 
 impl StringDiagnosticFormatter {
     fn new() -> StringDiagnosticFormatter {
         StringDiagnosticFormatter {
-            message: String::new(),
+            message: Vec::<u8>::new(),
         }
     }
 }
@@ -38,9 +38,9 @@ impl DiagnosticFormatter for StringDiagnosticFormatter {
         &mut self,
         _code: &str,
         _severity: DiagnosticSeverity,
-        message_part: &str,
+        message_part: &[u8],
     ) {
-        self.message += message_part;
+        self.message.extend_from_slice(message_part);
     }
 
     fn write_after_message(
@@ -49,7 +49,7 @@ impl DiagnosticFormatter for StringDiagnosticFormatter {
         _severity: DiagnosticSeverity,
         _origin: SourceCodeSpan<'_>,
     ) {
-        self.message.push('\n');
+        self.message.push(b'\n');
     }
 
     fn translator(&self) -> Translator {
@@ -80,7 +80,7 @@ fn origin_span() {
             &mut self,
             _code: &str,
             _severity: DiagnosticSeverity,
-            _message_part: &str,
+            _message_part: &[u8],
         ) {
         }
 
@@ -137,7 +137,7 @@ fn single_span_simple_message() {
         ],
         &empty_span() as *const _ as *const u8,
     );
-    assert_eq!(formatter.message, "something happened\n");
+    assert_eq!(formatter.message, b"something happened\n");
 }
 
 #[test]
@@ -165,7 +165,7 @@ fn diagnostic_with_single_message() {
 
     let mut formatter = StringDiagnosticFormatter::new();
     formatter.format(&info, &empty_span() as *const _ as *const u8);
-    assert_eq!(formatter.message, "something happened\n");
+    assert_eq!(formatter.message, b"something happened\n");
 }
 
 #[test]
@@ -193,7 +193,7 @@ fn diagnostic_with_two_messages() {
 
     let mut formatter = StringDiagnosticFormatter::new();
     formatter.format(&info, &empty_span() as *const _ as *const u8);
-    assert_eq!(formatter.message, "something happened\nsee here\n");
+    assert_eq!(formatter.message, b"something happened\nsee here\n");
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn message_with_zero_placeholder() {
         ],
         &hello_span as *const _ as *const u8,
     );
-    assert_eq!(formatter.message, "this hello looks fishy\n");
+    assert_eq!(formatter.message, b"this hello looks fishy\n");
 }
 
 #[test]
@@ -247,7 +247,7 @@ fn message_with_extra_identifier_placeholder() {
         ],
         &diag as *const _ as *const u8,
     );
-    assert_eq!(formatter.message, "this world looks fishy\n");
+    assert_eq!(formatter.message, b"this world looks fishy\n");
 }
 
 #[test]
@@ -288,7 +288,7 @@ fn message_with_multiple_span_placeholders() {
         ],
         &diag as *const _ as *const u8,
     );
-    assert_eq!(formatter.message, "free me and let me be\n");
+    assert_eq!(formatter.message, b"free me and let me be\n");
 }
 
 #[test]
@@ -316,7 +316,7 @@ fn message_with_char_placeholder() {
         ],
         &diag as *const _ as *const u8,
     );
-    assert_eq!(formatter.message, "what is this 'Q' nonsense?\n");
+    assert_eq!(formatter.message, b"what is this 'Q' nonsense?\n");
 }
 
 #[test]
@@ -336,7 +336,7 @@ fn message_with_escaped_curlies() {
         ],
         &code_span as *const _ as *const u8,
     );
-    assert_eq!(formatter.message, "a {0} b }} c\n");
+    assert_eq!(formatter.message, b"a {0} b }} c\n");
 }
 
 #[test]
@@ -367,7 +367,7 @@ fn enum_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected enum\n");
+        assert_eq!(formatter.message, b"expected enum\n");
     }
 }
 
@@ -402,7 +402,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected 'do-while' loop\n");
+        assert_eq!(formatter.message, b"expected 'do-while' loop\n");
     }
 
     {
@@ -418,7 +418,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected a 'do-while' loop\n");
+        assert_eq!(formatter.message, b"expected a 'do-while' loop\n");
     }
 
     {
@@ -434,7 +434,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected 'for' loop\n");
+        assert_eq!(formatter.message, b"expected 'for' loop\n");
     }
 
     {
@@ -450,7 +450,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected a 'for' loop\n");
+        assert_eq!(formatter.message, b"expected a 'for' loop\n");
     }
 
     {
@@ -466,7 +466,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected 'if' statement\n");
+        assert_eq!(formatter.message, b"expected 'if' statement\n");
     }
 
     {
@@ -482,7 +482,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected an 'if' statement\n");
+        assert_eq!(formatter.message, b"expected an 'if' statement\n");
     }
 
     {
@@ -498,7 +498,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected 'while' loop\n");
+        assert_eq!(formatter.message, b"expected 'while' loop\n");
     }
 
     {
@@ -514,7 +514,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected a 'while' loop\n");
+        assert_eq!(formatter.message, b"expected a 'while' loop\n");
     }
 
     {
@@ -530,7 +530,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected 'with' statement\n");
+        assert_eq!(formatter.message, b"expected 'with' statement\n");
     }
 
     {
@@ -546,7 +546,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected a 'with' statement\n");
+        assert_eq!(formatter.message, b"expected a 'with' statement\n");
     }
 
     {
@@ -562,7 +562,7 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected labelled statement\n");
+        assert_eq!(formatter.message, b"expected labelled statement\n");
     }
 
     {
@@ -578,6 +578,6 @@ fn statement_kind_placeholder() {
             &message_args,
             &diag as *const _ as *const u8,
         );
-        assert_eq!(formatter.message, "expected a labelled statement\n");
+        assert_eq!(formatter.message, b"expected a labelled statement\n");
     }
 }

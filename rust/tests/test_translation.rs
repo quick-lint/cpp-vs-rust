@@ -9,7 +9,7 @@ use cpp_vs_rust::i18n::translation::*;
 
 struct BasicTextDiagReporter {
     translator: Translator,
-    messages: std::cell::RefCell<Vec<String>>,
+    messages: std::cell::RefCell<Vec<Vec<u8>>>,
 }
 
 impl BasicTextDiagReporter {
@@ -20,7 +20,7 @@ impl BasicTextDiagReporter {
         }
     }
 
-    fn get_messages(&self) -> Vec<String> {
+    fn get_messages(&self) -> Vec<Vec<u8>> {
         self.messages.borrow_mut().clone()
     }
 }
@@ -30,16 +30,16 @@ impl DiagReporter for BasicTextDiagReporter {
         let mut formatter = BasicTextDiagFormatter {
             reporter_messages: &self.messages,
             translator: self.translator.clone(),
-            current_message: String::new(),
+            current_message: Vec::<u8>::new(),
         };
         formatter.format(get_diagnostic_info(type_), diag);
     }
 }
 
 struct BasicTextDiagFormatter<'reporter> {
-    reporter_messages: &'reporter std::cell::RefCell<Vec<String>>,
+    reporter_messages: &'reporter std::cell::RefCell<Vec<Vec<u8>>>,
     translator: Translator,
-    current_message: String,
+    current_message: Vec<u8>,
 }
 
 impl<'reporter> DiagnosticFormatter for BasicTextDiagFormatter<'reporter> {
@@ -55,9 +55,9 @@ impl<'reporter> DiagnosticFormatter for BasicTextDiagFormatter<'reporter> {
         &mut self,
         _code: &str,
         _severity: DiagnosticSeverity,
-        message_part: &str,
+        message_part: &[u8],
     ) {
-        self.current_message += message_part;
+        self.current_message.extend_from_slice(message_part);
     }
 
     fn write_after_message(
@@ -87,7 +87,7 @@ fn c_language_does_not_translate_diagnostics() {
             where_: dummy_span(),
         },
     );
-    assert_eq!(reporter.get_messages(), vec!["unexpected '#'"],);
+    assert_eq!(reporter.get_messages(), vec![b"unexpected '#'"],);
 }
 
 #[test]
@@ -101,7 +101,7 @@ fn english_snarky_translates() {
             where_: dummy_span(),
         },
     );
-    assert_eq!(reporter.get_messages(), vec!["#unexpected"],);
+    assert_eq!(reporter.get_messages(), vec![b"#unexpected"],);
 }
 
 fn dummy_span() -> SourceCodeSpan<'static> {
