@@ -13,10 +13,8 @@ add_executable(
   quick-lint-js/diag-collector.h
   quick-lint-js/diag-matcher.h
   quick-lint-js/dirty-set.h
-  quick-lint-js/failing-diag-reporter.h
   quick-lint-js/gtest.h
   quick-lint-js/parse-support.h
-  quick-lint-js/spy-visitor.h
   test-assert.cpp
   test-buffering-diag-reporter.cpp
   test-diagnostic-formatter.cpp
