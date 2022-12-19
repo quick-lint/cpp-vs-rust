@@ -215,14 +215,7 @@ impl BoolVector16SSE2 {
 
     #[inline(always)]
     pub fn find_first_false(&self) -> u32 {
-        let mask = self.mask();
-        if !mask == 0 {
-            // HACK(strager): Coerce GCC into omitting a branch due to an if check in
-            // countr_one's implementation.
-            // TODO(port): Is this hack necessary with LLVM?
-            unreachable!();
-        }
-        mask.trailing_ones()
+        self.mask().trailing_ones()
     }
 
     #[inline(always)]
