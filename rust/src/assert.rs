@@ -17,15 +17,28 @@ macro_rules! qljs_always_assert {
 }
 
 #[macro_export]
+macro_rules! qljs_never_assert {
+    ($cond:expr $(,)?) => {
+        if false {
+            if $cond {}
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! qljs_assert {
     ($cond:expr $(,)?) => {
         #[cfg(debug_assertions)]
         $crate::qljs_always_assert!($cond);
+        #[cfg(not(debug_assertions))]
+        $crate::qljs_never_assert!($cond);
     };
     ($cond:expr, $message:expr $(,)?) => {
         // TODO(strager): Include the message.
         #[cfg(debug_assertions)]
         $crate::qljs_always_assert!($cond);
+        #[cfg(not(debug_assertions))]
+        $crate::qljs_never_assert!($cond);
     };
 }
 
@@ -34,6 +47,8 @@ macro_rules! qljs_slow_assert {
     ($cond:expr $(,)?) => {
         #[cfg(feature = "qljs_debug")]
         $crate::qljs_always_assert!($cond);
+        #[cfg(not(feature = "qljs_debug"))]
+        $crate::qljs_never_assert!($cond);
     };
 }
 
