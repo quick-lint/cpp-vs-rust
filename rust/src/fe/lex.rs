@@ -109,6 +109,13 @@ impl LexerAllocator {
     }
 }
 
+// A Lexer reads JavaScript source code one token at a time.
+//
+// A token is (roughly) either a keyword (if, function, let, etc.), an operator
+// (+, !==, *=, etc.), an identifier (variable name), or a literal (number,
+// string, boolean, etc.).
+//
+// Whitespace and comments are not interpreted as tokens.
 pub struct Lexer<'alloc: 'reporter, 'code, 'reporter> {
     last_token: Token<'alloc, 'code>,
     last_last_token_end: *const u8,
