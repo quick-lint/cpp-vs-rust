@@ -95,22 +95,36 @@ pub enum IdentifierKind {
     JSX, // Allows '-'.
 }
 
-pub struct Lexer<'code, 'reporter> {
-    last_token: Token</* HACK(strager) */ 'reporter, 'code>,
+pub struct LexerAllocator {
+    allocator: MonotonicAllocator,
+    transaction_allocator: MonotonicAllocator,
+}
+
+impl LexerAllocator {
+    pub fn new() -> LexerAllocator {
+        LexerAllocator {
+            allocator: MonotonicAllocator::new("LexerAllocator::allocator"),
+            transaction_allocator: MonotonicAllocator::new("LexerAllocator::transaction_allocator"),
+        }
+    }
+}
+
+pub struct Lexer<'alloc: 'reporter, 'code, 'reporter> {
+    last_token: Token<'alloc, 'code>,
     last_last_token_end: *const u8,
     input: InputPointer,
     diag_reporter: &'reporter dyn DiagReporter,
     original_input: PaddedStringView<'code>,
 
-    allocator: MonotonicAllocator,
-    transaction_allocator: MonotonicAllocator,
+    allocator: &'alloc LexerAllocator,
 }
 
-impl<'code, 'reporter> Lexer<'code, 'reporter> {
+impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
     pub fn new(
         input: PaddedStringView<'code>,
         diag_reporter: &'reporter dyn DiagReporter,
-    ) -> Lexer<'code, 'reporter> {
+        allocator: &'alloc LexerAllocator,
+    ) -> Lexer<'alloc, 'code, 'reporter> {
         let mut lexer = Lexer {
             last_token: Token {
                 type_: TokenType::EndOfFile,
@@ -124,8 +138,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             input: InputPointer(input.c_str()),
             diag_reporter: diag_reporter,
             original_input: input,
-            allocator: MonotonicAllocator::new("Lexer::allocator"),
-            transaction_allocator: MonotonicAllocator::new("Lexer::transaction_allocator"),
+            allocator: allocator,
         };
         lexer.parse_bom_before_shebang();
         lexer.parse_current_token();
@@ -133,9 +146,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     }
 
     // Return information about the current token.
-    pub fn peek<'this>(&'this self) -> &'this Token<'this, 'code> {
-        // HACK(strager): Work around lifetime confusion. There might be a better solution.
-        unsafe { std::mem::transmute(&self.last_token) }
+    pub fn peek(&self) -> &Token<'alloc, 'code> {
+        &self.last_token
     }
 
     // Advance to the next token. Use self.peek() after to observe the next
@@ -956,8 +968,8 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.end = body.end;
     }
 
-    fn parse_template_body<'this, /* HACK(strager) */ 'alloc: 'this>(
-        &'this mut self,
+    fn parse_template_body(
+        &mut self,
         input: InputPointer,
         template_begin: *const u8,
         diag_reporter: &dyn DiagReporter,
@@ -1021,9 +1033,9 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
                         b'u' => {
                             if escape_sequence_diagnostics.is_none() {
                                 escape_sequence_diagnostics = Some(unsafe {
-                                    &mut *self.allocator.new_object(BufferingDiagReporter::new(
-                                        self.get_allocator(),
-                                    ))
+                                    &mut *self.allocator.allocator.new_object(
+                                        BufferingDiagReporter::new(&self.allocator.allocator),
+                                    )
                                 });
                             }
                             let inner_reporter: &mut BufferingDiagReporter =
@@ -1362,16 +1374,13 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     //
     // Inside a transaction, diagnostics are not reported until commit_transaction
     // is called for the outer-most nested transaction.
-    pub fn begin_transaction(
-        &mut self,
-    ) -> LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter> {
-        let allocator: &MonotonicAllocator = self.get_transaction_allocator();
+    pub fn begin_transaction(&mut self) -> LexerTransaction<'code, 'reporter, 'alloc> {
         LexerTransaction::new(
             /*old_last_token=*/ self.last_token.clone(),
             /*old_last_last_token_end=*/ self.last_last_token_end,
             /*old_input=*/ self.input.0,
             /*diag_reporter_pointer=*/ &mut self.diag_reporter,
-            /*memory=*/ allocator,
+            /*memory=*/ &self.allocator.transaction_allocator,
         )
     }
 
@@ -1380,10 +1389,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     //
     // commit_transaction does not restore the state of the lexer when
     // begin_transaction was called.
-    pub fn commit_transaction(
-        &mut self,
-        transaction: LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter>,
-    ) {
+    pub fn commit_transaction(&mut self, transaction: LexerTransaction<'code, 'reporter, 'alloc>) {
         let buffered_diagnostics: &mut BufferingDiagReporter = unsafe {
             &mut *(self.diag_reporter as *const dyn DiagReporter as *mut BufferingDiagReporter)
         };
@@ -1407,7 +1413,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     // have been reported if it weren't for begin_transaction.
     pub fn roll_back_transaction(
         &mut self,
-        transaction: LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter>,
+        transaction: LexerTransaction<'code, 'reporter, 'alloc>,
     ) {
         self.last_token = transaction.old_last_token.clone();
         self.last_last_token_end = transaction.old_last_last_token_end;
@@ -1417,7 +1423,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         let rewind_state: LinkedBumpAllocatorRewindState = transaction.allocator_rewind.clone();
         std::mem::drop(transaction); // Deallocate the reporter.
         unsafe {
-            self.transaction_allocator.rewind(rewind_state);
+            self.allocator.transaction_allocator.rewind(rewind_state);
         }
     }
 
@@ -1425,7 +1431,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
     // transaction is the most recent active transaction.
     pub fn transaction_has_lex_diagnostics(
         &self,
-        _transaction: &LexerTransaction<'code, 'reporter, /* HACK(strager) */ 'reporter>,
+        _transaction: &LexerTransaction<'code, 'reporter, 'alloc>,
     ) -> bool {
         let buffered_diagnostics: &mut BufferingDiagReporter = unsafe {
             &mut *(self.diag_reporter as *const dyn DiagReporter as *mut BufferingDiagReporter)
@@ -1713,6 +1719,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             let result_string_bytes: &[u8] = result_string.as_bytes();
             let rounded_val: &mut [std::mem::MaybeUninit<u8>] = self
                 .allocator
+                .allocator
                 .allocate_uninitialized_array::<u8>(result_string_bytes.len());
             write_slice(rounded_val, result_string_bytes);
             report(
@@ -1982,7 +1989,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         &mut self,
         input: *const u8,
         kind: IdentifierKind,
-    ) -> ParsedIdentifier</* HACK(strager) */ 'code, 'code> {
+    ) -> ParsedIdentifier<'alloc, 'code> {
         let begin: *const u8 = input;
         let end: *const u8 = self.parse_identifier_fast_only(input);
         let end_c: u8 = unsafe { *end };
@@ -2100,7 +2107,7 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         input: *const u8,
         identifier_begin: *const u8,
         kind: IdentifierKind,
-    ) -> ParsedIdentifier</* HACK(strager) */ 'code, 'code> {
+    ) -> ParsedIdentifier<'alloc, 'code> {
         let mut input = InputPointer(input);
         let is_private_identifier: bool = identifier_begin != self.original_input.c_str()
             && unsafe { *identifier_begin.offset(-1) } == b'#';
@@ -2110,21 +2117,23 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             identifier_begin
         };
 
-        let mut normalized: BumpVector<u8, MonotonicAllocator> =
-            BumpVector::new("parse_identifier_slow normalized", self.get_allocator());
+        let mut normalized: BumpVector<u8, MonotonicAllocator> = BumpVector::new(
+            "parse_identifier_slow normalized",
+            &self.allocator.allocator,
+        );
         normalized.extend_from_slice(
             unsafe { SourceCodeSpan::new(private_identifier_begin, input.0) }.as_slice(),
         );
 
         let escape_sequences: &mut EscapeSequenceList = unsafe {
-            &mut *self.allocator.new_object(EscapeSequenceList::new(
+            &mut *self.allocator.allocator.new_object(EscapeSequenceList::new(
                 "parse_identifier_slow escape_sequences",
-                self.get_allocator(),
+                &self.allocator.allocator,
             ))
         };
 
-        fn parse_unicode_escape<Alloc: BumpAllocatorLike>(
-            this: &mut Lexer,
+        fn parse_unicode_escape<'alloc, 'code, 'reporter: 'alloc, Alloc: BumpAllocatorLike>(
+            this: &mut Lexer<'alloc, 'code, 'reporter>,
             input: &mut InputPointer,
             identifier_begin: *const u8,
             normalized: &mut BumpVector<u8, Alloc>,
@@ -2457,7 +2466,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             c += chars.len() as isize;
         }
 
-        fn found_newline_in_comment(this: &mut Lexer, mut c: InputPointer) {
+        fn found_newline_in_comment<'alloc, 'code, 'reporter: 'alloc>(
+            this: &mut Lexer<'alloc, 'code, 'reporter>,
+            mut c: InputPointer,
+        ) {
             this.last_token.has_leading_newline = true;
             loop {
                 let chars: CharVector = unsafe { CharVector::load_raw(c.0) };
@@ -2482,7 +2494,10 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
             }
         }
 
-        fn found_comment_end(this: &mut Lexer, c: InputPointer) {
+        fn found_comment_end<'alloc, 'code, 'reporter: 'alloc>(
+            this: &mut Lexer<'alloc, 'code, 'reporter>,
+            c: InputPointer,
+        ) {
             this.input = c + 2;
             this.skip_whitespace();
         }
@@ -2626,22 +2641,6 @@ impl<'code, 'reporter> Lexer<'code, 'reporter> {
         self.last_token.has_leading_newline
             || self.last_last_token_end == self.original_input.c_str()
     }
-
-    // HACK(port): Hack lifetimes to prevent Rust getting confused by code like the following:
-    //
-    //   let thing = alloc_something(&self.allocator);  // shared borrow of self
-    //   self.mut_method();                             // mutable borrow of self (error!)
-    fn get_allocator(&self) -> &'code MonotonicAllocator {
-        unsafe { std::mem::transmute(&self.allocator) }
-    }
-
-    // HACK(port): Hack lifetimes to prevent Rust getting confused by code like the following:
-    //
-    //   let thing = use_it(&self.transaction_allocator);  // shared borrow of self
-    //   self.mut_method();                                // mutable borrow of self (error!)
-    fn get_transaction_allocator(&self) -> &'reporter MonotonicAllocator {
-        unsafe { std::mem::transmute(&self.transaction_allocator) }
-    }
 }
 
 struct ParsedUnicodeEscape {
@@ -2695,7 +2694,8 @@ pub struct LexerTransaction<'code, 'reporter, 'alloc> {
     old_diag_reporter: &'reporter dyn DiagReporter,
 }
 
-impl<'code: 'alloc, 'reporter, 'alloc: 'reporter> LexerTransaction<'code, 'reporter, 'alloc> {
+// TODO(port): Change order of parameters to match Lexer.
+impl<'alloc: 'reporter, 'code, 'reporter> LexerTransaction<'code, 'reporter, 'alloc> {
     fn new(
         old_last_token: Token<'alloc, 'code>,
         old_last_last_token_end: *const u8,

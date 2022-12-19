@@ -30,7 +30,8 @@ fn lex_block_comments() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"hello /* unterminated comment ");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::EndOfFile);
 
@@ -49,7 +50,8 @@ fn lex_unopened_block_comment() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"hello */");
-        let mut l = Lexer::new(input.view(), &v); // identifier
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator); // identifier
         assert_eq!(l.peek().type_, TokenType::Identifier);
         l.skip(); // end of file
         assert_eq!(l.peek().type_, TokenType::EndOfFile);
@@ -64,7 +66,8 @@ fn lex_unopened_block_comment() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"*-----*/");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
 
         while l.peek().type_ != TokenType::EndOfFile {
             l.skip();
@@ -82,7 +85,8 @@ fn lex_unopened_block_comment() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"*******/");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::StarStar);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::StarStar);
@@ -102,7 +106,8 @@ fn lex_unopened_block_comment() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"*/");
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::EndOfFile);
 
         qljs_assert_diags!(
@@ -116,7 +121,8 @@ fn lex_unopened_block_comment() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"**/");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Star);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::EndOfFile);
@@ -136,7 +142,8 @@ fn lex_regexp_literal_starting_with_star_slash() {
         // '/*' is not an end of block comment because it precedes a regexp literal
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"*/ hello/");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Star);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::Slash);
@@ -155,7 +162,8 @@ fn lex_regexp_literal_starting_with_star_star_slash() {
     {
         let input = PaddedString::from_slice(b"3 **/ banana/");
         let v = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Number);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::StarStar);
@@ -1080,7 +1088,8 @@ fn lex_number_with_multiple_groups_of_consecutive_underscores() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"123__45___6");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Number);
         assert_eq!(unsafe { *l.peek().begin }, b'1');
         l.skip();
@@ -1178,7 +1187,8 @@ fn lex_strings() {
         let v = DiagCollector::new();
         let input =
             PaddedString::from_slice(format!("'unterminated{line_terminator}hello").as_bytes());
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::String);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::Identifier);
@@ -1197,7 +1207,8 @@ fn lex_strings() {
         let v = DiagCollector::new();
         let input =
             PaddedString::from_slice(format!("'separated{line_terminator}hello'").as_bytes());
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::String);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::EndOfFile);
@@ -1216,7 +1227,8 @@ fn lex_strings() {
         let input = PaddedString::from_slice(
             format!("'separated{line_terminator}{line_terminator}hello'").as_bytes(),
         );
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::String);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::Identifier);
@@ -1243,7 +1255,8 @@ fn lex_strings() {
         let input = PaddedString::from_slice(
             format!("let x = 'hello{line_terminator}let y = 'world'").as_bytes(),
         );
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::KWLet);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::Identifier);
@@ -1612,7 +1625,8 @@ world`"#,
 
     {
         let code = PaddedString::from_slice(b"`hello${42}`");
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
         assert_eq!(l.peek().span().as_slice(), b"`hello${");
         let template_begin: *const u8 = l.peek().begin;
@@ -1629,7 +1643,8 @@ world`"#,
 
     {
         let code = PaddedString::from_slice(b"`${42}world`");
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
         assert_eq!(l.peek().span().as_slice(), b"`${");
         let template_begin: *const u8 = l.peek().begin;
@@ -1646,7 +1661,8 @@ world`"#,
 
     {
         let code = PaddedString::from_slice(b"`${left}${right}`");
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
         let template_begin: *const u8 = l.peek().begin;
         l.skip();
@@ -1682,7 +1698,8 @@ world`"#,
     {
         let code = PaddedString::from_slice(b"`${un}terminated");
         let v = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
         let template_begin: *const u8 = l.peek().begin;
         l.skip();
@@ -1723,7 +1740,8 @@ fn templates_buffer_unicode_escape_errors() {
     {
         let input = PaddedString::from_slice(b"`hello\\u`");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
         qljs_assert_no_diags!(errors.clone_errors(), input.view());
@@ -1744,7 +1762,8 @@ fn templates_buffer_unicode_escape_errors() {
     {
         let input = PaddedString::from_slice(b"`hello\\u{110000}`");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
         qljs_assert_no_diags!(errors.clone_errors(), input.view());
@@ -1765,7 +1784,8 @@ fn templates_buffer_unicode_escape_errors() {
     {
         let input = PaddedString::from_slice(b"`hello\\u${expr}`");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
         qljs_assert_no_diags!(errors.clone_errors(), input.view());
@@ -1789,7 +1809,8 @@ fn templates_do_not_buffer_valid_unicode_escapes() {
     {
         let input = PaddedString::from_slice(b"`hell\\u{6f}`");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         assert_eq!(l.peek().type_, TokenType::CompleteTemplate);
         qljs_assert_no_diags!(errors.clone_errors(), input.view());
@@ -1804,7 +1825,8 @@ fn templates_do_not_buffer_valid_unicode_escapes() {
     {
         let input = PaddedString::from_slice(b"`hell\\u{6f}${expr}`");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         assert_eq!(l.peek().type_, TokenType::IncompleteTemplate);
         qljs_assert_no_diags!(errors.clone_errors(), input.view());
@@ -1846,7 +1868,8 @@ fn lex_regular_expression_literals() {
         let code = PaddedString::from_slice(raw_code);
         scoped_trace!(code);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
 
         assert_matches!(l.peek().type_, TokenType::Slash | TokenType::SlashEqual);
         l.reparse_as_regexp();
@@ -1871,7 +1894,8 @@ fn lex_regular_expression_literals() {
         let code = PaddedString::from_slice(raw_code);
         scoped_trace!(code);
         let v = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Slash);
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
@@ -1896,7 +1920,8 @@ fn lex_regular_expression_literals() {
         );
         scoped_trace!(code);
         let v = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Slash);
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
@@ -1924,7 +1949,8 @@ fn lex_regular_expression_literals() {
         );
         scoped_trace!(code);
         let v = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Slash);
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
@@ -1955,7 +1981,8 @@ fn lex_regular_expression_literals() {
 fn lex_regular_expression_literal_with_digit_flag() {
     let input = PaddedString::from_slice(b"/cellular/3g");
 
-    let mut l = Lexer::new(input.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
     assert_eq!(l.peek().type_, TokenType::Slash);
     l.reparse_as_regexp();
     assert_eq!(l.peek().type_, TokenType::Regexp);
@@ -1972,7 +1999,8 @@ fn lex_unicode_escape_in_regular_expression_literal_flags() {
     let errors = DiagCollector::new();
     let input = PaddedString::from_slice(b"/hello/\\u{67}i");
 
-    let mut l = Lexer::new(input.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(input.view(), &errors, &allocator);
     l.reparse_as_regexp();
     assert_eq!(l.peek().type_, TokenType::Regexp);
     assert_eq!(l.peek().begin, input.c_str());
@@ -1994,7 +2022,8 @@ fn lex_non_ascii_in_regular_expression_literal_flags() {
     let errors = DiagCollector::new();
     let input = PaddedString::from_slice("/hello/\u{05d0}".as_bytes());
 
-    let mut l = Lexer::new(input.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(input.view(), &errors, &allocator);
     l.reparse_as_regexp();
     assert_eq!(l.peek().type_, TokenType::Regexp);
     assert_eq!(l.peek().begin, input.c_str());
@@ -2009,7 +2038,8 @@ fn lex_non_ascii_in_regular_expression_literal_flags() {
 fn lex_regular_expression_literals_preserves_leading_newline_flag() {
     {
         let code = PaddedString::from_slice(b"\n/ /");
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
         assert!(l.peek().has_leading_newline);
@@ -2017,7 +2047,8 @@ fn lex_regular_expression_literals_preserves_leading_newline_flag() {
 
     {
         let code = PaddedString::from_slice(b"/ /");
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
         assert!(!(l.peek().has_leading_newline));
@@ -2030,7 +2061,8 @@ fn lex_regular_expression_literal_with_ascii_control_characters() {
         let input = PaddedString::from_slice(format!("/hello{control_character}world/").as_bytes());
         scoped_trace!(input);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
@@ -2045,7 +2077,8 @@ fn lex_regular_expression_literal_with_ascii_control_characters() {
             PaddedString::from_slice(format!("/hello\\{control_character}world/").as_bytes());
         scoped_trace!(input);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &errors, &allocator);
 
         l.reparse_as_regexp();
         assert_eq!(l.peek().type_, TokenType::Regexp);
@@ -2060,7 +2093,8 @@ fn lex_regular_expression_literal_with_ascii_control_characters() {
 fn split_less_less_into_two_tokens() {
     let input = PaddedString::from_slice(b"<<T>() => T>");
 
-    let mut l = Lexer::new(input.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
     assert_eq!(l.peek().type_, TokenType::LessLess);
     l.skip_less_less_as_less();
     assert_eq!(l.peek().type_, TokenType::Less);
@@ -2075,7 +2109,8 @@ fn split_less_less_into_two_tokens() {
 fn split_less_less_has_no_leading_newline() {
     let input = PaddedString::from_slice(b"\n<<");
 
-    let mut l = Lexer::new(input.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
     assert_eq!(l.peek().type_, TokenType::LessLess);
     assert!(l.peek().has_leading_newline);
     l.skip_less_less_as_less();
@@ -2087,7 +2122,8 @@ fn split_less_less_has_no_leading_newline() {
 fn split_greater_from_bigger_token() {
     {
         let input = PaddedString::from_slice(b">>;");
-        let mut l = Lexer::new(input.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
         assert_eq!(l.peek().type_, TokenType::GreaterGreater);
 
         l.skip_as_greater();
@@ -2101,7 +2137,8 @@ fn split_greater_from_bigger_token() {
 
     {
         let input = PaddedString::from_slice(b">>>;");
-        let mut l = Lexer::new(input.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
         assert_eq!(l.peek().type_, TokenType::GreaterGreaterGreater);
 
         l.skip_as_greater();
@@ -2118,7 +2155,8 @@ fn split_greater_from_bigger_token() {
 fn split_greater_from_bigger_token_has_no_leading_newline() {
     {
         let input = PaddedString::from_slice(b"\n>>");
-        let mut l = Lexer::new(input.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
         assert_eq!(l.peek().type_, TokenType::GreaterGreater);
         assert!(l.peek().has_leading_newline);
         l.skip_as_greater();
@@ -2206,7 +2244,8 @@ fn non_ascii_identifier_with_escape_sequence() {
 #[test]
 fn identifier_with_escape_sequences_source_code_span_is_in_place() {
     let input: PaddedString = PaddedString::from_slice(b"\\u{77}a\\u{74}");
-    let l = Lexer::new(input.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let l = Lexer::new(input.view(), null_diag_reporter(), &allocator);
     let span: SourceCodeSpan = l.peek().identifier_name().span();
     assert_eq!(span.begin_ptr(), input.c_str());
     assert_eq!(span.end_ptr(), input.null_terminator());
@@ -2703,8 +2742,9 @@ fn private_identifier() {
 
     {
         let code = PaddedString::from_slice(b" #id ");
+        let allocator = LexerAllocator::new();
         let errors = DiagCollector::new();
-        f.lex_to_eof(code.view(), &errors, |tokens: &Vec<Token>| {
+        f.lex_to_eof(code.view(), &allocator, &errors, |tokens: &Vec<Token>| {
             assert_eq!(tokens.len(), 1);
             let ident: Identifier = tokens[0].identifier_name();
             assert_eq!(ident.span().as_slice(), b"#id");
@@ -2724,8 +2764,9 @@ fn private_identifier() {
 
     {
         let code = PaddedString::from_slice(b" #\\u{78} ");
+        let allocator = LexerAllocator::new();
         let errors = DiagCollector::new();
-        f.lex_to_eof(code.view(), &errors, |tokens: &Vec<Token>| {
+        f.lex_to_eof(code.view(), &allocator, &errors, |tokens: &Vec<Token>| {
             assert_eq!(tokens.len(), 1);
             let ident: Identifier = tokens[0].identifier_name();
             assert_eq!(ident.span().as_slice(), b"#\\u{78}");
@@ -2909,7 +2950,8 @@ fn lex_reserved_keywords_except_await_and_yield_sometimes_cannot_contain_escape_
         let code = PaddedString::from_slice(escape_first_character_in_keyword(keyword).as_bytes());
         scoped_trace!(code);
         let errors = DiagCollector::new();
-        let l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(code.view(), &errors, &allocator);
 
         assert_eq!(l.peek().type_, TokenType::ReservedKeywordWithEscapeSequence);
         assert_eq!(
@@ -3109,7 +3151,8 @@ fn lex_not_shebang() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"# !notashebang");
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Bang, "# should be skipped");
 
         qljs_assert_diags!(
@@ -3123,7 +3166,8 @@ fn lex_not_shebang() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"\n#!notashebang\n");
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Bang, "# should be skipped");
 
         qljs_assert_diags!(
@@ -3139,7 +3183,8 @@ fn lex_not_shebang() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"  #!notashebang\n");
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Bang, "# should be skipped");
 
         qljs_assert_diags!(
@@ -3154,7 +3199,8 @@ fn lex_not_shebang() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"#\\u{21}\n");
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::PrivateIdentifier);
         assert_eq!(l.peek().identifier_name().normalized_name(), b"#\\u{21}");
 
@@ -3174,7 +3220,8 @@ fn lex_unexpected_bom_before_shebang() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice("\u{feff}#!notashebang\n".as_bytes());
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::EndOfFile, "# should be skipped");
 
         qljs_assert_diags!(
@@ -3192,7 +3239,8 @@ fn lex_invalid_common_characters_are_disallowed() {
     {
         let v = DiagCollector::new();
         let input = PaddedString::from_slice(b"hello @ world");
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(l.peek().type_, TokenType::Identifier);
         l.skip();
         assert_eq!(l.peek().type_, TokenType::Identifier, "@ should be skipped");
@@ -3216,7 +3264,8 @@ fn ascii_control_characters_are_disallowed() {
         scoped_trace!(input);
         let v = DiagCollector::new();
 
-        let l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(
             l.peek().type_,
             TokenType::Identifier,
@@ -3238,7 +3287,8 @@ fn ascii_control_characters_sorta_treated_like_whitespace() {
         let input = PaddedString::from_slice(format!("  {control_character}  hello").as_bytes());
         scoped_trace!(input);
         let v = DiagCollector::new();
-        let mut l = Lexer::new(input.view(), &v);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(input.view(), &v, &allocator);
         assert_eq!(
             l.peek().type_,
             TokenType::Identifier,
@@ -3253,7 +3303,8 @@ fn ascii_control_characters_sorta_treated_like_whitespace() {
 fn lex_token_notes_leading_newline() {
     for line_terminator in LINE_TERMINATORS {
         let code = PaddedString::from_slice(format!("a b{line_terminator}c d").as_bytes());
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         assert!(!l.peek().has_leading_newline); // a
         l.skip();
         assert!(!l.peek().has_leading_newline); // b
@@ -3268,7 +3319,8 @@ fn lex_token_notes_leading_newline() {
 fn lex_token_notes_leading_newline_after_single_line_comment() {
     for line_terminator in LINE_TERMINATORS {
         let code = PaddedString::from_slice(format!("a // hello{line_terminator}b").as_bytes());
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         assert!(!l.peek().has_leading_newline); // a
         l.skip();
         assert!(l.peek().has_leading_newline); // b
@@ -3279,7 +3331,8 @@ fn lex_token_notes_leading_newline_after_single_line_comment() {
 fn lex_token_notes_leading_newline_after_comment_with_newline() {
     for line_terminator in LINE_TERMINATORS {
         let code = PaddedString::from_slice(format!("a /*{line_terminator}*/ b").as_bytes());
-        let mut l = Lexer::new(code.view(), null_diag_reporter());
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
         assert!(!l.peek().has_leading_newline); // a
         l.skip();
         assert!(l.peek().has_leading_newline); // b
@@ -3289,7 +3342,8 @@ fn lex_token_notes_leading_newline_after_comment_with_newline() {
 #[test]
 fn lex_token_notes_leading_newline_after_comment() {
     let code = PaddedString::from_slice(b"a /* comment */\nb");
-    let mut l = Lexer::new(code.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
     assert!(!l.peek().has_leading_newline); // a
     l.skip();
     assert!(l.peek().has_leading_newline); // b
@@ -3298,7 +3352,8 @@ fn lex_token_notes_leading_newline_after_comment() {
 #[test]
 fn inserting_semicolon_at_newline_remembers_next_token() {
     let code = PaddedString::from_slice(b"hello\nworld");
-    let mut l = Lexer::new(code.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier);
     assert_eq!(l.peek().identifier_name().normalized_name(), b"hello");
@@ -3327,7 +3382,8 @@ fn inserting_semicolon_at_newline_remembers_next_token() {
 #[test]
 fn insert_semicolon_at_beginning_of_input() {
     let code = PaddedString::from_slice(b"hello world");
-    let mut l = Lexer::new(code.view(), null_diag_reporter());
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), null_diag_reporter(), &allocator);
 
     l.insert_semicolon();
     assert_eq!(l.peek().type_, TokenType::Semicolon);
@@ -3351,7 +3407,8 @@ fn insert_semicolon_at_beginning_of_input() {
 fn inserting_semicolon_at_right_curly_remembers_next_token() {
     let code = PaddedString::from_slice(b"{ x }");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::LeftCurly);
     assert!(!l.peek().has_leading_newline);
@@ -3385,7 +3442,8 @@ fn inserting_semicolon_at_right_curly_remembers_next_token() {
 fn transaction_buffers_errors_until_commit() {
     let code = PaddedString::from_slice(b"x 0b y");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier);
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3411,7 +3469,8 @@ fn transaction_buffers_errors_until_commit() {
 fn nested_transaction_buffers_errors_until_outer_commit() {
     let code = PaddedString::from_slice(b"x y 0b z");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier); // x
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3452,7 +3511,8 @@ fn nested_transaction_buffers_errors_until_outer_commit() {
 fn rolled_back_inner_transaction_discards_errors() {
     let code = PaddedString::from_slice(b"x y 0b z");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier); // x
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3482,7 +3542,8 @@ fn rolled_back_inner_transaction_discards_errors() {
 fn rolled_back_outer_transaction_discards_errors() {
     let code = PaddedString::from_slice(b"x y 0b z");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier); // x
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3512,7 +3573,8 @@ fn rolled_back_outer_transaction_discards_errors() {
 fn errors_after_transaction_commit_are_reported_unbuffered() {
     let code = PaddedString::from_slice(b"x 'y' 0b");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier);
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3534,7 +3596,8 @@ fn errors_after_transaction_commit_are_reported_unbuffered() {
 fn errors_after_transaction_rollback_are_reported_unbuffered() {
     let code = PaddedString::from_slice(b"x 'y' 0b");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier);
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3558,7 +3621,8 @@ fn errors_after_transaction_rollback_are_reported_unbuffered() {
 fn rolling_back_transaction() {
     let code = PaddedString::from_slice(b"x 'y' 3");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier);
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3586,7 +3650,8 @@ fn rolling_back_transaction() {
 fn insert_semicolon_after_rolling_back_transaction() {
     let code = PaddedString::from_slice(b"x 'y' 3");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     assert_eq!(l.peek().type_, TokenType::Identifier);
     qljs_assert_no_diags!(errors.clone_errors(), code.view());
@@ -3617,7 +3682,8 @@ fn unfinished_transaction_does_not_leak_memory() {
 
     let code = PaddedString::from_slice(b"a b c d e f g");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
 
     let _outer_transaction: LexerTransaction = l.begin_transaction();
     l.skip();
@@ -3687,7 +3753,8 @@ fn jsx_identifier() {
         code_vec.extend_from_slice(tag_code);
         let code = PaddedString::from_slice(&code_vec[..]);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '!'.
 
         assert_eq!(l.peek().type_, TokenType::Identifier);
@@ -3763,7 +3830,8 @@ fn jsx_string() {
         code_vec.extend_from_slice(string_code);
         let code = PaddedString::from_slice(&code_vec[..]);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '!'.
 
         assert_eq!(l.peek().type_, TokenType::String);
@@ -3806,7 +3874,8 @@ fn jsx_string_ignores_comments() {
     {
         let code = PaddedString::from_slice(b"! 'hello // '\nworld'");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '!'.
 
         assert_eq!(l.peek().type_, TokenType::String);
@@ -3827,7 +3896,8 @@ fn jsx_string_ignores_comments() {
     {
         let code = PaddedString::from_slice(br#"! "hello/* not"comment */world""#);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '!'.
 
         assert_eq!(l.peek().type_, TokenType::String);
@@ -3850,7 +3920,8 @@ fn jsx_string_ignores_comments() {
 fn unterminated_jsx_string() {
     let code = PaddedString::from_slice(b"! 'hello");
     let errors = DiagCollector::new();
-    let mut l = Lexer::new(code.view(), &errors);
+    let allocator = LexerAllocator::new();
+    let mut l = Lexer::new(code.view(), &errors, &allocator);
     l.skip_in_jsx(); // Ignore '!'.
 
     assert_eq!(l.peek().type_, TokenType::String);
@@ -3871,7 +3942,8 @@ fn jsx_tag() {
     {
         let code = PaddedString::from_slice(b"<svg:rect>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         assert_eq!(l.peek().type_, TokenType::Identifier);
@@ -3890,7 +3962,8 @@ fn jsx_tag() {
     {
         let code = PaddedString::from_slice(b"<myModule.MyComponent>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         assert_eq!(l.peek().type_, TokenType::Identifier);
@@ -3912,7 +3985,8 @@ fn jsx_text_children() {
     {
         let code = PaddedString::from_slice(b"<>hello world");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         l.skip_in_jsx_children(); // Skip '>'.
@@ -3924,7 +3998,8 @@ fn jsx_text_children() {
     {
         let code = PaddedString::from_slice(b"<>hello</>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         l.skip_in_jsx_children(); // Skip '>'.
@@ -3942,7 +4017,8 @@ fn jsx_text_children() {
         let code = PaddedString::from_slice(format!("<>{text_begin}hello").as_bytes());
         scoped_trace!(code);
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         assert_eq!(l.peek().type_, TokenType::Greater);
@@ -3983,7 +4059,8 @@ fn jsx_illegal_text_children() {
     {
         let code = PaddedString::from_slice(b"<>hello>world</>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         l.skip_in_jsx_children(); // Skip '>'.
@@ -4000,7 +4077,8 @@ fn jsx_illegal_text_children() {
     {
         let code = PaddedString::from_slice(b"<>hello}world</>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         l.skip_in_jsx(); // Ignore '<'.
 
         l.skip_in_jsx_children(); // Skip '>'.
@@ -4024,7 +4102,8 @@ fn jsx_expression_children() {
     {
         let code = PaddedString::from_slice(b"<>hello {name}!</>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
 
         // <>hello
         assert_eq!(l.peek().type_, TokenType::Less);
@@ -4060,7 +4139,8 @@ fn jsx_nested_children() {
     {
         let code = PaddedString::from_slice(b"<>hello <span>world</span>!</>");
         let errors = DiagCollector::new();
-        let mut l = Lexer::new(code.view(), &errors);
+        let allocator = LexerAllocator::new();
+        let mut l = Lexer::new(code.view(), &errors, &allocator);
         // <>hello
         assert_eq!(l.peek().type_, TokenType::Less);
         l.skip_in_jsx();
@@ -4122,16 +4202,22 @@ impl Fixture {
         check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
     ) {
         let code = PaddedString::from_slice(input);
+        let allocator = LexerAllocator::new();
         let errors = DiagCollector::new();
-        self.lex_to_eof(code.view(), &errors, |lexed_tokens: &Vec<Token>| {
-            assert_matches!(lexed_tokens.as_slice(),
+        self.lex_to_eof(
+            code.view(),
+            &allocator,
+            &errors,
+            |lexed_tokens: &Vec<Token>| {
+                assert_matches!(lexed_tokens.as_slice(),
                 [t] if t.type_ == TokenType::Identifier || t.type_ == TokenType::PrivateIdentifier);
-            assert_eq!(
-                lexed_tokens[0].identifier_name().normalized_name(),
-                expected_identifier_name,
-            );
-            check_errors(code.view(), &errors.clone_errors());
-        });
+                assert_eq!(
+                    lexed_tokens[0].identifier_name().normalized_name(),
+                    expected_identifier_name,
+                );
+                check_errors(code.view(), &errors.clone_errors());
+            },
+        );
     }
 
     fn check_tokens(&mut self, input: &[u8], expected_token_types: &[TokenType]) {
@@ -4151,26 +4237,36 @@ impl Fixture {
         check_errors: fn(PaddedStringView, &Vec<AnyDiag>),
     ) {
         let input = PaddedString::from_slice(input);
+        let allocator = LexerAllocator::new();
         let errors = DiagCollector::new();
-        self.lex_to_eof(input.view(), &errors, |lexed_tokens: &Vec<Token>| {
-            let lexed_token_types: Vec<TokenType> = lexed_tokens.iter().map(|t| t.type_).collect();
+        self.lex_to_eof(
+            input.view(),
+            &allocator,
+            &errors,
+            |lexed_tokens: &Vec<Token>| {
+                let lexed_token_types: Vec<TokenType> =
+                    lexed_tokens.iter().map(|t| t.type_).collect();
 
-            assert_eq!(lexed_token_types, expected_token_types.to_vec());
-            check_errors(input.view(), &errors.clone_errors());
-        });
+                assert_eq!(lexed_token_types, expected_token_types.to_vec());
+                check_errors(input.view(), &errors.clone_errors());
+            },
+        );
     }
 
+    // TODO(port-later): Redesign this interface. It's grown out of hand due to Rust quirks.
     fn lex_to_eof<
-        'code,
+        'alloc: 'reporter,
+        'code: 'alloc,
         'reporter: 'code,
-        Callback: for<'lexer> FnOnce(&'lexer Vec<Token<'lexer, 'code>>),
+        Callback: for<'alloc2> FnOnce(&'_ Vec<Token<'alloc2, 'code>>),
     >(
         &mut self,
         input: PaddedStringView<'code>,
+        allocator: &'alloc LexerAllocator,
         errors: &'reporter DiagCollector<'code>,
         callback: Callback,
     ) {
-        let mut l: Lexer<'code, 'reporter> = Lexer::new(input, errors);
+        let mut l: Lexer<'alloc, 'code, 'reporter> = Lexer::new(input, errors, allocator);
         let mut tokens: Vec<Token<'_, 'code>> = vec![];
         while l.peek().type_ != TokenType::EndOfFile {
             let t: &Token<'_, 'code> = l.peek();
@@ -4192,9 +4288,10 @@ impl Fixture {
     }
 
     fn lex_to_eof_types_padded(&mut self, input: PaddedStringView<'_>) -> Vec<TokenType> {
+        let allocator = LexerAllocator::new();
         let errors = DiagCollector::new();
         let mut lexed_token_types: Vec<TokenType> = vec![];
-        self.lex_to_eof(input, &errors, |lexed_tokens: &Vec<Token>| {
+        self.lex_to_eof(input, &allocator, &errors, |lexed_tokens: &Vec<Token>| {
             for t in lexed_tokens {
                 lexed_token_types.push(t.type_);
             }
