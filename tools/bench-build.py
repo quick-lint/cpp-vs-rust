@@ -12,8 +12,10 @@ import shutil
 import socket
 import sqlite3
 import subprocess
+import sys
 import time
 import typing
+import unittest
 
 HOSTNAME = socket.gethostname()
 
@@ -32,20 +34,24 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dump-runs", action="store_true")
     parser.add_argument("--list", action="store_true")
+    parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--iterations", type=int, default=3)
     parser.add_argument("--warmup-iterations", type=int, default=2)
     parser.add_argument("filter", default="", nargs="?")
     args = parser.parse_args()
 
+    if args.self_test:
+        unittest.main(verbosity=2, exit=True, argv=sys.argv[:1])
+
     if args.dump_runs:
-        db = DB()
+        db = DB(BENCH_BUILD_DB)
         db.dump_runs(db.load_all_runs())
         return
 
     if args.list:
         profiler = Lister()
     else:
-        db = DB()
+        db = DB(BENCH_BUILD_DB)
         profiler = Profiler(
             warmup_iterations=args.warmup_iterations,
             iterations=args.iterations,
@@ -393,8 +399,8 @@ class DB:
         benchmark_name: str
         samples: typing.Tuple[NanosecondDuration, ...]
 
-    def __init__(self) -> None:
-        self._connection = sqlite3.connect(BENCH_BUILD_DB)
+    def __init__(self, path: typing.Optional[pathlib.Path]) -> None:
+        self._connection = sqlite3.connect(":memory:" if path is None else path)
 
         cursor = self._connection.cursor()
         cursor.execute(
@@ -702,6 +708,29 @@ def cxx_compiler_has_flag(cxx_compiler: pathlib.Path, flags: str) -> bool:
     except FileNotFoundError:
         # Compiler does not exist.
         return False
+
+
+class TestDB(unittest.TestCase):
+    def test_load_run_with_no_samples(self) -> None:
+        db = DB(path=None)
+        run_id = db.create_run("myhostname", "mylanguage", "mytoolchain", "mybenchmark")
+        runs = db.load_runs_by_ids([run_id])
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].hostname, "myhostname")
+        self.assertEqual(runs[0].language, "mylanguage")
+        self.assertEqual(runs[0].toolchain_label, "mytoolchain")
+        self.assertEqual(runs[0].benchmark_name, "mybenchmark")
+        self.assertEqual(runs[0].samples, ())
+
+    def test_load_run_with_some_samples(self) -> None:
+        db = DB(path=None)
+        run_id = db.create_run("myhostname", "mylanguage", "mytoolchain", "mybenchmark")
+        db.add_sample_to_run(run_id=run_id, duration_ns=100)
+        db.add_sample_to_run(run_id=run_id, duration_ns=200)
+        db.add_sample_to_run(run_id=run_id, duration_ns=300)
+        runs = db.load_runs_by_ids([run_id])
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].samples, (100, 200, 300))
 
 
 if __name__ == "__main__":
