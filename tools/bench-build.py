@@ -630,7 +630,7 @@ class Filterer:
         self._filter = filter
 
     def profile(self, benchmark: Benchmark) -> None:
-        if self._filter in benchmark.full_name:
+        if re.search(self._filter, benchmark.full_name):
             self._profiler.profile(benchmark)
 
     def timed(self):
