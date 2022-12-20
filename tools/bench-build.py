@@ -9,11 +9,11 @@ import math
 import pathlib
 import re
 import shutil
+import socket
+import sqlite3
 import subprocess
 import time
 import typing
-import sqlite3
-import socket
 
 HOSTNAME = socket.gethostname()
 
@@ -52,32 +52,8 @@ def main() -> None:
             db=db,
         )
     profiler = Filterer(profiler, filter=args.filter)
-    cpp_configs = [
-        CPPConfig(
-            label="Custom Clang libstdc++",
-            cxx_compiler=pathlib.Path("/home/strager/clang-stage3/bin/clang++"),
-            cxx_flags="-stdlib=libstdc++",
-            link_flags="",
-        ),
-        CPPConfig(
-            label="Clang 12 libc++",
-            cxx_compiler=pathlib.Path("clang++-12"),
-            cxx_flags="-stdlib=libc++",
-            link_flags="",
-        ),
-        CPPConfig(
-            label="Clang 12 libstdc++",
-            cxx_compiler=pathlib.Path("clang++-12"),
-            cxx_flags="-stdlib=libstdc++",
-            link_flags="",
-        ),
-        CPPConfig(
-            label="GCC 10",
-            cxx_compiler=pathlib.Path("g++-10"),
-            cxx_flags="",
-            link_flags="",
-        ),
-    ]
+
+    cpp_configs = find_cpp_configs()
     rust_configs = [
         RustConfig(
             label="Rust Stable",
@@ -153,6 +129,51 @@ class CPPConfig(typing.NamedTuple):
     cxx_compiler: pathlib.Path
     cxx_flags: str
     link_flags: str
+
+
+def find_cpp_configs() -> typing.List[CPPConfig]:
+    cpp_configs = []
+
+    def try_add_cxx_configs(
+        label: str, cxx_compiler: pathlib.Path, cxx_flags: str
+    ) -> None:
+        if cxx_compiler_has_flag(cxx_compiler=cxx_compiler, flags=f"{cxx_flags}"):
+            cpp_configs.append(
+                CPPConfig(
+                    label=f"{label}",
+                    cxx_compiler=cxx_compiler,
+                    cxx_flags=cxx_flags,
+                    link_flags="",
+                )
+            )
+
+    def try_add_clang_configs(label: str, cxx_compiler: pathlib.Path) -> None:
+        try_add_cxx_configs(
+            label=f"{label} libstdc++",
+            cxx_compiler=cxx_compiler,
+            cxx_flags="-stdlib=libstdc++",
+        )
+        try_add_cxx_configs(
+            label=f"{label} libc++",
+            cxx_compiler=cxx_compiler,
+            cxx_flags="-stdlib=libc++",
+        )
+
+    try_add_clang_configs(label="Clang 12", cxx_compiler=pathlib.Path("clang++-12"))
+    try_add_clang_configs(
+        label="Custom Clang",
+        cxx_compiler=pathlib.Path("/home/strager/clang-stage3/bin/clang++"),
+    )
+    try_add_clang_configs(
+        label="Clang",
+        cxx_compiler=pathlib.Path("clang++"),
+    )
+    try_add_cxx_configs(
+        label="GCC 10",
+        cxx_compiler=pathlib.Path("g++-10"),
+        cxx_flags="",
+    )
+    return cpp_configs
 
 
 class Benchmark:
@@ -667,6 +688,20 @@ def unmutate_file(path: pathlib.Path) -> None:
     lines = [l for l in lines if not re.match(r"^// CACHE-BUST:", l)]
     new_text = "\n".join(lines) + "\n"
     path.write_text(new_text)
+
+
+def cxx_compiler_has_flag(cxx_compiler: pathlib.Path, flags: str) -> bool:
+    try:
+        result = subprocess.run(
+            [cxx_compiler, "-x", "c++", "-", "-o", "/dev/null"] + flags.split(" "),
+            input=b"int main(){}",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        # Compiler does not exist.
+        return False
 
 
 if __name__ == "__main__":
