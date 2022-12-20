@@ -32,6 +32,7 @@ RUST_BUILD_DIR = RUST_ROOT / "target"
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--dump-all-runs", action="store_true")
     parser.add_argument("--dump-runs", action="store_true")
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--self-test", action="store_true")
@@ -43,9 +44,13 @@ def main() -> None:
     if args.self_test:
         unittest.main(verbosity=2, exit=True, argv=sys.argv[:1])
 
-    if args.dump_runs:
+    if args.dump_runs or args.dump_all_runs:
         db = DB(BENCH_BUILD_DB)
-        db.dump_runs(db.load_all_runs())
+        if args.dump_all_runs:
+            runs = db.load_all_runs()
+        else:
+            runs = db.load_latest_runs()
+        db.dump_runs(runs)
         return
 
     if args.list:
@@ -460,6 +465,15 @@ class DB:
             runs_parameters=(),
         )
 
+    def load_latest_runs(self) -> typing.List["DB.Run"]:
+        return self._load_runs_with_filter(
+            samples_where_clause="",
+            samples_parameters=(),
+            runs_id_selector="MAX(id)",
+            runs_where_clause="GROUP BY hostname, language, toolchain_label, benchmark_name",
+            runs_parameters=(),
+        )
+
     def load_runs_by_ids(
         self, run_ids: typing.Sequence["DB.RunID"]
     ) -> typing.List["DB.Run"]:
@@ -476,6 +490,7 @@ class DB:
         samples_parameters,
         runs_where_clause: str,
         runs_parameters,
+        runs_id_selector: str = "id",
     ) -> typing.List["DB.Run"]:
         cursor = self._connection.cursor()
 
@@ -493,7 +508,7 @@ class DB:
 
         raw_runs = cursor.execute(
             f"""
-                SELECT id AS run_id, hostname, language, toolchain_label, benchmark_name
+                SELECT {runs_id_selector} AS run_id, hostname, language, toolchain_label, benchmark_name
                 FROM run
                 {runs_where_clause}
             """,
@@ -731,6 +746,52 @@ class TestDB(unittest.TestCase):
         runs = db.load_runs_by_ids([run_id])
         self.assertEqual(len(runs), 1)
         self.assertEqual(runs[0].samples, (100, 200, 300))
+
+    def test_load_latest_runs_with_no_obsoleted_runs(self) -> None:
+        db = DB(path=None)
+        # fmt: off
+        first_run_id                     = db.create_run("myhostname",  "mylanguage",  "mytoolchain",  "mybenchmark" )
+        different_hostname_run_id        = db.create_run("myhostname2", "mylanguage",  "mytoolchain",  "mybenchmark" )
+        different_language_run_id        = db.create_run("myhostname",  "mylanguage2", "mytoolchain",  "mybenchmark" )
+        different_toolchain_label_run_id = db.create_run("myhostname",  "mylanguage",  "mytoolchain2", "mybenchmark" )
+        different_benchmark_name_run_id  = db.create_run("myhostname",  "mylanguage",  "mytoolchain",  "mybenchmark2")
+        # fmt: on
+        runs = db.load_latest_runs()
+        self.assertEqual(
+            sorted(run.id for run in runs),
+            sorted(
+                (
+                    first_run_id,
+                    different_hostname_run_id,
+                    different_language_run_id,
+                    different_toolchain_label_run_id,
+                    different_benchmark_name_run_id,
+                )
+            ),
+        )
+
+    def test_load_latest_runs_with_obsoleted_run(self) -> None:
+        db = DB(path=None)
+        _run_1_id = db.create_run(
+            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+        )
+        run_2_id = db.create_run(
+            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+        )
+        runs = db.load_latest_runs()
+        self.assertEqual(len(runs), 1)
+        self.assertEqual(runs[0].id, run_2_id)
+
+    def test_load_all_runs_includes_obsoleted_runs(self) -> None:
+        db = DB(path=None)
+        run_1_id = db.create_run(
+            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+        )
+        run_2_id = db.create_run(
+            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+        )
+        runs = db.load_all_runs()
+        self.assertEqual(sorted(run.id for run in runs), sorted((run_1_id, run_2_id)))
 
 
 if __name__ == "__main__":
