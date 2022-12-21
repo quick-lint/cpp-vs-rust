@@ -73,50 +73,7 @@ def main() -> None:
     profiler = Filterer(profiler, filter=args.filter)
 
     cpp_configs = find_cpp_configs()
-    rust_configs = [
-        RustConfig(
-            label="Rust Stable",
-            cargo=rustup_which("cargo", toolchain="stable"),
-            cargo_profile=None,
-            rustflags="",
-        ),
-        RustConfig(
-            label="Rust Stable quick-build-incremental",
-            cargo=rustup_which("cargo", toolchain="stable"),
-            cargo_profile="quick-build-incremental",
-            rustflags="",
-        ),
-        RustConfig(
-            label="Rust Stable quick-build-nonincremental",
-            cargo=rustup_which("cargo", toolchain="stable"),
-            cargo_profile="quick-build-nonincremental",
-            rustflags="",
-        ),
-        RustConfig(
-            label="Rust Nightly",
-            cargo=rustup_which("cargo", toolchain="nightly"),
-            cargo_profile=None,
-            rustflags="",
-        ),
-    ]
-    if MOLD_LINKER_EXE is not None:
-        rust_configs.append(
-            RustConfig(
-                label="Rust Stable Mold",
-                cargo=rustup_which("cargo", toolchain="stable"),
-                cargo_profile=None,
-                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
-            )
-        )
-    if CARGO_CLIF_EXE is not None:
-        rust_configs.append(
-            RustConfig(
-                label="Rust Cranelift Mold",
-                cargo=CARGO_CLIF_EXE,
-                cargo_profile=None,
-                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
-            )
-        )
+    rust_configs = find_rust_configs()
 
     for cpp_config in cpp_configs:
         profiler.profile(CPPFullBenchmark(cpp_config))
@@ -374,6 +331,54 @@ class RustConfig(typing.NamedTuple):
     cargo: pathlib.Path
     cargo_profile: typing.Optional[str]
     rustflags: str
+
+
+def find_rust_configs() -> typing.List[RustConfig]:
+    rust_configs = [
+        RustConfig(
+            label="Rust Stable",
+            cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile=None,
+            rustflags="",
+        ),
+        RustConfig(
+            label="Rust Stable quick-build-incremental",
+            cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile="quick-build-incremental",
+            rustflags="",
+        ),
+        RustConfig(
+            label="Rust Stable quick-build-nonincremental",
+            cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile="quick-build-nonincremental",
+            rustflags="",
+        ),
+        RustConfig(
+            label="Rust Nightly",
+            cargo=rustup_which("cargo", toolchain="nightly"),
+            cargo_profile=None,
+            rustflags="",
+        ),
+    ]
+    if MOLD_LINKER_EXE is not None:
+        rust_configs.append(
+            RustConfig(
+                label="Rust Stable Mold",
+                cargo=rustup_which("cargo", toolchain="stable"),
+                cargo_profile=None,
+                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+            )
+        )
+    if CARGO_CLIF_EXE is not None:
+        rust_configs.append(
+            RustConfig(
+                label="Rust Cranelift Mold",
+                cargo=CARGO_CLIF_EXE,
+                cargo_profile=None,
+                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+            )
+        )
+    return rust_configs
 
 
 class RustBenchmarkBase(Benchmark):
