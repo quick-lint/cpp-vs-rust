@@ -156,6 +156,14 @@
 #endif
 #endif
 
+#if !defined(QLJS_HAVE_BOOST_CONTAINER)
+#if __has_include(<boost/container/pmr/memory_resource.hpp>)
+#define QLJS_HAVE_BOOST_CONTAINER 1
+#else
+#define QLJS_HAVE_BOOST_CONTAINER 0
+#endif
+#endif
+
 #endif
 
 // quick-lint-js finds bugs in JavaScript programs.

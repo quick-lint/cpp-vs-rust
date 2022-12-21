@@ -4,10 +4,20 @@
 #ifndef QUICK_LINT_JS_PORT_MEMORY_RESOURCE_H
 #define QUICK_LINT_JS_PORT_MEMORY_RESOURCE_H
 
+#include <quick-lint-js/port/have.h>
+
+#if QLJS_HAVE_BOOST_CONTAINER
 #include <boost/container/pmr/memory_resource.hpp>
+#else
+#include <experimental/memory_resource>
+#endif
 
 namespace quick_lint_js {
+#if QLJS_HAVE_BOOST_CONTAINER
 using memory_resource = ::boost::container::pmr::memory_resource;
+#else
+using memory_resource = std::experimental::pmr::memory_resource;
+#endif
 
 // Like boost::container::pmr::new_delete_resource, but without a dependency on
 // dlmalloc.
