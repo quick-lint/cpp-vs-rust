@@ -29,6 +29,8 @@ CPP_BUILD_DIR = CPP_ROOT / "build"
 RUST_ROOT = ROOT / "rust"
 RUST_BUILD_DIR = RUST_ROOT / "target"
 
+MOLD_LINKER_EXE: typing.Optional[str] = shutil.which("mold")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -69,12 +71,22 @@ def main() -> None:
         RustConfig(
             label="Rust Stable",
             cargo=rustup_which("cargo", toolchain="stable"),
+            rustflags="",
         ),
         RustConfig(
             label="Rust Nightly",
             cargo=rustup_which("cargo", toolchain="nightly"),
+            rustflags="",
         ),
     ]
+    if MOLD_LINKER_EXE is not None:
+        rust_configs.append(
+            RustConfig(
+                label="Rust Stable Mold",
+                cargo=rustup_which("cargo", toolchain="stable"),
+                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+            )
+        )
 
     for cpp_config in cpp_configs:
         profiler.profile(CPPFullBenchmark(cpp_config))
@@ -145,16 +157,31 @@ class CPPConfig(typing.NamedTuple):
 def find_cpp_configs() -> typing.List[CPPConfig]:
     cpp_configs = []
 
+    def try_add_cxx_config(config: CPPConfig) -> None:
+        if cxx_compiler_builds(
+            cxx_compiler=config.cxx_compiler,
+            flags=f"{config.cxx_flags} {config.link_flags}",
+        ):
+            cpp_configs.append(config)
+
     def try_add_cxx_configs(
         label: str, cxx_compiler: pathlib.Path, cxx_flags: str
     ) -> None:
-        if cxx_compiler_has_flag(cxx_compiler=cxx_compiler, flags=f"{cxx_flags}"):
-            cpp_configs.append(
+        try_add_cxx_config(
+            CPPConfig(
+                label=f"{label}",
+                cxx_compiler=cxx_compiler,
+                cxx_flags=cxx_flags,
+                link_flags="",
+            )
+        )
+        if MOLD_LINKER_EXE is not None:
+            try_add_cxx_config(
                 CPPConfig(
-                    label=f"{label}",
+                    label=f"{label} Mold",
                     cxx_compiler=cxx_compiler,
                     cxx_flags=cxx_flags,
-                    link_flags="",
+                    link_flags=f"-Wl,-fuse-ld={MOLD_LINKER_EXE}",
                 )
             )
 
@@ -315,6 +342,7 @@ def cpp_test() -> None:
 class RustConfig(typing.NamedTuple):
     label: str
     cargo: pathlib.Path
+    rustflags: str
 
 
 class RustBenchmarkBase(Benchmark):
@@ -711,7 +739,7 @@ def unmutate_file(path: pathlib.Path) -> None:
     path.write_text(new_text)
 
 
-def cxx_compiler_has_flag(cxx_compiler: pathlib.Path, flags: str) -> bool:
+def cxx_compiler_builds(cxx_compiler: pathlib.Path, flags: str) -> bool:
     try:
         result = subprocess.run(
             [cxx_compiler, "-x", "c++", "-", "-o", "/dev/null"]
