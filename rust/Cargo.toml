@@ -17,3 +17,18 @@ memoffset = { version = "0.7.1" }
 [features]
 default = []
 qljs_debug = []
+
+[profile.quick-build-incremental]
+debug = false
+debug-assertions = false
+incremental = true
+inherits = "dev"
+lto = false
+opt-level = 0
+overflow-checks = false
+panic = 'abort'
+rpath = false
+
+[profile.quick-build-nonincremental]
+inherits = "quick-build-incremental"
+incremental = false

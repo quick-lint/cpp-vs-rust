@@ -77,11 +77,25 @@ def main() -> None:
         RustConfig(
             label="Rust Stable",
             cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile=None,
+            rustflags="",
+        ),
+        RustConfig(
+            label="Rust Stable quick-build-incremental",
+            cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile="quick-build-incremental",
+            rustflags="",
+        ),
+        RustConfig(
+            label="Rust Stable quick-build-nonincremental",
+            cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile="quick-build-nonincremental",
             rustflags="",
         ),
         RustConfig(
             label="Rust Nightly",
             cargo=rustup_which("cargo", toolchain="nightly"),
+            cargo_profile=None,
             rustflags="",
         ),
     ]
@@ -90,6 +104,7 @@ def main() -> None:
             RustConfig(
                 label="Rust Stable Mold",
                 cargo=rustup_which("cargo", toolchain="stable"),
+                cargo_profile=None,
                 rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
         )
@@ -98,6 +113,7 @@ def main() -> None:
             RustConfig(
                 label="Rust Cranelift Mold",
                 cargo=CARGO_CLIF_EXE,
+                cargo_profile=None,
                 rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
         )
@@ -356,6 +372,7 @@ def cpp_test() -> None:
 class RustConfig(typing.NamedTuple):
     label: str
     cargo: pathlib.Path
+    cargo_profile: typing.Optional[str]
     rustflags: str
 
 
@@ -428,7 +445,10 @@ def rust_clean() -> None:
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
-    subprocess.check_call([rust_config.cargo, "test"], cwd=RUST_ROOT)
+    command = [rust_config.cargo, "test"]
+    if rust_config.cargo_profile is not None:
+        command.append(f"--profile={rust_config.cargo_profile}")
+    subprocess.check_call(command, cwd=RUST_ROOT)
 
 
 MillisecondDuration = int
