@@ -1,6 +1,7 @@
 use cpp_vs_rust::qljs_always_assert;
 
 #[test]
+#[cfg(panic = "unwind")]
 fn failing_assert_crashes() {
     let result = std::panic::catch_unwind(|| {
         let everything_is_okay = false;
