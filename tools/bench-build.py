@@ -31,6 +31,12 @@ RUST_BUILD_DIR = RUST_ROOT / "target"
 
 MOLD_LINKER_EXE: typing.Optional[str] = shutil.which("mold")
 
+CARGO_CLIF_EXE: typing.Optional[pathlib.Path] = pathlib.Path(
+    "/home/strager/tmp/Projects/rustc_codegen_cranelift/dist/cargo-clif"
+)
+if not CARGO_CLIF_EXE.exists():
+    CARGO_CLIF_EXE = None
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -84,6 +90,14 @@ def main() -> None:
             RustConfig(
                 label="Rust Stable Mold",
                 cargo=rustup_which("cargo", toolchain="stable"),
+                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+            )
+        )
+    if CARGO_CLIF_EXE is not None:
+        rust_configs.append(
+            RustConfig(
+                label="Rust Cranelift Mold",
+                cargo=CARGO_CLIF_EXE,
                 rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
         )
