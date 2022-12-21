@@ -331,40 +331,60 @@ class RustConfig(typing.NamedTuple):
     cargo: pathlib.Path
     cargo_profile: typing.Optional[str]
     rustflags: str
+    nextest: bool
 
 
 def find_rust_configs() -> typing.List[RustConfig]:
     rust_configs = []
+
+    def add_rust_configs_for_toolchain(
+        label: str,
+        cargo: pathlib.Path,
+        cargo_profile: typing.Optional[str],
+        rustflags: str,
+    ) -> None:
+        rust_configs.append(
+            RustConfig(
+                label=f"{label}",
+                cargo=cargo,
+                cargo_profile=cargo_profile,
+                rustflags=rustflags,
+                nextest=False,
+            )
+        )
+        rust_configs.append(
+            RustConfig(
+                label=f"{label} cargo-nextest",
+                cargo=cargo,
+                cargo_profile=cargo_profile,
+                rustflags=rustflags,
+                nextest=True,
+            )
+        )
 
     def add_rust_configs(
         extra_label: str,
         cargo_profile: typing.Optional[str],
         rustflags: str,
     ) -> None:
-        rust_configs.append(
-            RustConfig(
-                label=f"Rust Stable {extra_label}".rstrip(),
-                cargo=rustup_which("cargo", toolchain="stable"),
-                cargo_profile=cargo_profile,
-                rustflags=rustflags,
-            ),
+        add_rust_configs_for_toolchain(
+            label=f"Rust Stable {extra_label}".rstrip(),
+            cargo=rustup_which("cargo", toolchain="stable"),
+            cargo_profile=cargo_profile,
+            rustflags=rustflags,
         )
-        rust_configs.append(
-            RustConfig(
-                label=f"Rust Nightly {extra_label}".rstrip(),
-                cargo=rustup_which("cargo", toolchain="nightly"),
-                cargo_profile=cargo_profile,
-                rustflags=rustflags,
-            ),
+        add_rust_configs_for_toolchain(
+            label=f"Rust Nightly {extra_label}".rstrip(),
+            cargo=rustup_which("cargo", toolchain="nightly"),
+            cargo_profile=cargo_profile,
+            rustflags=rustflags,
         )
         if CARGO_CLIF_EXE is not None:
-            rust_configs.append(
-                RustConfig(
-                    label=f"Rust Cranelift {extra_label}".rstrip(),
-                    cargo=CARGO_CLIF_EXE,
-                    cargo_profile=cargo_profile,
-                    rustflags=rustflags,
-                ),
+            add_rust_configs_for_toolchain(
+                label=f"Rust Cranelift {extra_label}".rstrip(),
+                cargo=CARGO_CLIF_EXE,
+                cargo_profile=cargo_profile,
+                rustflags=rustflags,
             )
 
     for cargo_profile in (
@@ -455,9 +475,14 @@ def rust_clean() -> None:
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
-    command = [rust_config.cargo, "test"]
-    if rust_config.cargo_profile is not None:
-        command.append(f"--profile={rust_config.cargo_profile}")
+    if rust_config.nextest:
+        command = [rust_config.cargo, "nextest", "run"]
+        if rust_config.cargo_profile is not None:
+            command.append(f"--cargo-profile={rust_config.cargo_profile}")
+    else:
+        command = [rust_config.cargo, "test"]
+        if rust_config.cargo_profile is not None:
+            command.append(f"--profile={rust_config.cargo_profile}")
     subprocess.check_call(command, cwd=RUST_ROOT)
 
 
