@@ -136,11 +136,11 @@ impl std::ops::BitOr<BoolVector16WASMSIMD128> for BoolVector16WASMSIMD128 {
     }
 }
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 #[derive(Clone, Copy)]
 pub struct CharVector16SSE2(__m128i);
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 impl CharVector16SSE2 {
     // data must point to at least 16 elements.
     #[inline(always)]
@@ -195,7 +195,7 @@ impl CharVector16SSE2 {
     }
 }
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 impl std::ops::BitOr<CharVector16SSE2> for CharVector16SSE2 {
     type Output = CharVector16SSE2;
 
@@ -205,11 +205,11 @@ impl std::ops::BitOr<CharVector16SSE2> for CharVector16SSE2 {
     }
 }
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 #[derive(Clone, Copy, Debug)]
 pub struct BoolVector16SSE2(__m128i);
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 impl BoolVector16SSE2 {
     // data must point to at least 16 elements.
     #[inline(always)]
@@ -241,7 +241,7 @@ impl BoolVector16SSE2 {
     }
 }
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 impl std::ops::BitAnd<BoolVector16SSE2> for BoolVector16SSE2 {
     type Output = BoolVector16SSE2;
 
@@ -251,7 +251,7 @@ impl std::ops::BitAnd<BoolVector16SSE2> for BoolVector16SSE2 {
     }
 }
 
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 impl std::ops::BitOr<BoolVector16SSE2> for BoolVector16SSE2 {
     type Output = BoolVector16SSE2;
 

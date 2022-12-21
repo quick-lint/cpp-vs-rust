@@ -2023,12 +2023,13 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
         type CharVector = CharVector16NEON;
         #[cfg(target_feature = "simd128")]
         type CharVector = CharVector16WASMSIMD128;
-        #[cfg(target_feature = "sse2")]
+        #[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
         type CharVector = CharVector16SSE2;
         #[cfg(not(any(
             target_feature = "neon",
             target_feature = "simd128",
-            target_feature = "sse2"
+            target_feature = "sse2",
+            target_arch = "x86_64"
         )))]
         type CharVector = CharVector1;
 
@@ -2062,12 +2063,13 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
                 type BoolVector = BoolVector16NEON;
                 #[cfg(target_feature = "simd128")]
                 type BoolVector = BoolVector16WASMSIMD128;
-                #[cfg(target_feature = "sse2")]
+                #[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
                 type BoolVector = BoolVector16SSE2;
                 #[cfg(not(any(
                     target_feature = "neon",
                     target_feature = "simd128",
-                    target_feature = "sse2"
+                    target_feature = "sse2",
+                    target_arch = "x86_64"
                 )))]
                 type BoolVector = BoolVector1;
 
@@ -2428,13 +2430,13 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
         qljs_slow_assert!(self.input[0] == b'/' && self.input[1] == b'*');
         let mut c: InputPointer = self.input + 2;
 
-        #[cfg(target_feature = "sse2")]
+        #[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
         type BoolVector = BoolVector16SSE2;
-        #[cfg(target_feature = "sse2")]
+        #[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
         type CharVector = CharVector16SSE2;
-        #[cfg(not(target_feature = "sse2"))]
+        #[cfg(not(any(target_feature = "sse2", target_arch = "x86_64")))]
         type BoolVector = BoolVector1;
-        #[cfg(not(target_feature = "sse2"))]
+        #[cfg(not(any(target_feature = "sse2", target_arch = "x86_64")))]
         type CharVector = CharVector1;
 
         fn is_comment_end(string: InputPointer) -> bool {
@@ -2531,20 +2533,22 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
         type BoolVector = BoolVector16WASMSIMD128;
         #[cfg(target_feature = "simd128")]
         type CharVector = CharVector16WASMSIMD128;
-        #[cfg(target_feature = "sse2")]
+        #[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
         type BoolVector = BoolVector16SSE2;
-        #[cfg(target_feature = "sse2")]
+        #[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
         type CharVector = CharVector16SSE2;
         #[cfg(not(any(
             target_feature = "neon",
             target_feature = "simd128",
-            target_feature = "sse2"
+            target_feature = "sse2",
+            target_arch = "x86_64"
         )))]
         type BoolVector = BoolVector1;
         #[cfg(not(any(
             target_feature = "neon",
             target_feature = "simd128",
-            target_feature = "sse2"
+            target_feature = "sse2",
+            target_arch = "x86_64"
         )))]
         type CharVector = CharVector1;
 

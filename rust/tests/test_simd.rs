@@ -5,7 +5,7 @@ use cpp_vs_rust_test::scoped_trace;
 // with just one.
 #[cfg(target_feature = "simd128")]
 type CharVector16 = CharVector16WASMSIMD128;
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 type CharVector16 = CharVector16SSE2;
 #[cfg(target_feature = "neon")]
 type CharVector16 = CharVector16NEON;
@@ -42,7 +42,7 @@ fn char16_bitwise_or() {
 // with just one.
 #[cfg(target_feature = "simd128")]
 type BoolVector16 = BoolVector16WASMSIMD128;
-#[cfg(target_feature = "sse2")]
+#[cfg(any(target_feature = "sse2", target_arch = "x86_64"))]
 type BoolVector16 = BoolVector16SSE2;
 #[cfg(target_feature = "neon")]
 type BoolVector16 = BoolVector16NEON;
