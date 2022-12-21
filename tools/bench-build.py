@@ -334,50 +334,55 @@ class RustConfig(typing.NamedTuple):
 
 
 def find_rust_configs() -> typing.List[RustConfig]:
-    rust_configs = [
-        RustConfig(
-            label="Rust Stable",
-            cargo=rustup_which("cargo", toolchain="stable"),
-            cargo_profile=None,
-            rustflags="",
-        ),
-        RustConfig(
-            label="Rust Stable quick-build-incremental",
-            cargo=rustup_which("cargo", toolchain="stable"),
-            cargo_profile="quick-build-incremental",
-            rustflags="",
-        ),
-        RustConfig(
-            label="Rust Stable quick-build-nonincremental",
-            cargo=rustup_which("cargo", toolchain="stable"),
-            cargo_profile="quick-build-nonincremental",
-            rustflags="",
-        ),
-        RustConfig(
-            label="Rust Nightly",
-            cargo=rustup_which("cargo", toolchain="nightly"),
-            cargo_profile=None,
-            rustflags="",
-        ),
-    ]
-    if MOLD_LINKER_EXE is not None:
+    rust_configs = []
+
+    def add_rust_configs(
+        extra_label: str,
+        cargo_profile: typing.Optional[str],
+        rustflags: str,
+    ) -> None:
         rust_configs.append(
             RustConfig(
-                label="Rust Stable Mold",
+                label=f"Rust Stable {extra_label}".rstrip(),
                 cargo=rustup_which("cargo", toolchain="stable"),
-                cargo_profile=None,
-                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
-            )
+                cargo_profile=cargo_profile,
+                rustflags=rustflags,
+            ),
         )
-    if CARGO_CLIF_EXE is not None:
         rust_configs.append(
             RustConfig(
-                label="Rust Cranelift Mold",
-                cargo=CARGO_CLIF_EXE,
-                cargo_profile=None,
+                label=f"Rust Nightly {extra_label}".rstrip(),
+                cargo=rustup_which("cargo", toolchain="nightly"),
+                cargo_profile=cargo_profile,
+                rustflags=rustflags,
+            ),
+        )
+        if CARGO_CLIF_EXE is not None:
+            rust_configs.append(
+                RustConfig(
+                    label=f"Rust Cranelift {extra_label}".rstrip(),
+                    cargo=CARGO_CLIF_EXE,
+                    cargo_profile=cargo_profile,
+                    rustflags=rustflags,
+                ),
+            )
+
+    for cargo_profile in (
+        None,
+        "quick-build-incremental",
+        "quick-build-nonincremental",
+    ):
+        add_rust_configs(
+            extra_label=f"{cargo_profile or ''}",
+            cargo_profile=cargo_profile,
+            rustflags="",
+        )
+        if MOLD_LINKER_EXE is not None:
+            add_rust_configs(
+                extra_label=f"Mold {cargo_profile or ''}",
+                cargo_profile=cargo_profile,
                 rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
-        )
     return rust_configs
 
 
