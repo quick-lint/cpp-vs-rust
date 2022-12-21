@@ -714,7 +714,8 @@ def unmutate_file(path: pathlib.Path) -> None:
 def cxx_compiler_has_flag(cxx_compiler: pathlib.Path, flags: str) -> bool:
     try:
         result = subprocess.run(
-            [cxx_compiler, "-x", "c++", "-", "-o", "/dev/null"] + flags.split(" "),
+            [cxx_compiler, "-x", "c++", "-", "-o", "/dev/null"]
+            + [flag for flag in flags.split(" ") if flag],
             input=b"#include <version>\nint main(){}",
             stdout=subprocess.DEVNULL,
             stderr=subprocess.STDOUT,
