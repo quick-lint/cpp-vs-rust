@@ -73,6 +73,7 @@ def main() -> None:
 
     for cpp_config in cpp_configs:
         profiler.profile(CPPFullBenchmark(cpp_config))
+        profiler.profile(CPPHalfBenchmark(cpp_config))
         profiler.profile(CPPTestOnlyBenchmark(cpp_config))
         profiler.profile(
             CPPIncrementalBenchmark(
@@ -102,6 +103,7 @@ def main() -> None:
     for rust_root in ROOT.glob("rust*"):
         for rust_config in find_rust_configs(root=rust_root):
             profiler.profile(RustFullBenchmark(rust_config))
+            profiler.profile(RustHalfBenchmark(rust_config))
             profiler.profile(RustTestOnlyBenchmark(rust_config))
             profiler.profile(
                 RustIncrementalBenchmark(
@@ -253,6 +255,19 @@ class CPPFullBenchmark(CPPBenchmarkBase):
         cpp_test()
 
 
+class CPPHalfBenchmark(CPPBenchmarkBase):
+    name = "build and test only my code"
+
+    def before_each_untimed(self) -> None:
+        cpp_clean()
+        cpp_configure(self._cpp_config)
+        cpp_build(targets=["gmock", "gmock_main", "gtest"])
+
+    def run_timed(self) -> None:
+        cpp_build()
+        cpp_test()
+
+
 class CPPIncrementalBenchmark(CPPBenchmarkBase):
     _files_to_mutate: typing.Tuple[pathlib.Path]
 
@@ -321,8 +336,8 @@ def cpp_configure(cpp_config: CPPConfig) -> None:
     )
 
 
-def cpp_build() -> None:
-    subprocess.check_call(["ninja", "-C", CPP_BUILD_DIR])
+def cpp_build(targets: typing.List[str] = []) -> None:
+    subprocess.check_call(["ninja", "-C", CPP_BUILD_DIR, "--"] + targets)
 
 
 def cpp_test() -> None:
@@ -440,6 +455,19 @@ class RustFullBenchmark(RustBenchmarkBase):
         rust_build_and_test(self._rust_config)
 
 
+class RustHalfBenchmark(RustBenchmarkBase):
+    name = "build and test only my code"
+
+    def before_each_untimed(self) -> None:
+        rust_clean(root=self._rust_config.root)
+        rust_build_packages(
+            self._rust_config, packages=["lazy_static", "libc", "memoffset"]
+        )
+
+    def run_timed(self) -> None:
+        rust_build_and_test(self._rust_config)
+
+
 class RustIncrementalBenchmark(RustBenchmarkBase):
     _files_to_mutate: typing.Tuple[pathlib.Path]
 
@@ -489,6 +517,16 @@ def rust_clean(root: pathlib.Path) -> None:
 
 def rust_download_dependencies(rust_config: RustConfig) -> None:
     subprocess.check_call([rust_config.cargo, "fetch"], cwd=rust_config.root)
+
+
+def rust_build_packages(rust_config: RustConfig, packages: typing.List[str]) -> None:
+    assert packages
+    command = [rust_config.cargo, "build"]
+    if rust_config.cargo_profile is not None:
+        command.append(f"--profile={rust_config.cargo_profile}")
+    for package in packages:
+        command.extend(("--package", package))
+    subprocess.check_call(command, cwd=rust_config.root)
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
