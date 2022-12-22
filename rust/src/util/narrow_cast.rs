@@ -1,5 +1,5 @@
-use crate::assert::*;
 use crate::qljs_assert_trap;
+use crate::util::assert::*;
 
 #[track_caller]
 pub fn narrow_cast<Out, In: TryInto<Out>>(x: In) -> Out {

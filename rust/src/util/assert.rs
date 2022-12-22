@@ -6,7 +6,7 @@ use crate::util::c_string::*;
 macro_rules! qljs_always_assert {
     ($cond:expr $(,)?) => {
         if !$cond {
-            $crate::assert::report_assertion_failure_c(
+            $crate::util::assert::report_assertion_failure_c(
                 /*file_name=*/ $crate::qljs_c_string!(file!()),
                 /*line=*/ line!(),
                 /*message=*/ $crate::qljs_c_string!(stringify!($cond)),

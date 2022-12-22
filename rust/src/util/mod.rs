@@ -1,5 +1,6 @@
 pub mod align;
 pub mod array;
+pub mod assert;
 pub mod c_string;
 pub mod const_assert;
 pub mod narrow_cast;

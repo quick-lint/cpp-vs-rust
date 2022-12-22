@@ -8,7 +8,6 @@
 // Refactoring is easier if the shorthand syntax is avoided.
 #![allow(clippy::redundant_field_names)]
 
-pub mod assert;
 pub mod container;
 pub mod fe;
 pub mod i18n;
