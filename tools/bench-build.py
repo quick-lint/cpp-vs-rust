@@ -26,9 +26,6 @@ BENCH_BUILD_DB = ROOT / "bench-build.db"
 CPP_ROOT = ROOT / "cpp"
 CPP_BUILD_DIR = CPP_ROOT / "build"
 
-RUST_ROOT = ROOT / "rust"
-RUST_BUILD_DIR = RUST_ROOT / "target"
-
 MOLD_LINKER_EXE: typing.Optional[str] = shutil.which("mold")
 
 CARGO_CLIF_EXE: typing.Optional[pathlib.Path] = pathlib.Path(
@@ -73,7 +70,6 @@ def main() -> None:
     profiler = Filterer(profiler, filter=args.filter)
 
     cpp_configs = find_cpp_configs()
-    rust_configs = find_rust_configs()
 
     for cpp_config in cpp_configs:
         profiler.profile(CPPFullBenchmark(cpp_config))
@@ -103,33 +99,34 @@ def main() -> None:
             )
         )
 
-    for rust_config in rust_configs:
-        profiler.profile(RustFullBenchmark(rust_config))
-        profiler.profile(RustTestOnlyBenchmark(rust_config))
-        profiler.profile(
-            RustIncrementalBenchmark(
-                rust_config,
-                files_to_mutate=[
-                    RUST_ROOT / "src/fe/lex.rs",
-                ],
+    for rust_root in (ROOT / "rust", ROOT / "rust-workspace"):
+        for rust_config in find_rust_configs(root=rust_root):
+            profiler.profile(RustFullBenchmark(rust_config))
+            profiler.profile(RustTestOnlyBenchmark(rust_config))
+            profiler.profile(
+                RustIncrementalBenchmark(
+                    rust_config,
+                    files_to_mutate=[
+                        find_unique_file(rust_root, "lex.rs"),
+                    ],
+                )
             )
-        )
-        profiler.profile(
-            RustIncrementalBenchmark(
-                rust_config,
-                files_to_mutate=[
-                    RUST_ROOT / "src/fe/diagnostic_types.rs",
-                ],
+            profiler.profile(
+                RustIncrementalBenchmark(
+                    rust_config,
+                    files_to_mutate=[
+                        find_unique_file(rust_root, "diagnostic_types.rs"),
+                    ],
+                )
             )
-        )
-        profiler.profile(
-            RustIncrementalBenchmark(
-                rust_config,
-                files_to_mutate=[
-                    RUST_ROOT / "tests/test_utf_8.rs",
-                ],
+            profiler.profile(
+                RustIncrementalBenchmark(
+                    rust_config,
+                    files_to_mutate=[
+                        find_unique_file(rust_root, "test_utf_8.rs"),
+                    ],
+                )
             )
-        )
 
     profiler.dump_results()
 
@@ -207,13 +204,13 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
 
 
 class Benchmark:
-    language: str
+    project: str
     toolchain_label: str
     name: str
 
     @property
     def full_name(self) -> str:
-        return f"{self.language}, {self.toolchain_label}, {self.name}"
+        return f"{self.project}, {self.toolchain_label}, {self.name}"
 
     def before_all_untimed(self) -> None:
         pass
@@ -232,7 +229,7 @@ class Benchmark:
 
 
 class CPPBenchmarkBase(Benchmark):
-    language = "C++"
+    project = "C++"
 
     _cpp_config: CPPConfig
 
@@ -333,6 +330,7 @@ def cpp_test() -> None:
 
 
 class RustConfig(typing.NamedTuple):
+    root: pathlib.Path
     label: str
     cargo: pathlib.Path
     cargo_profile: typing.Optional[str]
@@ -340,7 +338,7 @@ class RustConfig(typing.NamedTuple):
     nextest: bool
 
 
-def find_rust_configs() -> typing.List[RustConfig]:
+def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
     rust_configs = []
 
     def add_rust_configs_for_toolchain(
@@ -352,6 +350,7 @@ def find_rust_configs() -> typing.List[RustConfig]:
         rust_configs.append(
             RustConfig(
                 label=f"{label}",
+                root=root,
                 cargo=cargo,
                 cargo_profile=cargo_profile,
                 rustflags=rustflags,
@@ -361,6 +360,7 @@ def find_rust_configs() -> typing.List[RustConfig]:
         rust_configs.append(
             RustConfig(
                 label=f"{label} cargo-nextest",
+                root=root,
                 cargo=cargo,
                 cargo_profile=cargo_profile,
                 rustflags=rustflags,
@@ -413,12 +413,14 @@ def find_rust_configs() -> typing.List[RustConfig]:
 
 
 class RustBenchmarkBase(Benchmark):
-    language = "Rust"
-
     _rust_config: RustConfig
 
     def __init__(self, rust_config: RustConfig) -> None:
         self._rust_config = rust_config
+
+    @property
+    def project(self) -> str:
+        return self._rust_config.root.name
 
     @property
     def toolchain_label(self) -> str:
@@ -429,7 +431,7 @@ class RustFullBenchmark(RustBenchmarkBase):
     name = "full build and test"
 
     def before_each_untimed(self) -> None:
-        rust_clean()
+        rust_clean(root=self._rust_config.root)
 
     def run_timed(self) -> None:
         rust_build_and_test(self._rust_config)
@@ -450,7 +452,7 @@ class RustIncrementalBenchmark(RustBenchmarkBase):
         return f"incremental build and test ({names})"
 
     def before_all_untimed(self) -> None:
-        rust_clean()
+        rust_clean(root=self._rust_config.root)
         rust_build_and_test(self._rust_config)
 
     def before_each_untimed(self) -> None:
@@ -469,15 +471,15 @@ class RustTestOnlyBenchmark(RustBenchmarkBase):
     name = "test only"
 
     def before_all_untimed(self) -> None:
-        rust_clean()
+        rust_clean(root=self._rust_config.root)
         rust_build_and_test(self._rust_config)
 
     def run_timed(self) -> None:
         rust_build_and_test(self._rust_config)
 
 
-def rust_clean() -> None:
-    delete_dir(RUST_BUILD_DIR)
+def rust_clean(root: pathlib.Path) -> None:
+    delete_dir(root / "target")
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
@@ -489,7 +491,7 @@ def rust_build_and_test(rust_config: RustConfig) -> None:
         command = [rust_config.cargo, "test"]
         if rust_config.cargo_profile is not None:
             command.append(f"--profile={rust_config.cargo_profile}")
-    subprocess.check_call(command, cwd=RUST_ROOT)
+    subprocess.check_call(command, cwd=rust_config.root)
 
 
 MillisecondDuration = int
@@ -502,7 +504,7 @@ class DB:
     class Run(typing.NamedTuple):
         id: "DB.RunID"
         hostname: str
-        language: str
+        project: str
         toolchain_label: str
         benchmark_name: str
         samples: typing.Tuple[NanosecondDuration, ...]
@@ -516,7 +518,7 @@ class DB:
             CREATE TABLE IF NOT EXISTS run (
                 id INTEGER PRIMARY KEY,
                 hostname TEXT,
-                language TEXT,
+                project TEXT,
                 toolchain_label TEXT,
                 benchmark_name TEXT,
                 created_at NUMERIC
@@ -534,15 +536,15 @@ class DB:
         self._connection.commit()
 
     def create_run(
-        self, hostname: str, language: str, toolchain_label: str, benchmark_name: str
+        self, hostname: str, project: str, toolchain_label: str, benchmark_name: str
     ) -> "DB.RunID":
         cursor = self._connection.cursor()
         cursor.execute(
             """
-            INSERT INTO run (hostname, language, toolchain_label, benchmark_name, created_at)
+            INSERT INTO run (hostname, project, toolchain_label, benchmark_name, created_at)
             VALUES (?, ?, ?, ?, strftime('%s'))
         """,
-            (hostname, language, toolchain_label, benchmark_name),
+            (hostname, project, toolchain_label, benchmark_name),
         )
         self._connection.commit()
         return cursor.lastrowid
@@ -573,7 +575,7 @@ class DB:
             samples_where_clause="",
             samples_parameters=(),
             runs_id_selector="MAX(id)",
-            runs_where_clause="GROUP BY hostname, language, toolchain_label, benchmark_name",
+            runs_where_clause="GROUP BY hostname, project, toolchain_label, benchmark_name",
             runs_parameters=(),
         )
 
@@ -611,7 +613,7 @@ class DB:
 
         raw_runs = cursor.execute(
             f"""
-                SELECT {runs_id_selector} AS run_id, hostname, language, toolchain_label, benchmark_name
+                SELECT {runs_id_selector} AS run_id, hostname, project, toolchain_label, benchmark_name
                 FROM run
                 {runs_where_clause}
             """,
@@ -621,7 +623,7 @@ class DB:
             DB.Run(
                 id=run_id,
                 hostname=hostname,
-                language=language,
+                project=project,
                 toolchain_label=toolchain_label,
                 benchmark_name=benchmark_name,
                 samples=tuple(run_samples[run_id]),
@@ -629,7 +631,7 @@ class DB:
             for (
                 run_id,
                 hostname,
-                language,
+                project,
                 toolchain_label,
                 benchmark_name,
             ) in raw_runs
@@ -640,7 +642,7 @@ class DB:
     def dump_runs(self, runs: typing.List["DB.Run"]) -> None:
         column_names = (
             "hostname",
-            "lang",
+            "project",
             "toolchain",
             "benchmark",
             "min(ms)",
@@ -650,7 +652,7 @@ class DB:
         rows = [
             (
                 run.hostname,
-                run.language,
+                run.project,
                 run.toolchain_label,
                 run.benchmark_name,
                 ns_to_ms(min(run.samples)) if run.samples else "---",
@@ -711,7 +713,7 @@ class Profiler:
     def profile(self, benchmark: Benchmark) -> None:
         run_id = self._db.create_run(
             hostname=HOSTNAME,
-            language=benchmark.language,
+            project=benchmark.project,
             toolchain_label=benchmark.toolchain_label,
             benchmark_name=benchmark.name,
         )
@@ -814,6 +816,15 @@ def unmutate_file(path: pathlib.Path) -> None:
     path.write_text(new_text)
 
 
+def find_unique_file(root: pathlib.Path, name: str) -> pathlib.Path:
+    paths = list(root.glob(f"**/{name}"))
+    if not paths:
+        raise Exception(f"failed to find file {name} in {root}")
+    if len(paths) != 1:
+        raise Exception(f"found too many files named {name} in {root}")
+    return paths[0]
+
+
 def cxx_compiler_builds(cxx_compiler: pathlib.Path, flags: str) -> bool:
     try:
         result = subprocess.run(
@@ -832,18 +843,18 @@ def cxx_compiler_builds(cxx_compiler: pathlib.Path, flags: str) -> bool:
 class TestDB(unittest.TestCase):
     def test_load_run_with_no_samples(self) -> None:
         db = DB(path=None)
-        run_id = db.create_run("myhostname", "mylanguage", "mytoolchain", "mybenchmark")
+        run_id = db.create_run("myhostname", "myproject", "mytoolchain", "mybenchmark")
         runs = db.load_runs_by_ids([run_id])
         self.assertEqual(len(runs), 1)
         self.assertEqual(runs[0].hostname, "myhostname")
-        self.assertEqual(runs[0].language, "mylanguage")
+        self.assertEqual(runs[0].project, "myproject")
         self.assertEqual(runs[0].toolchain_label, "mytoolchain")
         self.assertEqual(runs[0].benchmark_name, "mybenchmark")
         self.assertEqual(runs[0].samples, ())
 
     def test_load_run_with_some_samples(self) -> None:
         db = DB(path=None)
-        run_id = db.create_run("myhostname", "mylanguage", "mytoolchain", "mybenchmark")
+        run_id = db.create_run("myhostname", "myproject", "mytoolchain", "mybenchmark")
         db.add_sample_to_run(run_id=run_id, duration_ns=100)
         db.add_sample_to_run(run_id=run_id, duration_ns=200)
         db.add_sample_to_run(run_id=run_id, duration_ns=300)
@@ -854,11 +865,11 @@ class TestDB(unittest.TestCase):
     def test_load_latest_runs_with_no_obsoleted_runs(self) -> None:
         db = DB(path=None)
         # fmt: off
-        first_run_id                     = db.create_run("myhostname",  "mylanguage",  "mytoolchain",  "mybenchmark" )
-        different_hostname_run_id        = db.create_run("myhostname2", "mylanguage",  "mytoolchain",  "mybenchmark" )
-        different_language_run_id        = db.create_run("myhostname",  "mylanguage2", "mytoolchain",  "mybenchmark" )
-        different_toolchain_label_run_id = db.create_run("myhostname",  "mylanguage",  "mytoolchain2", "mybenchmark" )
-        different_benchmark_name_run_id  = db.create_run("myhostname",  "mylanguage",  "mytoolchain",  "mybenchmark2")
+        first_run_id                     = db.create_run("myhostname",  "myproject",  "mytoolchain",  "mybenchmark" )
+        different_hostname_run_id        = db.create_run("myhostname2", "myproject",  "mytoolchain",  "mybenchmark" )
+        different_project_run_id        = db.create_run("myhostname",  "myproject2", "mytoolchain",  "mybenchmark" )
+        different_toolchain_label_run_id = db.create_run("myhostname",  "myproject",  "mytoolchain2", "mybenchmark" )
+        different_benchmark_name_run_id  = db.create_run("myhostname",  "myproject",  "mytoolchain",  "mybenchmark2")
         # fmt: on
         runs = db.load_latest_runs()
         self.assertEqual(
@@ -867,7 +878,7 @@ class TestDB(unittest.TestCase):
                 (
                     first_run_id,
                     different_hostname_run_id,
-                    different_language_run_id,
+                    different_project_run_id,
                     different_toolchain_label_run_id,
                     different_benchmark_name_run_id,
                 )
@@ -877,10 +888,10 @@ class TestDB(unittest.TestCase):
     def test_load_latest_runs_with_obsoleted_run(self) -> None:
         db = DB(path=None)
         _run_1_id = db.create_run(
-            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+            "myhostname", "myproject", "mytoolchain", "mybenchmark"
         )
         run_2_id = db.create_run(
-            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+            "myhostname", "myproject", "mytoolchain", "mybenchmark"
         )
         runs = db.load_latest_runs()
         self.assertEqual(len(runs), 1)
@@ -889,10 +900,10 @@ class TestDB(unittest.TestCase):
     def test_load_all_runs_includes_obsoleted_runs(self) -> None:
         db = DB(path=None)
         run_1_id = db.create_run(
-            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+            "myhostname", "myproject", "mytoolchain", "mybenchmark"
         )
         run_2_id = db.create_run(
-            "myhostname", "mylanguage", "mytoolchain", "mybenchmark"
+            "myhostname", "myproject", "mytoolchain", "mybenchmark"
         )
         runs = db.load_all_runs()
         self.assertEqual(sorted(run.id for run in runs), sorted((run_1_id, run_2_id)))
