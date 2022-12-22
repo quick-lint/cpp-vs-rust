@@ -4,6 +4,7 @@ pub mod assert;
 pub mod c_string;
 pub mod const_assert;
 pub mod narrow_cast;
+pub mod padded_string;
 pub mod permutations;
 pub mod simd;
 pub mod simd_neon_arm;

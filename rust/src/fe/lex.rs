@@ -1,6 +1,5 @@
 use crate::container::linked_bump_allocator::*;
 use crate::container::monotonic_allocator::*;
-use crate::container::padded_string::*;
 use crate::container::vector::*;
 use crate::fe::buffering_diag_reporter::*;
 use crate::fe::diag_reporter::*;
@@ -18,6 +17,7 @@ use crate::qljs_case_strict_only_reserved_keyword;
 use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
+use crate::util::padded_string::*;
 use crate::util::simd::*;
 use crate::util::utf_8::*;
 

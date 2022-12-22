@@ -1,4 +1,4 @@
-use cpp_vs_rust::container::padded_string::*;
+use cpp_vs_rust::util::padded_string::*;
 
 #[test]
 fn new_string_has_following_null_bytes() {

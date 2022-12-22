@@ -1,13 +1,13 @@
 #![allow(clippy::redundant_static_lifetimes)]
 
 use cpp_vs_rust::assert_matches;
-use cpp_vs_rust::container::padded_string::*;
 use cpp_vs_rust::fe::diag_reporter::*;
 use cpp_vs_rust::fe::diagnostic_types::*;
 use cpp_vs_rust::fe::identifier::*;
 use cpp_vs_rust::fe::lex::*;
 use cpp_vs_rust::fe::source_code_span::*;
 use cpp_vs_rust::fe::token::*;
+use cpp_vs_rust::util::padded_string::*;
 use cpp_vs_rust::util::utf_8::*;
 use cpp_vs_rust_test::characters::*;
 use cpp_vs_rust_test::diag_collector::*;
