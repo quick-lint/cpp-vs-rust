@@ -379,7 +379,7 @@ impl std::ops::BitOr<BoolVector16NEON> for BoolVector16NEON {
 }
 
 #[cfg(target_feature = "neon")]
-pub use crate::port::simd_neon_arm::*;
+pub use crate::util::simd_neon_arm::*;
 
 #[derive(Clone, Copy, Debug)]
 pub struct CharVector1(u8);

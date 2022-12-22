@@ -10,7 +10,6 @@ use crate::fe::lex_unicode_generated::*;
 use crate::fe::source_code_span::*;
 use crate::fe::token::*;
 use crate::port::maybe_uninit::*;
-use crate::port::simd::*;
 use crate::qljs_always_assert;
 use crate::qljs_assert;
 use crate::qljs_case_contextual_keyword;
@@ -19,6 +18,7 @@ use crate::qljs_case_strict_only_reserved_keyword;
 use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
 use crate::util::narrow_cast::*;
+use crate::util::simd::*;
 use crate::util::utf_8::*;
 
 #[cfg(target_feature = "sse4.2")]

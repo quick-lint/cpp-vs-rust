@@ -6,7 +6,7 @@
 // are in this separate file.
 
 #[cfg(target_feature = "neon")]
-use crate::port::simd::*;
+use crate::util::simd::*;
 
 #[cfg(target_arch = "aarch64")]
 use std::arch::aarch64::*;

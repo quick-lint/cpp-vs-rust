@@ -5,5 +5,3 @@ pub mod crash;
 pub mod maybe_uninit;
 pub mod offset_of;
 pub mod ptr;
-pub mod simd;
-pub mod simd_neon_arm;

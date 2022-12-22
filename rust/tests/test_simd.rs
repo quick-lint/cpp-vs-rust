@@ -1,4 +1,4 @@
-use cpp_vs_rust::port::simd::*;
+use cpp_vs_rust::util::simd::*;
 use cpp_vs_rust_test::scoped_trace;
 
 // TODO(port-later): Run tests with each supported CharVector16 implementation, rather than run
