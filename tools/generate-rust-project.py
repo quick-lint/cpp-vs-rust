@@ -5,11 +5,40 @@ import shutil
 
 ROOT = pathlib.Path(__file__).parent / ".."
 
+macros = [
+    "assert_matches",
+    "qljs_always_assert",
+    "qljs_assert",
+    "qljs_assert_diags",
+    "qljs_assert_no_diags",
+    "qljs_c_string",
+    "qljs_case_contextual_keyword",
+    "qljs_case_reserved_keyword",
+    "qljs_case_reserved_keyword_except_await_and_function_and_yield",
+    "qljs_case_reserved_keyword_except_await_and_yield",
+    "qljs_case_strict_only_reserved_keyword",
+    "qljs_case_strict_reserved_keyword",
+    "qljs_case_typescript_only_contextual_keyword_except_type",
+    "qljs_const_assert",
+    "qljs_crash_allowing_core_dump",
+    "qljs_match_diag_field",
+    "qljs_match_diag_fields",
+    "qljs_never_assert",
+    "qljs_offset_of",
+    "qljs_slow_assert",
+    "qljs_translatable",
+    "scoped_trace",
+]
+
 
 def main() -> None:
     project_dir = ROOT / "rust-workspace-crateunotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
     cargotest_to_unotest(project_dir)
+
+    project_dir = ROOT / "rust-twocrate-cratecargotest"
+    new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+    workspace_to_twocrate(project_dir)
 
     project_dir = ROOT / "rust-fewsrc-crateunotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust")
@@ -39,6 +68,83 @@ def cargotest_to_unotest(project_dir: pathlib.Path) -> None:
 
         (test_dir / "test.rs").write_text(f"mod {mod_dir.name};\n")
         (mod_dir / "mod.rs").write_text(mod_file)
+
+
+def workspace_to_twocrate(project_dir: pathlib.Path) -> None:
+    crate_dirs = [
+        d for d in project_dir.glob("libs/*") if d.name != "proc_diagnostic_types"
+    ]
+    crate_names = [d.name for d in crate_dirs]
+
+    def fix_rs(rs: pathlib.Path, current_crate_name: str, crate_reference: str) -> None:
+        source = rs.read_text()
+        source = source.replace("crate::", f"cpp_vs_rust_{current_crate_name}::")
+        for crate_name in crate_names:
+            for macro in macros:
+                source = source.replace(
+                    f"cpp_vs_rust_{crate_name}::{macro}", f"{crate_reference}::{macro}"
+                )
+            source = source.replace(
+                f"cpp_vs_rust_{crate_name}::", f"{crate_reference}::{crate_name}::"
+            )
+        source = source.replace(
+            "\n        use crate::qljs_crash_allowing_core_dump;\n",
+            "\n        use $crate::qljs_crash_allowing_core_dump;\n",
+        )
+        rs.write_text(source)
+
+    for crate_dir in crate_dirs:
+        crate_name = crate_dir.name
+
+        new_src_dir = project_dir / "src" / crate_name
+        new_src_dir.mkdir(exist_ok=True, parents=True)
+        for src in crate_dir.glob("src/*.rs"):
+            fix_rs(src, crate_name, "crate")
+            src.rename(new_src_dir / src.name)
+
+        new_tests_dir = project_dir / "tests"
+        new_tests_dir.mkdir(exist_ok=True, parents=True)
+        for test in crate_dir.glob("tests/*.rs"):
+            fix_rs(test, crate_name, "cpp_vs_rust")
+            test.rename(new_tests_dir / test.name)
+
+        (new_src_dir / "lib.rs").rename(new_src_dir / "mod.rs")
+
+    lib_rs = ""
+    for crate_name in crate_names:
+        lib_rs += f"pub mod {crate_name};\n"
+
+    (project_dir / "src" / "lib.rs").write_text(lib_rs)
+
+    cargo_toml_path = project_dir / "Cargo.toml"
+    cargo_toml = cargo_toml_path.read_text()
+    cargo_toml = f"""\
+[package]
+name = "cpp_vs_rust"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = [ "libs/proc_diagnostic_types" ]
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+cpp_vs_rust_proc_diagnostic_types = {{ path = "libs/proc_diagnostic_types" }}
+lazy_static = {{ version = "1.4.0" }}
+libc = {{ version = "0.2.138", default-features = false }}
+
+[dev-dependencies]
+memoffset = {{ version = "0.7.1" }}
+
+[features]
+default = []
+qljs_debug = []
+
+{cargo_toml[cargo_toml.index("[profile"):]}"""
+    cargo_toml_path.write_text(cargo_toml)
 
 
 def delete_dir(dir: pathlib.Path) -> None:
