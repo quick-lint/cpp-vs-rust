@@ -426,6 +426,9 @@ class RustBenchmarkBase(Benchmark):
     def toolchain_label(self) -> str:
         return self._rust_config.label
 
+    def before_all_untimed(self) -> None:
+        rust_download_dependencies(self._rust_config)
+
 
 class RustFullBenchmark(RustBenchmarkBase):
     name = "full build and test"
@@ -452,6 +455,7 @@ class RustIncrementalBenchmark(RustBenchmarkBase):
         return f"incremental build and test ({names})"
 
     def before_all_untimed(self) -> None:
+        super().before_all_untimed()
         rust_clean(root=self._rust_config.root)
         rust_build_and_test(self._rust_config)
 
@@ -471,6 +475,7 @@ class RustTestOnlyBenchmark(RustBenchmarkBase):
     name = "test only"
 
     def before_all_untimed(self) -> None:
+        super().before_all_untimed()
         rust_clean(root=self._rust_config.root)
         rust_build_and_test(self._rust_config)
 
@@ -480,6 +485,10 @@ class RustTestOnlyBenchmark(RustBenchmarkBase):
 
 def rust_clean(root: pathlib.Path) -> None:
     delete_dir(root / "target")
+
+
+def rust_download_dependencies(rust_config: RustConfig) -> None:
+    subprocess.check_call([rust_config.cargo, "fetch"], cwd=rust_config.root)
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
