@@ -139,6 +139,7 @@ class CPPConfig(typing.NamedTuple):
     cxx_compiler: pathlib.Path
     cxx_flags: str
     link_flags: str
+    pch: bool
 
 
 def find_cpp_configs() -> typing.List[CPPConfig]:
@@ -154,23 +155,27 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
     def try_add_cxx_configs(
         label: str, cxx_compiler: pathlib.Path, cxx_flags: str
     ) -> None:
-        try_add_cxx_config(
-            CPPConfig(
-                label=f"{label}",
-                cxx_compiler=cxx_compiler,
-                cxx_flags=cxx_flags,
-                link_flags="",
-            )
-        )
-        if MOLD_LINKER_EXE is not None:
+        for pch in (False, True):
+            label_suffix = " PCH" if pch else ""
             try_add_cxx_config(
                 CPPConfig(
-                    label=f"{label} Mold",
+                    label=f"{label}{label_suffix}",
                     cxx_compiler=cxx_compiler,
                     cxx_flags=cxx_flags,
-                    link_flags=f"-Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                    link_flags="",
+                    pch=pch,
                 )
             )
+            if MOLD_LINKER_EXE is not None:
+                try_add_cxx_config(
+                    CPPConfig(
+                        label=f"{label}{label_suffix} Mold",
+                        cxx_compiler=cxx_compiler,
+                        cxx_flags=cxx_flags,
+                        link_flags=f"-Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                        pch=pch,
+                    )
+                )
 
     def try_add_clang_configs(label: str, cxx_compiler: pathlib.Path) -> None:
         try_add_cxx_configs(
@@ -313,6 +318,7 @@ def cpp_configure(cpp_config: CPPConfig) -> None:
             f"-DCMAKE_CXX_FLAGS={cpp_config.cxx_flags}",
             f"-DCMAKE_EXE_LINKER_FLAGS={cpp_config.link_flags}",
             f"-DCMAKE_SHARED_LINKER_FLAGS={cpp_config.link_flags}",
+            f"-DQUICK_LINT_JS_PRECOMPILE_HEADERS={'YES' if cpp_config.pch else 'NO'}",
         ],
         cwd=CPP_ROOT,
     )
