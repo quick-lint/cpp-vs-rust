@@ -40,6 +40,12 @@ def main() -> None:
     new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
     workspace_to_twocrate(project_dir)
 
+    project_dir = ROOT / "rust-twocrate-unittest"
+    new_project_from_template(
+        project_dir, template_dir=ROOT / "rust-twocrate-cratecargotest"
+    )
+    cargotest_to_unittest(project_dir)
+
     project_dir = ROOT / "rust-fewsrc-crateunotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust")
     cargotest_to_unotest(project_dir)
@@ -145,6 +151,31 @@ qljs_debug = []
 
 {cargo_toml[cargo_toml.index("[profile"):]}"""
     cargo_toml_path.write_text(cargo_toml)
+
+
+def cargotest_to_unittest(project_dir: pathlib.Path) -> None:
+    test_files = list(project_dir.glob("tests/test_*.rs"))
+
+    for test_file in test_files:
+        test_file.write_text(test_file.read_text().replace(f"cpp_vs_rust::", "crate::"))
+        test_file.rename(project_dir / "src" / test_file.name)
+
+    mod_file = ""
+    for test_file in test_files:
+        mod_file += f"#[cfg(test)]\nmod {test_file.stem};\n"
+    lib_rs = project_dir / "src" / "lib.rs"
+    lib_rs.write_text(lib_rs.read_text() + "\n" + mod_file)
+
+    cargo_toml_path = project_dir / "Cargo.toml"
+    cargo_toml = cargo_toml_path.read_text()
+    cargo_toml = cargo_toml.replace("\ntest = false\n", "\n")
+    #    if "\n[dependencies]\n" in cargo_toml:
+    #        cargo_toml = cargo_toml.replace("\n[dev-dependencies]\n", "\n")
+    #    else:
+    #        cargo_toml = cargo_toml.replace("\n[dev-dependencies]\n", "\n[dependencies]\n")
+    cargo_toml_path.write_text(cargo_toml)
+
+    (project_dir / "tests").rmdir()
 
 
 def delete_dir(dir: pathlib.Path) -> None:
