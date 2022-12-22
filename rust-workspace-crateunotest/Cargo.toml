@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "libs/container",
+    "libs/fe",
+    "libs/i18n",
+    "libs/port",
+    "libs/proc_diagnostic_types",
+    "libs/test",
+    "libs/util",
+]
+
+[profile.quick-build-incremental]
+debug = false
+debug-assertions = false
+incremental = true
+inherits = "dev"
+lto = false
+opt-level = 0
+overflow-checks = false
+panic = 'abort'
+rpath = false
+
+[profile.quick-build-nonincremental]
+inherits = "quick-build-incremental"
+incremental = false

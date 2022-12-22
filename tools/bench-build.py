@@ -99,7 +99,7 @@ def main() -> None:
             )
         )
 
-    for rust_root in (ROOT / "rust", ROOT / "rust-workspace"):
+    for rust_root in ROOT.glob("rust*"):
         for rust_config in find_rust_configs(root=rust_root):
             profiler.profile(RustFullBenchmark(rust_config))
             profiler.profile(RustTestOnlyBenchmark(rust_config))

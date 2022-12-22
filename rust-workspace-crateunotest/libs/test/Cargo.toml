@@ -1,0 +1,14 @@
+[package]
+name = "cpp_vs_rust_test"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+cpp_vs_rust_fe = { path = "../fe" }
+cpp_vs_rust_port = { path = "../port" }
+cpp_vs_rust_util = { path = "../util" }
+lazy_static = { version = "1.4.0" }
