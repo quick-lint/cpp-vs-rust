@@ -169,10 +169,6 @@ def cargotest_to_unittest(project_dir: pathlib.Path) -> None:
     cargo_toml_path = project_dir / "Cargo.toml"
     cargo_toml = cargo_toml_path.read_text()
     cargo_toml = cargo_toml.replace("\ntest = false\n", "\n")
-    #    if "\n[dependencies]\n" in cargo_toml:
-    #        cargo_toml = cargo_toml.replace("\n[dev-dependencies]\n", "\n")
-    #    else:
-    #        cargo_toml = cargo_toml.replace("\n[dev-dependencies]\n", "\n[dependencies]\n")
     cargo_toml_path.write_text(cargo_toml)
 
     (project_dir / "tests").rmdir()
