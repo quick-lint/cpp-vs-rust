@@ -6,6 +6,7 @@ import collections
 import contextlib
 import dataclasses
 import math
+import os
 import pathlib
 import re
 import shutil
@@ -352,6 +353,11 @@ class RustConfig(typing.NamedTuple):
     rustflags: str
     nextest: bool
 
+    @property
+    def rustc(self) -> pathlib.Path:
+        is_clif = self.cargo.name == "cargo-clif"
+        return self.cargo.parent / ("rustc-clif" if is_clif else "rustc")
+
 
 def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
     rust_configs = []
@@ -526,7 +532,14 @@ def rust_build_packages(rust_config: RustConfig, packages: typing.List[str]) -> 
         command.append(f"--profile={rust_config.cargo_profile}")
     for package in packages:
         command.extend(("--package", package))
-    subprocess.check_call(command, cwd=rust_config.root)
+    subprocess.check_call(
+        command,
+        cwd=rust_config.root,
+        env=dict(
+            os.environ,
+            RUSTC=str(rust_config.rustc),
+        ),
+    )
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
@@ -538,7 +551,14 @@ def rust_build_and_test(rust_config: RustConfig) -> None:
         command = [rust_config.cargo, "test"]
         if rust_config.cargo_profile is not None:
             command.append(f"--profile={rust_config.cargo_profile}")
-    subprocess.check_call(command, cwd=rust_config.root)
+    subprocess.check_call(
+        command,
+        cwd=rust_config.root,
+        env=dict(
+            os.environ,
+            RUSTC=str(rust_config.rustc),
+        ),
+    )
 
 
 MillisecondDuration = int
