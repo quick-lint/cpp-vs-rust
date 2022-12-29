@@ -12,6 +12,7 @@ use cpp_vs_rust_port::maybe_uninit::*;
 use cpp_vs_rust_util::narrow_cast::*;
 use cpp_vs_rust_util::padded_string::*;
 use cpp_vs_rust_util::qljs_assert;
+use cpp_vs_rust_util::qljs_const_assert;
 
 // NOTE(port): The C++ code had a generic Diagnostic parameter. KISS by inlining it to
 // QLJSWebDemoDiagnostic.
@@ -134,8 +135,11 @@ impl<'code, 'reporter> DiagnosticFormatter for CAPIDiagFormatter<'code, 'reporte
         diag.begin_offset = narrow_cast::<i32, _>(r.begin);
         diag.end_offset = narrow_cast::<i32, _>(r.end);
 
-        diag.code[0..code.len()].copy_from_slice(code.as_bytes());
-        diag.code[code.len()] = b'\0';
+        qljs_const_assert!(std::mem::size_of::<u8>() == std::mem::size_of::<std::ffi::c_char>());
+        diag.code[0..code.len()].copy_from_slice(unsafe {
+            std::mem::transmute::<&[u8], &[std::ffi::c_char]>(code.as_bytes())
+        });
+        diag.code[code.len()] = b'\0' as std::ffi::c_char;
 
         diag.message = self
             .reporter

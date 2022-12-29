@@ -82,12 +82,11 @@ pub struct QLJSWebDemoDocument {
 #[repr(C)]
 pub struct QLJSWebDemoDiagnostic {
     pub message: *const u8,
-    // TODO(port): Use std::ffi::c_char instead.
-    pub code: [u8; 6], // null-terminated
+    pub code: [std::ffi::c_char; 6], // null-terminated
     pub severity: QLJSSeverity,
     // Offsets count UTF-16 code units.
-    pub begin_offset: i32,
-    pub end_offset: i32,
+    pub begin_offset: std::ffi::c_int,
+    pub end_offset: std::ffi::c_int,
 }
 
 impl Default for QLJSWebDemoDiagnostic {

@@ -27,7 +27,7 @@ fn lint_error_after_text_insertion() {
         assert_ne!((*diagnostics.add(0)).message, std::ptr::null());
         assert_eq!((*diagnostics.add(1)).message, std::ptr::null());
         assert_eq!(
-            read_utf8_c_string_from_slice(&(*diagnostics.add(1)).code),
+            read_utf8_c_string_from_c_slice(&(*diagnostics.add(1)).code),
             ""
         );
 
@@ -36,7 +36,7 @@ fn lint_error_after_text_insertion() {
             "unclosed string literal"
         );
         assert_eq!(
-            read_utf8_c_string_from_slice(&(*diagnostics.add(0)).code),
+            read_utf8_c_string_from_c_slice(&(*diagnostics.add(0)).code),
             "E0040"
         );
         assert_eq!((*diagnostics.add(0)).begin_offset as usize, b"".len());
@@ -73,7 +73,7 @@ fn lint_new_error_after_second_text_insertion() {
         assert_ne!((*diagnostics.add(0)).message, std::ptr::null());
         assert_eq!((*diagnostics.add(1)).message, std::ptr::null());
         assert_eq!(
-            read_utf8_c_string_from_slice(&(*diagnostics.add(1)).code),
+            read_utf8_c_string_from_c_slice(&(*diagnostics.add(1)).code),
             ""
         );
 
@@ -82,7 +82,7 @@ fn lint_new_error_after_second_text_insertion() {
             "unclosed string literal"
         );
         assert_eq!(
-            read_utf8_c_string_from_slice(&(*diagnostics.add(0)).code),
+            read_utf8_c_string_from_c_slice(&(*diagnostics.add(0)).code),
             "E0040"
         );
         assert_eq!(
