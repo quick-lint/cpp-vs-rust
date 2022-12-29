@@ -8,5 +8,6 @@ pub mod language;
 pub mod lex;
 pub mod lex_keyword;
 pub mod lex_unicode_generated;
+pub mod linter;
 pub mod source_code_span;
 pub mod token;
