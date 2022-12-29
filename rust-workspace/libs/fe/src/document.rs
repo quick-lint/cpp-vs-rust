@@ -1,3 +1,4 @@
+use crate::source_code_span::*;
 use cpp_vs_rust_util::narrow_cast::*;
 use cpp_vs_rust_util::padded_string::*;
 
@@ -5,6 +6,7 @@ pub trait LocatorLike<'code> {
     type RangeType;
 
     fn new(s: PaddedStringView<'code>) -> Self;
+    fn range(&self, span: SourceCodeSpan<'_>) -> Self::RangeType;
 }
 
 pub struct Document<Locator> {

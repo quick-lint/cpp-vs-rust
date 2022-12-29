@@ -3,6 +3,7 @@ pub mod diag_reporter;
 pub mod diagnostic;
 pub mod diagnostic_formatter;
 pub mod diagnostic_types;
+pub mod document;
 pub mod identifier;
 pub mod language;
 pub mod lex;

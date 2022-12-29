@@ -1,5 +1,5 @@
 use cpp_vs_rust_c_api::web_demo_location::*;
-use cpp_vs_rust_container::document::*;
+use cpp_vs_rust_fe::document::*;
 
 // TODO(port-later): Test on LSPLocator in addition to WebDemoLocator.
 

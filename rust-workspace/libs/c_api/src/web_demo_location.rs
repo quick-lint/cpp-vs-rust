@@ -1,4 +1,4 @@
-use cpp_vs_rust_container::document::*;
+use cpp_vs_rust_fe::document::*;
 use cpp_vs_rust_fe::source_code_span::*;
 use cpp_vs_rust_util::narrow_cast::*;
 use cpp_vs_rust_util::padded_string::*;
@@ -41,5 +41,9 @@ impl<'code> LocatorLike<'code> for WebDemoLocator<'code> {
 
     fn new(s: PaddedStringView<'code>) -> Self {
         WebDemoLocator::new(s)
+    }
+
+    fn range(&self, s: SourceCodeSpan<'_>) -> Self::RangeType {
+        self.range(s)
     }
 }
