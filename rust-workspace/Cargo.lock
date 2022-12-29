@@ -24,6 +24,7 @@ dependencies = [
 name = "cpp_vs_rust_container"
 version = "0.1.0"
 dependencies = [
+ "cpp_vs_rust_c_api",
  "cpp_vs_rust_port",
  "cpp_vs_rust_util",
 ]

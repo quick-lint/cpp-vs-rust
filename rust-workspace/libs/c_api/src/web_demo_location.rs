@@ -1,3 +1,4 @@
+use cpp_vs_rust_container::document::*;
 use cpp_vs_rust_fe::source_code_span::*;
 use cpp_vs_rust_util::narrow_cast::*;
 use cpp_vs_rust_util::padded_string::*;
@@ -10,12 +11,12 @@ pub struct WebDemoSourceRange {
     pub end: WebDemoSourceOffset,
 }
 
-pub struct WebDemoLocator<'a> {
-    input: PaddedStringView<'a>,
+pub struct WebDemoLocator<'code> {
+    input: PaddedStringView<'code>,
 }
 
-impl<'a> WebDemoLocator<'a> {
-    pub fn new(input: PaddedStringView<'a>) -> WebDemoLocator<'a> {
+impl<'code> WebDemoLocator<'code> {
+    pub fn new(input: PaddedStringView<'code>) -> WebDemoLocator<'code> {
         WebDemoLocator { input: input }
     }
 
@@ -32,5 +33,13 @@ impl<'a> WebDemoLocator<'a> {
             self.input,
             byte_offset,
         ))
+    }
+}
+
+impl<'code> LocatorLike<'code> for WebDemoLocator<'code> {
+    type RangeType = WebDemoSourceRange;
+
+    fn new(s: PaddedStringView<'code>) -> Self {
+        WebDemoLocator::new(s)
     }
 }
