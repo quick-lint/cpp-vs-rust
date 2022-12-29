@@ -115,7 +115,8 @@ impl Default for QLJSWebDemoDiagnostic {
 // Thread safety: Thread-safe. Not async-signal-safe.
 //
 // Postcondition: The returned value is not null.
-pub unsafe fn qljs_web_demo_create_document() -> *mut QLJSWebDemoDocument {
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_create_document() -> *mut QLJSWebDemoDocument {
     let p: Box<QLJSWebDemoDocument> = Box::new(QLJSWebDemoDocument {
         text: PaddedString::new(),
         diag_reporter: CAPIDiagReporter::new(),
@@ -137,7 +138,8 @@ pub unsafe fn qljs_web_demo_create_document() -> *mut QLJSWebDemoDocument {
 // Precondition: qljs_web_demo_create_document() previously returned document.
 // Precondition: qljs_web_demo_destroy_document(document) was not previously
 //               called.
-pub unsafe fn qljs_web_demo_destroy_document(p: *mut QLJSWebDemoDocument) {
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_destroy_document(p: *mut QLJSWebDemoDocument) {
     let p: Box<QLJSWebDemoDocument> = Box::from_raw(p);
     std::mem::drop(p);
 }
@@ -160,7 +162,8 @@ pub unsafe fn qljs_web_demo_destroy_document(p: *mut QLJSWebDemoDocument) {
 // Precondition: text_utf_8 points to an array of at least text_byte_count
 //               bytes.
 // Precondition: text_utf_8 is not null, even if text_byte_count is 0.
-pub unsafe fn qljs_web_demo_set_text(
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_set_text(
     p: *mut QLJSWebDemoDocument,
     text_utf_8: *const std::ffi::c_void,
     text_byte_count: c_size_t,
@@ -187,7 +190,8 @@ pub unsafe fn qljs_web_demo_set_text(
 //               returned config_document, and
 //               qljs_web_demo_destroy_document(config_document) has not been
 //               called.
-pub unsafe fn qljs_web_demo_set_config(
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_set_config(
     js_document: *mut QLJSWebDemoDocument,
     config_document: *mut QLJSWebDemoDocument,
 ) {
@@ -206,7 +210,8 @@ pub unsafe fn qljs_web_demo_set_config(
 //               qljs_web_demo_destroy_document(document) has not been called.
 // Precondition: options is a bitwise-or of zero or more qljs_language_options
 //               members. (options==0 is permitted.)
-pub unsafe fn qljs_web_demo_set_language_options(
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_set_language_options(
     p: *mut QLJSWebDemoDocument,
     options: QLJSLanguageOptions,
 ) {
@@ -230,7 +235,8 @@ pub unsafe fn qljs_web_demo_set_language_options(
 //               qljs_web_demo_destroy_document(document) has not been called.
 // Precondition: locale points to a C string.
 // Precondition: locale is not null.
-pub unsafe fn qljs_web_demo_set_locale(
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_set_locale(
     p: *mut QLJSWebDemoDocument,
     locale: *const std::ffi::c_char,
 ) {
@@ -265,7 +271,10 @@ pub unsafe fn qljs_web_demo_set_locale(
 //               called, where config_document is the QLJSWebDemoDocument
 //               associated with this document via qljs_web_demo_set_config.
 // Postcondition: The returned value is not null.
-pub unsafe fn qljs_web_demo_lint(p: *mut QLJSWebDemoDocument) -> *const QLJSWebDemoDiagnostic {
+#[no_mangle]
+pub unsafe extern "C" fn qljs_web_demo_lint(
+    p: *mut QLJSWebDemoDocument,
+) -> *const QLJSWebDemoDiagnostic {
     (*p).diag_reporter.reset();
     (*p).diag_reporter.set_input((*p).text.view());
     if !(*p).is_config_json {
@@ -283,7 +292,8 @@ pub unsafe fn qljs_web_demo_lint(p: *mut QLJSWebDemoDocument) -> *const QLJSWebD
 //
 // Postcondition: The returned value is not null.
 // Postcondition: The returned array contains at least one non-empty string.
-pub unsafe fn qljs_list_locales() -> *const *const std::ffi::c_char {
+#[no_mangle]
+pub unsafe extern "C" fn qljs_list_locales() -> *const *const std::ffi::c_char {
     static mut LOCALES: *const *const std::ffi::c_char = std::ptr::null();
     static INIT_LOCALES: std::sync::Once = std::sync::Once::new();
     INIT_LOCALES.call_once(|| {
