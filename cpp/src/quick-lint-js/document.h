@@ -1,27 +1,33 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
-#define QUICK_LINT_JS_UTIL_UTF_8_H
+#ifndef QUICK_LINT_JS_DOCUMENT_H
+#define QUICK_LINT_JS_DOCUMENT_H
 
-#include <cstddef>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+template <class Locator>
+class document {
+ public:
+  explicit document();
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
+  void set_text(string8_view new_text);
+  void replace_text(typename Locator::range_type range,
+                    string8_view replacement_text);
+
+  padded_string_view string() noexcept;
+  const Locator& locator() noexcept;
+
+ private:
+  int active_content_buffer_ = 0;
+  padded_string content_buffers_[2];
+  Locator locator_;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
-
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+extern template class document<web_demo_locator>;
 }
 
 #endif

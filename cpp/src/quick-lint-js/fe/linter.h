@@ -1,27 +1,28 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
-#define QUICK_LINT_JS_UTIL_UTF_8_H
-
-#include <cstddef>
-#include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/port/char8.h>
+#ifndef QUICK_LINT_JS_FE_LINTER_H
+#define QUICK_LINT_JS_FE_LINTER_H
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+class diag_reporter;
+class padded_string_view;
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
+// TODO(#465): Accept parser options from quick-lint-js.config or CLI options.
+struct linter_options {
+  // If true, parse and lint JSX language extensions:
+  // https://facebook.github.io/jsx/
+  bool jsx = true;
+
+  // If true, parse and lint TypeScript instead of JavaScript.
+  bool typescript = false;
+
+  // If true, print a human-readable representation of parser visits to stderr.
+  bool print_parser_visits = false;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
-
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+void parse_and_lint(padded_string_view code, diag_reporter&,
+                    linter_options);
 }
 
 #endif

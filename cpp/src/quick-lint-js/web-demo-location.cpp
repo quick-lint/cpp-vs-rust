@@ -1,30 +1,30 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
-#define QUICK_LINT_JS_UTIL_UTF_8_H
-
-#include <cstddef>
-#include <quick-lint-js/container/padded-string.h>
+#include <quick-lint-js/fe/source-code-span.h>
 #include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/util/narrow-cast.h>
+#include <quick-lint-js/util/utf-8.h>
+#include <quick-lint-js/web-demo-location.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+web_demo_locator::web_demo_locator(padded_string_view input) noexcept
+    : input_(input) {}
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
-};
-
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
-
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+web_demo_source_range web_demo_locator::range(source_code_span span) const {
+  return web_demo_source_range{
+      .begin = this->position(span.begin()),
+      .end = this->position(span.end()),
+  };
 }
 
-#endif
+web_demo_source_offset web_demo_locator::position(const char8* c) const
+    noexcept {
+  int byte_offset = narrow_cast<int>(c - this->input_.data());
+  return narrow_cast<web_demo_source_offset>(
+      count_lsp_characters_in_utf_8(this->input_, byte_offset));
+}
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar

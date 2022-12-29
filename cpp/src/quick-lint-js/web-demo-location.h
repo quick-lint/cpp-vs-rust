@@ -1,27 +1,35 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
-#define QUICK_LINT_JS_UTIL_UTF_8_H
+#ifndef QUICK_LINT_JS_WEB_DEMO_LOCATION_H
+#define QUICK_LINT_JS_WEB_DEMO_LOCATION_H
 
-#include <cstddef>
+#include <cstdint>
 #include <quick-lint-js/container/padded-string.h>
 #include <quick-lint-js/port/char8.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
+class source_code_span;
 
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
+using web_demo_source_offset = std::uint32_t;
+
+struct web_demo_source_range {
+  web_demo_source_offset begin;
+  web_demo_source_offset end;
 };
 
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
+class web_demo_locator {
+ public:
+  using range_type = web_demo_source_range;
 
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+  explicit web_demo_locator(padded_string_view input) noexcept;
+
+  web_demo_source_range range(source_code_span) const;
+  web_demo_source_offset position(const char8*) const noexcept;
+
+ private:
+  padded_string_view input_;
+};
 }
 
 #endif

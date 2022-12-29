@@ -1,30 +1,23 @@
 // Copyright (C) 2020  Matthew "strager" Glazar
 // See end of file for extended copyright information.
 
-#ifndef QUICK_LINT_JS_UTIL_UTF_8_H
-#define QUICK_LINT_JS_UTIL_UTF_8_H
-
-#include <cstddef>
 #include <quick-lint-js/container/padded-string.h>
-#include <quick-lint-js/port/char8.h>
+#include <quick-lint-js/fe/lex.h>
+#include <quick-lint-js/fe/linter.h>
+#include <quick-lint-js/fe/token.h>
 
 namespace quick_lint_js {
-char8* encode_utf_8(char32_t code_point, char8* out);
-
-struct decode_utf_8_result {
-  std::ptrdiff_t size;
-  char32_t code_point;
-  bool ok;
-};
-
-decode_utf_8_result decode_utf_8(padded_string_view) noexcept;
-std::size_t count_utf_8_characters(padded_string_view, std::size_t) noexcept;
-
-std::ptrdiff_t count_lsp_characters_in_utf_8(padded_string_view,
-                                             int offset) noexcept;
+void parse_and_lint(padded_string_view code, diag_reporter& reporter,
+                    linter_options options) {
+  // NOTE(port): This is trimmed down because we aren't porting the parser or
+  // the variable analyzer. Just lex the whole document. This won't work if
+  // there are regexp literals or template literals, but whatever.
+  lexer l(code, &reporter);
+  while (l.peek().type != token_type::end_of_file) {
+    l.skip();
+  }
 }
-
-#endif
+}
 
 // quick-lint-js finds bugs in JavaScript programs.
 // Copyright (C) 2020  Matthew "strager" Glazar
