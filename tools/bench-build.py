@@ -252,7 +252,7 @@ class CPPFullBenchmark(CPPBenchmarkBase):
 
     def run_timed(self) -> None:
         cpp_configure(self._cpp_config)
-        cpp_build()
+        cpp_build(targets=["quick-lint-js-test"])
         cpp_test()
 
 
@@ -265,7 +265,7 @@ class CPPHalfBenchmark(CPPBenchmarkBase):
         cpp_build(targets=["gmock", "gmock_main", "gtest"])
 
     def run_timed(self) -> None:
-        cpp_build()
+        cpp_build(targets=["quick-lint-js-test"])
         cpp_test()
 
 
@@ -286,14 +286,14 @@ class CPPIncrementalBenchmark(CPPBenchmarkBase):
     def before_all_untimed(self) -> None:
         cpp_clean()
         cpp_configure(self._cpp_config)
-        cpp_build()
+        cpp_build(targets=["quick-lint-js-test"])
 
     def before_each_untimed(self) -> None:
         for f in self._files_to_mutate:
             mutate_file(f)
 
     def run_timed(self) -> None:
-        cpp_build()
+        cpp_build(targets=["quick-lint-js-test"])
         cpp_test()
 
     def after_all_untimed(self) -> None:
@@ -307,7 +307,7 @@ class CPPTestOnlyBenchmark(CPPBenchmarkBase):
     def before_all_untimed(self) -> None:
         cpp_clean()
         cpp_configure(self._cpp_config)
-        cpp_build()
+        cpp_build(targets=["quick-lint-js-test"])
 
     def run_timed(self) -> None:
         cpp_test()
