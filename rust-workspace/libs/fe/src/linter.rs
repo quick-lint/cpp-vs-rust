@@ -4,6 +4,7 @@ use crate::token::*;
 use cpp_vs_rust_util::padded_string::*;
 
 // TODO(#465): Accept parser options from quick-lint-js.config or CLI options.
+#[derive(Clone, Copy)]
 pub struct LinterOptions {
     // If true, parse and lint JSX language extensions:
     // https://facebook.github.io/jsx/
