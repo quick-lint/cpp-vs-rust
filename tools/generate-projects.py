@@ -2,6 +2,7 @@
 
 import pathlib
 import shutil
+import subprocess
 import typing
 
 ROOT = pathlib.Path(__file__).parent / ".."
@@ -42,29 +43,35 @@ def main() -> None:
     project_dir = ROOT / "rust"
     new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
     workspace_to_threecrate(project_dir)
+    fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-workspace-crateunotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
     cargotest_to_unotest(project_dir)
+    fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-twocrate-cratecargotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
     workspace_to_twocrate(project_dir)
+    fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-twocrate-unittest"
     new_project_from_template(
         project_dir, template_dir=ROOT / "rust-twocrate-cratecargotest"
     )
     cargotest_to_unittest(project_dir)
+    fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-fewsrc-crateunotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust")
     cargotest_to_unotest(project_dir)
+    fix_cargo_lock(project_dir)
 
     for total_copies in (8, 16, 24):
         project_dir = ROOT / f"rust-workspace-{total_copies}"
         new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
         multiply_lex_module(project_dir, total_copies=total_copies)
+        fix_cargo_lock(project_dir)
 
 
 def new_project_from_template(
@@ -252,6 +259,11 @@ def multiply_lex_module(project_dir: pathlib.Path, total_copies: int) -> None:
         new_mods += f"pub mod lex_{i};\n"
     lib_rs = project_dir / "libs" / "fe" / "src" / "lib.rs"
     lib_rs.write_text(lib_rs.read_text().replace("pub mod lex;\n", new_mods))
+
+
+def fix_cargo_lock(project_dir: pathlib.Path) -> None:
+    subprocess.check_call(["cargo", "fetch"], cwd=project_dir)
+
 
 def delete_dir(dir: pathlib.Path) -> None:
     try:
