@@ -63,7 +63,9 @@ def main() -> None:
     fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-threecrate-crateunotest"
-    new_project_from_template(project_dir, template_dir=ROOT / "rust-threecrate-cratecargotest")
+    new_project_from_template(
+        project_dir, template_dir=ROOT / "rust-threecrate-cratecargotest"
+    )
     cargotest_to_unotest(project_dir)
     fix_cargo_lock(project_dir)
 
