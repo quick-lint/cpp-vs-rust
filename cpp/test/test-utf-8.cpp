@@ -372,6 +372,172 @@ TEST(test_utf_8_decode, surrogate_sequences_are_an_error_for_each_code_unit) {
     }
   }
 }
+
+namespace {
+std::ptrdiff_t count_lsp_characters_in_utf_8(
+    padded_string_view utf_8) noexcept {
+  return quick_lint_js::count_lsp_characters_in_utf_8(utf_8, utf_8.size());
+}
+
+std::ptrdiff_t count_lsp_characters_in_utf_8(
+    const padded_string& utf_8) noexcept {
+  return count_lsp_characters_in_utf_8(&utf_8);
+}
+
+std::ptrdiff_t count_lsp_characters_in_utf_8(const padded_string& utf_8,
+                                             int offset) noexcept {
+  return quick_lint_js::count_lsp_characters_in_utf_8(&utf_8, offset);
+}
+}
+
+TEST(test_count_lsp_characters_in_utf_8, empty_string) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8""_padded), 0);
+}
+
+TEST(test_count_lsp_characters_in_utf_8, ascii_characters_count_as_one) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"abcdef"_padded), 6);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     non_ascii_basic_multilingual_plane_characters_count_as_one) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u2306"_padded), 1);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     supplementary_plane_characters_count_as_two) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded), 2);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     middle_of_single_character_is_not_counted) {
+  // U+0100 has two UTF-8 code units.
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u0100"_padded, 1), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"x\u0100y"_padded, 2), 1);
+
+  // U+2306 has three UTF-8 code units.
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u2306"_padded, 1), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\u2306"_padded, 2), 0);
+
+  // U+1F430 has four UTF-8 code units.
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded, 1), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded, 2), 0);
+  EXPECT_EQ(count_lsp_characters_in_utf_8(u8"\U0001F430"_padded, 3), 0);
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     invalid_surrogate_sequences_count_as_one_per_byte) {
+  for (const padded_string& input : {
+           "\xed\xa0\x80"_padded,  // U+D800
+           "\xed\xad\xbf"_padded,  // U+DB7F
+           "\xed\xae\x80"_padded,  // U+DB80
+           "\xed\xaf\xbf"_padded,  // U+DBFF
+           "\xed\xb0\x80"_padded,  // U+DC00
+           "\xed\xbe\x80"_padded,  // U+DF80
+           "\xed\xbf\xbf"_padded,  // U+DFFF
+       }) {
+    SCOPED_TRACE(input);
+    EXPECT_EQ(count_lsp_characters_in_utf_8(input, input.size()), input.size());
+  }
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     overlong_sequences_count_as_one_per_byte) {
+  for (const padded_string& input : {
+           "\xc0\x80"_padded,                  // U+0000
+           "\xe0\x80\x80"_padded,              // U+0000
+           "\xf0\x80\x80\x80"_padded,          // U+0000
+           "\xf8\x80\x80\x80\x80"_padded,      // U+0000
+           "\xfc\x80\x80\x80\x80\x80"_padded,  // U+0000
+
+           "\xc0\xaf"_padded,                  // U+002F
+           "\xe0\x80\xaf"_padded,              // U+002F
+           "\xf0\x80\x80\xaf"_padded,          // U+002F
+           "\xf8\x80\x80\x80\xaf"_padded,      // U+002F
+           "\xfc\x80\x80\x80\x80\xaf"_padded,  // U+002F
+
+           "\xc1\xbf"_padded,                  // U+007F
+           "\xe0\x9f\xbf"_padded,              // U+07FF
+           "\xf0\x8f\xbf\xbf"_padded,          // U+FFFF
+           "\xf8\x87\xbf\xbf\xbf"_padded,      // U+001FFFFF
+           "\xfc\x83\xbf\xbf\xbf\xbf"_padded,  // U+03FFFFFF
+       }) {
+    SCOPED_TRACE(input);
+    EXPECT_EQ(count_lsp_characters_in_utf_8(input, input.size()), input.size());
+  }
+}
+
+TEST(test_count_lsp_characters_in_utf_8,
+     incomplete_sequences_count_as_one_per_byte) {
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90\x8d"_padded), 3);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90\x8d?????"_padded), 8);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90"_padded), 2);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90?"_padded), 3);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90??????"_padded), 8);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0"_padded), 1);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0?"_padded), 2);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0??"_padded), 3);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0????????"_padded), 9);
+
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90"_padded, 1), 1);
+  EXPECT_EQ(count_lsp_characters_in_utf_8("\xf0\x90??"_padded, 1), 1);
+}
+
+namespace {
+std::size_t count_utf_8_characters(padded_string_view utf_8) noexcept {
+  return quick_lint_js::count_utf_8_characters(
+      utf_8, static_cast<std::size_t>(utf_8.size()));
+}
+
+std::size_t count_utf_8_characters(const padded_string& utf_8) noexcept {
+  return count_utf_8_characters(&utf_8);
+}
+
+std::size_t count_utf_8_characters(const padded_string& utf_8,
+                                   std::size_t offset) noexcept {
+  return count_utf_8_characters(&utf_8, offset);
+}
+}
+
+TEST(test_count_utf_8_characters, empty_string) {
+  std::size_t n = count_utf_8_characters(u8""_padded);
+  EXPECT_EQ(n, 0);
+}
+
+TEST(test_count_utf_8_characters, ascii) {
+  std::size_t n = count_utf_8_characters(u8"foobar"_padded);
+  EXPECT_EQ(n, 6);
+}
+
+TEST(test_count_utf_8_characters, ascii_num) {
+  std::size_t n = count_utf_8_characters(u8"1,2,3,4"_padded);
+  EXPECT_EQ(n, 7);
+}
+
+TEST(test_count_utf_8_characters, multi_byte) {
+  std::size_t n = count_utf_8_characters(u8"\u263a\u263b\u2639"_padded);
+  EXPECT_EQ(n, 3);
+}
+
+TEST(test_count_utf_8_characters, multi_byte_offset) {
+  std::size_t n = count_utf_8_characters(u8"\u263a\u263b\u2639"_padded, 6);
+  EXPECT_EQ(n, 2);
+}
+
+TEST(test_count_utf_8_characters, invalid_counts_as_one) {
+  std::size_t n = count_utf_8_characters(u8"\xe2\x80"_padded);
+  EXPECT_EQ(n, 2);
+}
+
+TEST(test_count_utf_8_characters, invalid_conuts_as_one_with_null) {
+  std::size_t n = count_utf_8_characters(u8"\xe2\x00"_padded);
+  EXPECT_EQ(n, 2);
+}
+
+TEST(test_count_utf_8_characters, mixed_ascii_with_invalid) {
+  std::size_t n = count_utf_8_characters(u8"a\xe2\x80"_padded);
+  EXPECT_EQ(n, 3);
+}
+
 }
 
 // quick-lint-js finds bugs in JavaScript programs.

@@ -17,8 +17,10 @@ add_executable(
   quick-lint-js/parse-support.h
   test-assert.cpp
   test-buffering-diag-reporter.cpp
+  test-c-api.cpp
   test-diagnostic-formatter.cpp
   test-diagnostic.cpp
+  test-document.cpp
   test-integer-hexadecimal.cpp
   test-lex.cpp
   test-linked-bump-allocator.cpp
@@ -32,6 +34,7 @@ add_executable(
   test-translation.cpp
   test-utf-8.cpp
   test-vector.cpp
+  test-web-demo-location.cpp
 )
 target_include_directories(quick-lint-js-test PRIVATE .)
 target_link_libraries(

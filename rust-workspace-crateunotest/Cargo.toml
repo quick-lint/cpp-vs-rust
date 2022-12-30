@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "libs/c_api",
     "libs/container",
     "libs/fe",
     "libs/i18n",

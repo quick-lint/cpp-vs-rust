@@ -15,4 +15,5 @@ cpp_vs_rust_proc_diagnostic_types = { path = "../proc_diagnostic_types" }
 cpp_vs_rust_util = { path = "../util" }
 
 [dev-dependencies]
+cpp_vs_rust_c_api = { path = "../c_api" }
 cpp_vs_rust_test = { path = "../test" }

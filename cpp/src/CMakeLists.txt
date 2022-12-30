@@ -7,6 +7,10 @@ add_library(
   quick-lint-js-lib
   quick-lint-js/assert.cpp
   quick-lint-js/assert.h
+  quick-lint-js/c-api-diag-reporter.cpp
+  quick-lint-js/c-api-diag-reporter.h
+  quick-lint-js/c-api.cpp
+  quick-lint-js/c-api.h
   quick-lint-js/container/allocator.h
   quick-lint-js/container/linked-bump-allocator.h
   quick-lint-js/container/linked-vector.h
@@ -14,6 +18,8 @@ add_library(
   quick-lint-js/container/padded-string.cpp
   quick-lint-js/container/padded-string.h
   quick-lint-js/container/vector.h
+  quick-lint-js/document.cpp
+  quick-lint-js/document.h
   quick-lint-js/fe/buffering-diag-reporter.cpp
   quick-lint-js/fe/buffering-diag-reporter.h
   quick-lint-js/fe/diag-reporter.cpp
@@ -29,6 +35,8 @@ add_library(
   quick-lint-js/fe/lex-unicode-generated.cpp
   quick-lint-js/fe/lex.cpp
   quick-lint-js/fe/lex.h
+  quick-lint-js/fe/linter.cpp
+  quick-lint-js/fe/linter.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
   quick-lint-js/i18n/locale.cpp
@@ -61,6 +69,8 @@ add_library(
   quick-lint-js/util/pointer.h
   quick-lint-js/util/utf-8.cpp
   quick-lint-js/util/utf-8.h
+  quick-lint-js/web-demo-location.cpp
+  quick-lint-js/web-demo-location.h
 )
 target_include_directories(quick-lint-js-lib PUBLIC .)
 if (QUICK_LINT_JS_PRECOMPILE_HEADERS)
@@ -89,6 +99,23 @@ add_library(
   quick-lint-js/port/char8-debug.cpp
 )
 target_link_libraries(quick-lint-js-lib-debug PUBLIC quick-lint-js-lib)
+
+add_library(quick-lint-js-c-api SHARED empty.cpp)
+target_link_libraries(quick-lint-js-c-api PUBLIC quick-lint-js-lib)
+target_link_libraries(
+  quick-lint-js-c-api
+  PRIVATE
+  -Wl,--undefined=qljs_list_locales
+  -Wl,--undefined=qljs_web_demo_create_document
+  -Wl,--undefined=qljs_web_demo_destroy_document
+  -Wl,--undefined=qljs_web_demo_diagnostic
+  -Wl,--undefined=qljs_web_demo_document
+  -Wl,--undefined=qljs_web_demo_lint
+  -Wl,--undefined=qljs_web_demo_set_config
+  -Wl,--undefined=qljs_web_demo_set_language_options
+  -Wl,--undefined=qljs_web_demo_set_locale
+  -Wl,--undefined=qljs_web_demo_set_text
+)
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
