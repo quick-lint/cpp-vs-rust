@@ -1,5 +1,5 @@
-use cpp_vs_rust_fe::diag_reporter::*;
-use cpp_vs_rust_fe::diagnostic_types::*;
+use cpp_vs_rust::fe::diag_reporter::*;
+use cpp_vs_rust::fe::diagnostic_types::*;
 
 pub struct DiagCollector<'code> {
     pub errors: std::cell::RefCell<Vec<AnyDiag<'code>>>,

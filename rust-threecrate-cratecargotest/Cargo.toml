@@ -1,0 +1,47 @@
+[package]
+name = "cpp_vs_rust"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = [ "libs/proc_diagnostic_types","libs/test" ]
+
+[lib]
+crate-type = ["cdylib", "lib"]
+doctest = false
+test = false
+
+[dependencies]
+cpp_vs_rust_proc_diagnostic_types = { path = "libs/proc_diagnostic_types" }
+
+libc = { version = "0.2.138", default-features = false }
+
+[dev-dependencies]
+cpp_vs_rust_test = { path = "libs/test" }
+
+memoffset = { version = "0.7.1" }
+
+[features]
+default = []
+qljs_debug = []
+
+[profile.quick-build-incremental]
+debug = false
+debug-assertions = false
+incremental = true
+inherits = "dev"
+lto = false
+opt-level = 0
+overflow-checks = false
+panic = 'abort'
+rpath = false
+# TODO(strager): Add -Zshare-generics=y to rustflags.
+
+[profile.quick-build-nonincremental]
+inherits = "quick-build-incremental"
+incremental = false
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"

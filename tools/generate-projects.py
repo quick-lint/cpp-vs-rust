@@ -40,18 +40,18 @@ macros = [
 
 
 def main() -> None:
-    project_dir = ROOT / "rust"
-    new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+    project_dir = ROOT / "rust-threecrate-cratecargotest"
+    new_project_from_template(project_dir, template_dir=ROOT / "rust")
     workspace_to_threecrate(project_dir)
     fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-workspace-crateunotest"
-    new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+    new_project_from_template(project_dir, template_dir=ROOT / "rust")
     cargotest_to_unotest(project_dir)
     fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-twocrate-cratecargotest"
-    new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+    new_project_from_template(project_dir, template_dir=ROOT / "rust")
     workspace_to_twocrate(project_dir)
     fix_cargo_lock(project_dir)
 
@@ -62,14 +62,14 @@ def main() -> None:
     cargotest_to_unittest(project_dir)
     fix_cargo_lock(project_dir)
 
-    project_dir = ROOT / "rust-fewsrc-crateunotest"
-    new_project_from_template(project_dir, template_dir=ROOT / "rust")
+    project_dir = ROOT / "rust-threecrate-crateunotest"
+    new_project_from_template(project_dir, template_dir=ROOT / "rust-threecrate-cratecargotest")
     cargotest_to_unotest(project_dir)
     fix_cargo_lock(project_dir)
 
     for total_copies in (8, 16, 24):
-        project_dir = ROOT / f"rust-workspace-{total_copies}"
-        new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+        project_dir = ROOT / f"rust-workspace-cratecargotest-{total_copies}"
+        new_project_from_template(project_dir, template_dir=ROOT / "rust")
         multiply_lex_module(project_dir, total_copies=total_copies)
         fix_cargo_lock(project_dir)
 

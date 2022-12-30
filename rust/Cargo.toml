@@ -1,29 +1,14 @@
-[package]
-name = "cpp_vs_rust"
-version = "0.1.0"
-edition = "2021"
-
 [workspace]
-members = [ "libs/proc_diagnostic_types","libs/test" ]
-
-[lib]
-crate-type = ["cdylib", "lib"]
-doctest = false
-test = false
-
-[dependencies]
-cpp_vs_rust_proc_diagnostic_types = { path = "libs/proc_diagnostic_types" }
-
-libc = { version = "0.2.138", default-features = false }
-
-[dev-dependencies]
-cpp_vs_rust_test = { path = "libs/test" }
-
-memoffset = { version = "0.7.1" }
-
-[features]
-default = []
-qljs_debug = []
+members = [
+    "libs/c_api",
+    "libs/container",
+    "libs/fe",
+    "libs/i18n",
+    "libs/port",
+    "libs/proc_diagnostic_types",
+    "libs/test",
+    "libs/util",
+]
 
 [profile.quick-build-incremental]
 debug = false

@@ -1,4 +1,4 @@
-use cpp_vs_rust_util::qljs_assert;
+use cpp_vs_rust::qljs_assert;
 use lazy_static::lazy_static;
 
 // Escape the first character in the given keyword with a JavaScript identifier

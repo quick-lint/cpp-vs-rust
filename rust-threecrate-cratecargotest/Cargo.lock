@@ -9,54 +9,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
-name = "cpp_vs_rust_c_api"
+name = "cpp_vs_rust"
 version = "0.1.0"
 dependencies = [
- "cpp_vs_rust_container",
- "cpp_vs_rust_fe",
- "cpp_vs_rust_i18n",
- "cpp_vs_rust_port",
- "cpp_vs_rust_test",
- "cpp_vs_rust_util",
-]
-
-[[package]]
-name = "cpp_vs_rust_container"
-version = "0.1.0"
-dependencies = [
- "cpp_vs_rust_port",
- "cpp_vs_rust_util",
-]
-
-[[package]]
-name = "cpp_vs_rust_fe"
-version = "0.1.0"
-dependencies = [
- "cpp_vs_rust_c_api",
- "cpp_vs_rust_container",
- "cpp_vs_rust_i18n",
- "cpp_vs_rust_port",
  "cpp_vs_rust_proc_diagnostic_types",
  "cpp_vs_rust_test",
- "cpp_vs_rust_util",
-]
-
-[[package]]
-name = "cpp_vs_rust_i18n"
-version = "0.1.0"
-dependencies = [
- "cpp_vs_rust_container",
- "cpp_vs_rust_fe",
- "cpp_vs_rust_port",
- "cpp_vs_rust_test",
- "cpp_vs_rust_util",
  "libc",
-]
-
-[[package]]
-name = "cpp_vs_rust_port"
-version = "0.1.0"
-dependencies = [
  "memoffset",
 ]
 
@@ -68,18 +26,8 @@ version = "0.1.0"
 name = "cpp_vs_rust_test"
 version = "0.1.0"
 dependencies = [
- "cpp_vs_rust_fe",
- "cpp_vs_rust_port",
- "cpp_vs_rust_util",
+ "cpp_vs_rust",
  "lazy_static",
-]
-
-[[package]]
-name = "cpp_vs_rust_util"
-version = "0.1.0"
-dependencies = [
- "cpp_vs_rust_port",
- "cpp_vs_rust_test",
 ]
 
 [[package]]

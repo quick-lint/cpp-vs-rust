@@ -1,6 +1,6 @@
-use cpp_vs_rust_fe::source_code_span::*;
-use cpp_vs_rust_util::narrow_cast::*;
-use cpp_vs_rust_util::padded_string::*;
+use cpp_vs_rust::fe::source_code_span::*;
+use cpp_vs_rust::util::narrow_cast::*;
+use cpp_vs_rust::util::padded_string::*;
 
 // Checks that the SourceCodeSpan begins at begin_offset and ends at begin_offset+text.len().
 //
