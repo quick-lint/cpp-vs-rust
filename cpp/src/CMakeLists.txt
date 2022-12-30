@@ -102,20 +102,27 @@ target_link_libraries(quick-lint-js-lib-debug PUBLIC quick-lint-js-lib)
 
 add_library(quick-lint-js-c-api SHARED empty.cpp)
 target_link_libraries(quick-lint-js-c-api PUBLIC quick-lint-js-lib)
-target_link_libraries(
-  quick-lint-js-c-api
-  PRIVATE
-  -Wl,--undefined=qljs_list_locales
-  -Wl,--undefined=qljs_web_demo_create_document
-  -Wl,--undefined=qljs_web_demo_destroy_document
-  -Wl,--undefined=qljs_web_demo_diagnostic
-  -Wl,--undefined=qljs_web_demo_document
-  -Wl,--undefined=qljs_web_demo_lint
-  -Wl,--undefined=qljs_web_demo_set_config
-  -Wl,--undefined=qljs_web_demo_set_language_options
-  -Wl,--undefined=qljs_web_demo_set_locale
-  -Wl,--undefined=qljs_web_demo_set_text
-)
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+  target_link_libraries(
+    quick-lint-js-c-api
+    PRIVATE
+    -Wl,--undefined=qljs_list_locales
+    -Wl,--undefined=qljs_web_demo_create_document
+    -Wl,--undefined=qljs_web_demo_destroy_document
+    -Wl,--undefined=qljs_web_demo_diagnostic
+    -Wl,--undefined=qljs_web_demo_document
+    -Wl,--undefined=qljs_web_demo_lint
+    -Wl,--undefined=qljs_web_demo_set_config
+    -Wl,--undefined=qljs_web_demo_set_language_options
+    -Wl,--undefined=qljs_web_demo_set_locale
+    -Wl,--undefined=qljs_web_demo_set_text
+  )
+  target_link_libraries(
+    quick-lint-js-c-api
+    PRIVATE
+    -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/quick-lint-js-c-api.map
+  )
+endif ()
 
 # quick-lint-js finds bugs in JavaScript programs.
 # Copyright (C) 2020  Matthew "strager" Glazar
