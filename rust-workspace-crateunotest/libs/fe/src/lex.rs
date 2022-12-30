@@ -222,7 +222,7 @@ impl<'alloc, 'code, 'reporter: 'alloc> Lexer<'alloc, 'code, 'reporter> {
     // Does not update self.last_last_token_end. Assumes
     // self.last_token.has_leading_newline was previously initialized. Updates
     // self.last_token.begin and other members of self.last_token.
-    #[inline(always)]
+    #[inline(always)]  // NOTE(port): This brought Rust to parity with Clang.
     fn try_parse_current_token(&mut self) -> bool {
         self.last_token.begin = self.input.0;
         match self.input[0] {
