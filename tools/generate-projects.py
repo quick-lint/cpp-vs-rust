@@ -90,13 +90,15 @@ def cargotest_to_unotest(project_dir: pathlib.Path) -> None:
 def workspace_to_twocrate(project_dir: pathlib.Path) -> None:
     workspace_to_fewcrate(project_dir, libs_to_keep=("proc_diagnostic_types",))
 
+
 def workspace_to_threecrate(project_dir: pathlib.Path) -> None:
     workspace_to_fewcrate(project_dir, libs_to_keep=("proc_diagnostic_types", "test"))
 
-def workspace_to_fewcrate(project_dir: pathlib.Path, libs_to_keep: typing.Tuple[str, ...]) -> None:
-    crate_dirs = [
-        d for d in project_dir.glob("libs/*")
-    ]
+
+def workspace_to_fewcrate(
+    project_dir: pathlib.Path, libs_to_keep: typing.Tuple[str, ...]
+) -> None:
+    crate_dirs = [d for d in project_dir.glob("libs/*")]
     crate_names = [d.name for d in crate_dirs]
 
     def fix_rs(rs: pathlib.Path, current_crate_name: str, crate_reference: str) -> None:
@@ -147,10 +149,11 @@ def workspace_to_fewcrate(project_dir: pathlib.Path, libs_to_keep: typing.Tuple[
         cargo_toml = cargo_toml_path.read_text()
         for crate_name in crate_names:
             cargo_toml = cargo_toml.replace(
-                f'cpp_vs_rust_{crate_name} = {{ path = "../{crate_name}" }}\n',
-                ""
+                f'cpp_vs_rust_{crate_name} = {{ path = "../{crate_name}" }}\n', ""
             )
-        cargo_toml = cargo_toml.replace("[dependencies]\n", '[dependencies]\ncpp_vs_rust = { path = "../.." }\n')
+        cargo_toml = cargo_toml.replace(
+            "[dependencies]\n", '[dependencies]\ncpp_vs_rust = { path = "../.." }\n'
+        )
         cargo_toml_path.write_text(cargo_toml)
 
     lib_rs = ""
