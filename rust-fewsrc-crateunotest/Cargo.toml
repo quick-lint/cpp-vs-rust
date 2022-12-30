@@ -39,3 +39,6 @@ rpath = false
 [profile.quick-build-nonincremental]
 inherits = "quick-build-incremental"
 incremental = false
+
+[profile.release]
+panic = "abort"
