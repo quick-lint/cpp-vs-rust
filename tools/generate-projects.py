@@ -61,6 +61,11 @@ def main() -> None:
     new_project_from_template(project_dir, template_dir=ROOT / "rust")
     cargotest_to_unotest(project_dir)
 
+    for total_copies in (8, 16, 24):
+        project_dir = ROOT / f"rust-workspace-{total_copies}"
+        new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+        multiply_lex_module(project_dir, total_copies=total_copies)
+
 
 def new_project_from_template(
     project_dir: pathlib.Path, template_dir: pathlib.Path
@@ -226,6 +231,27 @@ def cargotest_to_unittest(project_dir: pathlib.Path) -> None:
 
     (project_dir / "tests").rmdir()
 
+
+def multiply_lex_module(project_dir: pathlib.Path, total_copies: int) -> None:
+    assert total_copies > 1
+
+    original_test_lex_rs = project_dir / "libs" / "fe" / "tests" / "test_lex.rs"
+    original_test_lex_rs_code = original_test_lex_rs.read_text()
+    for i in range(1, total_copies):
+        new_test_lex_rs = original_test_lex_rs.parent / f"{original_test_lex_rs.stem}_{i}.rs"
+        new_test_lex_rs.write_text(original_test_lex_rs_code.replace("::lex::", f"::lex_{i}::"))
+
+    original_lex_rs = project_dir / "libs" / "fe" / "src" / "lex.rs"
+    original_lex_rs_code = original_lex_rs.read_text()
+    for i in range(1, total_copies):
+        new_lex_rs = original_lex_rs.parent / f"{original_lex_rs.stem}_{i}.rs"
+        new_lex_rs.write_text(original_lex_rs_code)
+
+    new_mods = "pub mod lex;\n"
+    for i in range(1, total_copies):
+        new_mods += f"pub mod lex_{i};\n"
+    lib_rs = project_dir / "libs" / "fe" / "src" / "lib.rs"
+    lib_rs.write_text(lib_rs.read_text().replace("pub mod lex;\n", new_mods))
 
 def delete_dir(dir: pathlib.Path) -> None:
     try:

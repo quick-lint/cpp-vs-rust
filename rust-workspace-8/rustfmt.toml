@@ -1,0 +1,19 @@
+edition = "2021"
+
+newline_style = "Unix"
+
+# TODO(strager): Enable these when they become stable:
+# format_code_in_doc_comments = true
+# format_macro_bodies = true
+# format_macro_matchers = true
+# hex_literal_case = "Lower"
+# imports_granularity = "Item"
+# match_arm_blocks = false
+# normalize_doc_attributes = true
+# overflow_delimited_expr = true
+# reorder_impl_items = true
+# version = "Two"
+
+# TODO(strager): When enabling this option, also mark generated files with
+# "@gener" "ated".
+# format_generated_files = false

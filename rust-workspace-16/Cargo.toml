@@ -1,0 +1,39 @@
+[workspace]
+members = [
+    "libs/c_api",
+    "libs/container",
+    "libs/fe",
+    "libs/i18n",
+    "libs/port",
+    "libs/proc_diagnostic_types",
+    "libs/test",
+    "libs/util",
+]
+
+[build]
+# Avoid linking Rust std's debug info, improving link times.
+# TODO(strager): Only use this where the linker flag is supported.
+# TODO(strager): Only use this for quick-build-incremental and
+# quick-build-nonincremental.
+rustflags = ["-Clink-args=-Wl,-s"]
+
+[profile.quick-build-incremental]
+debug = false
+debug-assertions = false
+incremental = true
+inherits = "dev"
+lto = false
+opt-level = 0
+overflow-checks = false
+panic = 'abort'
+rpath = false
+# TODO(strager): Add -Zshare-generics=y to rustflags.
+
+[profile.quick-build-nonincremental]
+inherits = "quick-build-incremental"
+incremental = false
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
