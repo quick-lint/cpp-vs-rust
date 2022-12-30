@@ -191,8 +191,20 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
 
     try_add_clang_configs(label="Clang 12", cxx_compiler=pathlib.Path("clang++-12"))
     try_add_clang_configs(
-        label="Custom Clang",
-        cxx_compiler=pathlib.Path("/home/strager/clang-stage3/bin/clang++"),
+        label="Clang Custom",
+        cxx_compiler=pathlib.Path("/home/strager/Toolchains/clang-stage2/bin/clang++"),
+    )
+    try_add_clang_configs(
+        label="Clang Custom PGO",
+        cxx_compiler=pathlib.Path(
+            "/home/strager/Toolchains/clang-stage4-qljs/bin/clang++"
+        ),
+    )
+    try_add_clang_configs(
+        label="Clang Custom PGO BOLT",
+        cxx_compiler=pathlib.Path(
+            "/home/strager/Toolchains/clang-stage4-qljs-bolt/bin/clang++"
+        ),
     )
     try_add_clang_configs(
         label="Clang",
@@ -406,6 +418,26 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
             cargo_profile=cargo_profile,
             rustflags=rustflags,
         )
+        add_rust_configs_for_toolchain(
+            label=f"Rust Custom {extra_label}".rstrip(),
+            cargo=pathlib.Path("/home/strager/Toolchains/rustc-stage2/bin/cargo"),
+            cargo_profile=cargo_profile,
+            rustflags=rustflags,
+        )
+        add_rust_configs_for_toolchain(
+            label=f"Rust Custom PGO {extra_label}".rstrip(),
+            cargo=pathlib.Path("/home/strager/Toolchains/rustc-stage4-pgo/bin/cargo"),
+            cargo_profile=cargo_profile,
+            rustflags=rustflags,
+        )
+        add_rust_configs_for_toolchain(
+            label=f"Rust Custom PGO BOLT {extra_label}".rstrip(),
+            cargo=pathlib.Path(
+                "/home/strager/Toolchains/rustc-stage4-pgo-bolt/bin/cargo"
+            ),
+            cargo_profile=cargo_profile,
+            rustflags=rustflags,
+        )
         if CARGO_CLIF_EXE is not None:
             add_rust_configs_for_toolchain(
                 label=f"Rust Cranelift {extra_label}".rstrip(),
@@ -430,7 +462,7 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
                 cargo_profile=cargo_profile,
                 rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
-    return rust_configs
+    return reversed(rust_configs)
 
 
 class RustBenchmarkBase(Benchmark):
