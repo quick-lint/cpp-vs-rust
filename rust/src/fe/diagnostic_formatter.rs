@@ -2,10 +2,10 @@ use crate::fe::diagnostic::*;
 use crate::fe::identifier::*;
 use crate::fe::language::*;
 use crate::fe::source_code_span::*;
-use crate::i18n::translation::*;
-use crate::qljs_assert;
 use crate::qljs_translatable;
+use crate::i18n::translation::*;
 use crate::util::narrow_cast::*;
+use crate::qljs_assert;
 
 pub trait DiagnosticFormatter {
     fn write_before_message(

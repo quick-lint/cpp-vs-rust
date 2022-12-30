@@ -54,9 +54,10 @@ macro_rules! qljs_slow_assert {
 
 #[macro_export]
 macro_rules! qljs_assert_trap {
-    () => {
-        $crate::qljs_crash_allowing_core_dump!();
-    };
+    () => {{
+        use $crate::qljs_crash_allowing_core_dump;
+        qljs_crash_allowing_core_dump!();
+    }};
 }
 
 // NOTE(strager): We prefer raw pointers to reduce code bloat when calling the assertion failure

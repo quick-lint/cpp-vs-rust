@@ -5,9 +5,9 @@ use cpp_vs_rust::fe::diagnostic_formatter::*;
 use cpp_vs_rust::fe::identifier::*;
 use cpp_vs_rust::fe::language::*;
 use cpp_vs_rust::fe::source_code_span::*;
+use cpp_vs_rust::qljs_translatable;
 use cpp_vs_rust::i18n::translation::*;
 use cpp_vs_rust::qljs_offset_of;
-use cpp_vs_rust::qljs_translatable;
 
 fn empty_span() -> SourceCodeSpan<'static> {
     unsafe { SourceCodeSpan::new(std::ptr::null(), std::ptr::null()) }

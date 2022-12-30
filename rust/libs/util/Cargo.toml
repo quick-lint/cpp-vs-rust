@@ -1,0 +1,18 @@
+[package]
+name = "cpp_vs_rust_util"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+doctest = false
+test = false
+
+[dependencies]
+cpp_vs_rust_port = { path = "../port" }
+
+[dev-dependencies]
+cpp_vs_rust_test = { path = "../test" }
+
+[features]
+default = []
+qljs_debug = []

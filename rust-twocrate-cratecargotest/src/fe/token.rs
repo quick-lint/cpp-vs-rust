@@ -206,7 +206,7 @@ macro_rules! qljs_case_binary_only_operator_symbol_except_less_less_and_star {
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator_symbol_except_star {
     () => {
-        $crate::fe::qljs_case_binary_only_operator_symbol_except_less_less_and_star!()
+        $crate::qljs_case_binary_only_operator_symbol_except_less_less_and_star!()
             | $crate::fe::token::TokenType::LessLess
     };
 }
@@ -214,7 +214,7 @@ macro_rules! qljs_case_binary_only_operator_symbol_except_star {
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator_symbol {
     () => {
-        $crate::fe::qljs_case_binary_only_operator_symbol_except_star!()
+        $crate::qljs_case_binary_only_operator_symbol_except_star!()
             | $crate::fe::token::TokenType::Star
     };
 }
@@ -222,7 +222,7 @@ macro_rules! qljs_case_binary_only_operator_symbol {
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator {
     () => {
-        $crate::fe::qljs_case_binary_only_operator_symbol!() | $crate::fe::token::TokenType::KWInstanceof
+        $crate::qljs_case_binary_only_operator_symbol!() | $crate::fe::token::TokenType::KWInstanceof
     };
 }
 
@@ -247,7 +247,7 @@ macro_rules! qljs_case_compound_assignment_operator_except_slash_equal {
 macro_rules! qljs_case_compound_assignment_operator {
     () => {
         $crate::fe::token::TokenType::SlashEqual
-            | $crate::fe::qljs_case_compound_assignment_operator_except_slash_equal!()
+            | $crate::qljs_case_compound_assignment_operator_except_slash_equal!()
     };
 }
 

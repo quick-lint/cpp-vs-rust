@@ -11,10 +11,13 @@ doctest = false
 
 [dependencies]
 cpp_vs_rust_proc_diagnostic_types = { path = "libs/proc_diagnostic_types" }
+
 lazy_static = { version = "1.4.0" }
+
 libc = { version = "0.2.138", default-features = false }
 
 [dev-dependencies]
+
 memoffset = { version = "0.7.1" }
 
 [features]

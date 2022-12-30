@@ -1,7 +1,7 @@
 use crate::port::allocator::*;
+use crate::util::align::*;
 use crate::qljs_assert;
 use crate::qljs_slow_assert;
-use crate::util::align::*;
 
 // A linked list of arrays. Optimized for appending then iterating.
 //

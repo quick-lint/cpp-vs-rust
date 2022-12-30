@@ -1,7 +1,7 @@
 use crate::container::linked_bump_allocator::*;
 use crate::container::winkable::*;
-use crate::qljs_assert;
 use crate::util::narrow_cast::*;
+use crate::qljs_assert;
 
 // TODO(port-later): Use InstrumentedVector if vector instrumentation is enabled.
 pub type BumpVector<'alloc, T, BumpAllocator> =

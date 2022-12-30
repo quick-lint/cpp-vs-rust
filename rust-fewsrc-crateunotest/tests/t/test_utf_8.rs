@@ -1,6 +1,6 @@
+use cpp_vs_rust_test::scoped_trace;
 use cpp_vs_rust::util::padded_string::*;
 use cpp_vs_rust::util::utf_8::*;
-use cpp_vs_rust_test::scoped_trace;
 
 #[test]
 fn encode_ascii() {

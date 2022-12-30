@@ -2,11 +2,11 @@
 use crate::qljs_always_assert;
 
 use crate::port::allocator::*;
+use crate::util::align::*;
+use crate::util::narrow_cast::*;
 use crate::qljs_assert;
 use crate::qljs_const_assert;
 use crate::qljs_slow_assert;
-use crate::util::align::*;
-use crate::util::narrow_cast::*;
 
 pub trait BumpAllocatorLike {
     fn allocate_uninitialized_array<'alloc, T>(

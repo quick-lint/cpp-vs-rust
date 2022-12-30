@@ -1,9 +1,9 @@
 use crate::fe::diagnostic::*;
 use crate::fe::source_code_span::*;
+use crate::qljs_translatable;
 use crate::i18n::translation::*;
 use crate::port::constexpr::*;
 use crate::qljs_offset_of;
-use crate::qljs_translatable;
 use cpp_vs_rust_proc_diagnostic_types::*;
 
 #[qljs_diagnostic(

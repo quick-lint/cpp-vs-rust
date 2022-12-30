@@ -1,5 +1,5 @@
-use crate::container::sorted_search::*;
 use crate::i18n::translation_table_generated::*;
+use crate::container::sorted_search::*;
 
 pub const TRANSLATION_TABLE_UNALLOCATED_MAPPING_INDEX: u16 = 0;
 

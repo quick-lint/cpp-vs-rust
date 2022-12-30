@@ -1,9 +1,9 @@
 use crate::i18n::locale::*;
 use crate::i18n::translation_table::*;
 use crate::i18n::translation_table_generated::*;
+use crate::util::c_string::*;
 use crate::qljs_assert;
 use crate::qljs_c_string;
-use crate::util::c_string::*;
 
 #[macro_export]
 macro_rules! qljs_translatable {

@@ -1,6 +1,6 @@
-use crate::container::linked_vector::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
+use crate::container::linked_vector::*;
 use crate::port::allocator::*;
 use crate::port::maybe_uninit::*;
 use crate::qljs_const_assert;

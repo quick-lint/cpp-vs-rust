@@ -2,6 +2,7 @@
 
 import pathlib
 import shutil
+import typing
 
 ROOT = pathlib.Path(__file__).parent / ".."
 
@@ -22,6 +23,12 @@ macros = [
     "qljs_const_assert",
     "qljs_crash_allowing_core_dump",
     "qljs_match_diag_field",
+    "qljs_case_binary_only_operator_symbol_except_less_less_and_star",
+    "qljs_case_binary_only_operator_symbol_except_star",
+    "qljs_case_binary_only_operator_symbol_except_star",
+    "qljs_case_binary_only_operator_symbol",
+    "qljs_case_compound_assignment_operator_except_slash_equal",
+    "qljs_case_binary_only_operator_symbol",
     "qljs_match_diag_fields",
     "qljs_never_assert",
     "qljs_offset_of",
@@ -32,6 +39,10 @@ macros = [
 
 
 def main() -> None:
+    project_dir = ROOT / "rust"
+    new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
+    workspace_to_threecrate(project_dir)
+
     project_dir = ROOT / "rust-workspace-crateunotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust-workspace")
     cargotest_to_unotest(project_dir)
@@ -77,15 +88,24 @@ def cargotest_to_unotest(project_dir: pathlib.Path) -> None:
 
 
 def workspace_to_twocrate(project_dir: pathlib.Path) -> None:
+    workspace_to_fewcrate(project_dir, libs_to_keep=("proc_diagnostic_types",))
+
+def workspace_to_threecrate(project_dir: pathlib.Path) -> None:
+    workspace_to_fewcrate(project_dir, libs_to_keep=("proc_diagnostic_types", "test"))
+
+def workspace_to_fewcrate(project_dir: pathlib.Path, libs_to_keep: typing.Tuple[str, ...]) -> None:
     crate_dirs = [
-        d for d in project_dir.glob("libs/*") if d.name != "proc_diagnostic_types"
+        d for d in project_dir.glob("libs/*")
     ]
     crate_names = [d.name for d in crate_dirs]
 
     def fix_rs(rs: pathlib.Path, current_crate_name: str, crate_reference: str) -> None:
         source = rs.read_text()
-        source = source.replace("crate::", f"cpp_vs_rust_{current_crate_name}::")
+        if current_crate_name not in libs_to_keep:
+            source = source.replace("crate::", f"cpp_vs_rust_{current_crate_name}::")
         for crate_name in crate_names:
+            if crate_name in libs_to_keep:
+                continue
             for macro in macros:
                 source = source.replace(
                     f"cpp_vs_rust_{crate_name}::{macro}", f"{crate_reference}::{macro}"
@@ -102,25 +122,54 @@ def workspace_to_twocrate(project_dir: pathlib.Path) -> None:
     for crate_dir in crate_dirs:
         crate_name = crate_dir.name
 
-        new_src_dir = project_dir / "src" / crate_name
-        new_src_dir.mkdir(exist_ok=True, parents=True)
-        for src in crate_dir.glob("src/*.rs"):
-            fix_rs(src, crate_name, "crate")
-            src.rename(new_src_dir / src.name)
+        if crate_name in libs_to_keep:
+            for src in crate_dir.glob("src/*.rs"):
+                fix_rs(src, crate_name, "cpp_vs_rust")
+            for src in crate_dir.glob("tests/*.rs"):
+                fix_rs(src, crate_name, "cpp_vs_rust")
+        else:
+            new_src_dir = project_dir / "src" / crate_name
+            new_src_dir.mkdir(exist_ok=True, parents=True)
+            for src in crate_dir.glob("src/*.rs"):
+                fix_rs(src, crate_name, "crate")
+                src.rename(new_src_dir / src.name)
 
-        new_tests_dir = project_dir / "tests"
-        new_tests_dir.mkdir(exist_ok=True, parents=True)
-        for test in crate_dir.glob("tests/*.rs"):
-            fix_rs(test, crate_name, "cpp_vs_rust")
-            test.rename(new_tests_dir / test.name)
+            new_tests_dir = project_dir / "tests"
+            new_tests_dir.mkdir(exist_ok=True, parents=True)
+            for test in crate_dir.glob("tests/*.rs"):
+                fix_rs(test, crate_name, "cpp_vs_rust")
+                test.rename(new_tests_dir / test.name)
 
-        (new_src_dir / "lib.rs").rename(new_src_dir / "mod.rs")
+            (new_src_dir / "lib.rs").rename(new_src_dir / "mod.rs")
+
+    if "test" in libs_to_keep:
+        cargo_toml_path = project_dir / "libs" / "test" / "Cargo.toml"
+        cargo_toml = cargo_toml_path.read_text()
+        for crate_name in crate_names:
+            cargo_toml = cargo_toml.replace(
+                f'cpp_vs_rust_{crate_name} = {{ path = "../{crate_name}" }}\n',
+                ""
+            )
+        cargo_toml = cargo_toml.replace("[dependencies]\n", '[dependencies]\ncpp_vs_rust = { path = "../.." }\n')
+        cargo_toml_path.write_text(cargo_toml)
 
     lib_rs = ""
     for crate_name in crate_names:
-        lib_rs += f"pub mod {crate_name};\n"
+        if crate_name not in libs_to_keep:
+            lib_rs += f"pub mod {crate_name};\n"
 
     (project_dir / "src" / "lib.rs").write_text(lib_rs)
+
+    dependencies = ""
+    dev_dependencies = ""
+    for lib_to_keep in libs_to_keep:
+        line = f'cpp_vs_rust_{lib_to_keep} = {{ path = "libs/{lib_to_keep}" }}\n'
+        if lib_to_keep == "test":
+            dev_dependencies += line
+        else:
+            dependencies += line
+    if "test" not in libs_to_keep:
+        dependencies += '\nlazy_static = { version = "1.4.0" }\n'
 
     cargo_toml_path = project_dir / "Cargo.toml"
     cargo_toml = cargo_toml_path.read_text()
@@ -131,18 +180,18 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [ "libs/proc_diagnostic_types" ]
+members = [ {",".join(f'"libs/{c}"' for c in libs_to_keep)} ]
 
 [lib]
 doctest = false
 test = false
 
 [dependencies]
-cpp_vs_rust_proc_diagnostic_types = {{ path = "libs/proc_diagnostic_types" }}
-lazy_static = {{ version = "1.4.0" }}
+{dependencies}
 libc = {{ version = "0.2.138", default-features = false }}
 
 [dev-dependencies]
+{dev_dependencies}
 memoffset = {{ version = "0.7.1" }}
 
 [features]

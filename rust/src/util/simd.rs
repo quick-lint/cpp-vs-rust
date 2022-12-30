@@ -1,7 +1,7 @@
 #[allow(unused)]
-use crate::qljs_assert;
-#[allow(unused)]
 use crate::util::array::*;
+#[allow(unused)]
+use crate::qljs_assert;
 
 #[cfg(target_arch = "aarch64")]
 use std::arch::aarch64::*;

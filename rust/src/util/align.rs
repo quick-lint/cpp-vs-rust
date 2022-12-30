@@ -1,5 +1,5 @@
-use crate::port::ptr::*;
 use crate::qljs_assert;
+use crate::port::ptr::*;
 
 pub trait Alignable {
     fn align_up(self, alignment: usize) -> Self;

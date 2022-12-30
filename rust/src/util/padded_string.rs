@@ -1,9 +1,9 @@
 // TODO(port-later): Find a better crate to put this in. The C++ code had this in 'container', but
 // we needed to put it in 'util' to break cyclic dependencies.
 
+use crate::util::narrow_cast::*;
 use crate::qljs_assert;
 use crate::qljs_const_assert;
-use crate::util::narrow_cast::*;
 
 pub type PaddedStringSizeType = i32;
 

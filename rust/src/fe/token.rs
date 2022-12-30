@@ -1,10 +1,10 @@
-use crate::container::monotonic_allocator::*;
-use crate::container::vector::*;
 use crate::fe::buffering_diag_reporter::*;
 use crate::fe::diag_reporter::*;
 use crate::fe::diagnostic_types::*;
 use crate::fe::identifier::*;
 use crate::fe::source_code_span::*;
+use crate::container::monotonic_allocator::*;
+use crate::container::vector::*;
 use crate::qljs_assert;
 
 #[macro_export]
@@ -222,8 +222,7 @@ macro_rules! qljs_case_binary_only_operator_symbol {
 #[macro_export]
 macro_rules! qljs_case_binary_only_operator {
     () => {
-        $crate::qljs_case_binary_only_operator_symbol!()
-            | $crate::fe::token::TokenType::KWInstanceof
+        $crate::qljs_case_binary_only_operator_symbol!() | $crate::fe::token::TokenType::KWInstanceof
     };
 }
 
