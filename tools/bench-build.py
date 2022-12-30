@@ -222,8 +222,8 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
         cxx_compiler=pathlib.Path("clang++"),
     )
     try_add_cxx_configs(
-        label="GCC 10",
-        cxx_compiler=pathlib.Path("g++-10"),
+        label="GCC 12",
+        cxx_compiler=pathlib.Path("g++-12"),
         cxx_flags="",
     )
     return cpp_configs
