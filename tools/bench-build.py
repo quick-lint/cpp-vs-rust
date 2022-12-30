@@ -932,7 +932,21 @@ def find_unique_file(root: pathlib.Path, name: str) -> pathlib.Path:
     return paths[0]
 
 
+CXX_COMPILER_BUILDS_CACHE = {}
+
+
 def cxx_compiler_builds(cxx_compiler: pathlib.Path, flags: str) -> bool:
+    cache_key = (str(cxx_compiler), flags)
+    cached = CXX_COMPILER_BUILDS_CACHE.get(cache_key, None)
+    if cached is not None:
+        return cached
+
+    result = cxx_compiler_builds_uncached(cxx_compiler=cxx_compiler, flags=flags)
+    CXX_COMPILER_BUILDS_CACHE[cache_key] = result
+    return result
+
+
+def cxx_compiler_builds_uncached(cxx_compiler: pathlib.Path, flags: str) -> bool:
     try:
         result = subprocess.run(
             [cxx_compiler, "-x", "c++", "-", "-o", "/dev/null"]
