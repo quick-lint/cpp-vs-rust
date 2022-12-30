@@ -158,3 +158,50 @@ pub fn decode_utf_8<'a>(input: PaddedStringView<'a>) -> DecodeUTF8Result {
         }
     }
 }
+
+pub fn count_lsp_characters_in_utf_8(utf_8: PaddedStringView, offset: i32) -> isize {
+    let mut c: PaddedStringSizeType = 0;
+    let stop: PaddedStringSizeType = offset;
+    let mut count: isize = 0;
+    while c < stop {
+        let result: DecodeUTF8Result = decode_utf_8(utf_8.substr(c));
+        if result.ok {
+            if c + result.size > stop {
+                break;
+            }
+            c += result.size;
+            if (result.code_point as u32) >= 0x10000 {
+                count += 2;
+            } else {
+                count += 1;
+            }
+        } else {
+            c += 1;
+            count += 1;
+        }
+    }
+    count
+}
+
+pub fn count_utf_8_characters(utf_8: PaddedStringView, offset: usize) -> usize {
+    let mut c: usize = 0;
+    let stop: usize = offset;
+    let mut count: usize = 0;
+
+    while c < stop {
+        let result = decode_utf_8(utf_8.substr(c as PaddedStringSizeType));
+        if !result.ok {
+            c += 1;
+            count += 1;
+            continue;
+        }
+
+        if c + (result.size as usize) > stop {
+            break;
+        }
+        c += result.size as usize;
+        count += 1;
+    }
+
+    count
+}

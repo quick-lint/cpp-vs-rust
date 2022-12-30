@@ -140,6 +140,12 @@ impl PaddedString {
         }
     }
 
+    pub fn as_mut_slice(&mut self) -> &mut [u8] {
+        unsafe {
+            std::slice::from_raw_parts_mut(self.data, narrow_cast(self.len_excluding_padding_bytes))
+        }
+    }
+
     pub fn view<'a>(&'a self) -> PaddedStringView<'a> {
         PaddedStringView::from(self)
     }

@@ -2,6 +2,7 @@ pub mod container;
 pub mod port;
 pub mod util;
 pub mod i18n;
+pub mod c_api;
 pub mod fe;
 pub mod test;
 
@@ -22,6 +23,8 @@ mod test_permutations;
 #[cfg(test)]
 mod test_buffering_diag_reporter;
 #[cfg(test)]
+mod test_c_api;
+#[cfg(test)]
 mod test_offset_of;
 #[cfg(test)]
 mod test_constexpr;
@@ -37,6 +40,10 @@ mod test_assert;
 mod test_translation_table_generated;
 #[cfg(test)]
 mod test_locale;
+#[cfg(test)]
+mod test_document;
+#[cfg(test)]
+mod test_web_demo_location;
 #[cfg(test)]
 mod test_linked_bump_allocator;
 #[cfg(test)]
