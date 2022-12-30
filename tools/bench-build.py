@@ -102,6 +102,9 @@ def main() -> None:
         )
 
     for rust_root in ROOT.glob("rust*"):
+        lex_rs_path = find_unique_file(rust_root, "lex.rs")
+        diagnostic_types_rs_path = find_unique_file(rust_root, "diagnostic_types.rs")
+        test_utf_8_rs_path = find_unique_file(rust_root, "test_utf_8.rs")
         for rust_config in find_rust_configs(root=rust_root):
             profiler.profile(RustFullBenchmark(rust_config))
             profiler.profile(RustHalfBenchmark(rust_config))
@@ -109,25 +112,19 @@ def main() -> None:
             profiler.profile(
                 RustIncrementalBenchmark(
                     rust_config,
-                    files_to_mutate=[
-                        find_unique_file(rust_root, "lex.rs"),
-                    ],
+                    files_to_mutate=[lex_rs_path],
                 )
             )
             profiler.profile(
                 RustIncrementalBenchmark(
                     rust_config,
-                    files_to_mutate=[
-                        find_unique_file(rust_root, "diagnostic_types.rs"),
-                    ],
+                    files_to_mutate=[diagnostic_types_rs_path],
                 )
             )
             profiler.profile(
                 RustIncrementalBenchmark(
                     rust_config,
-                    files_to_mutate=[
-                        find_unique_file(rust_root, "test_utf_8.rs"),
-                    ],
+                    files_to_mutate=[test_utf_8_rs_path],
                 )
             )
 
