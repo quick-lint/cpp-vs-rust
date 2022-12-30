@@ -56,6 +56,8 @@ cmake \
 ninja -C benchmark/build cpp-vs-rust-benchmark
 
 for so in a b c; do
+    sleep 2  # Let CPU cool a bit.
+
     #perf record -o build-perf/perf-${so}.data ...
     CPP_VS_RUST_DLL="build-perf/${so}.so" \
         ./benchmark/build/cpp-vs-rust-benchmark \
@@ -64,3 +66,7 @@ for so in a b c; do
         --benchmark_min_time=0.5 \
         --benchmark_repetitions=10
 done
+
+if [ -f /sys/devices/system/cpu/cpufreq/boost ] && [ "$(cat /sys/devices/system/cpu/cpufreq/boost)" -ne 0 ]; then
+    printf 'warning: CPU frequency boost was enabled, so results might be garbage.\nTry: echo 0 | sudo tee /sys/devices/system/cpu/cpufreq/boost\n' >&2
+fi
