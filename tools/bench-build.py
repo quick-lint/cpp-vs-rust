@@ -151,31 +151,42 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
             flags=f"{config.cxx_flags} {config.link_flags}",
         ):
             cpp_configs.append(config)
+        if config.pch:
+            new_config = config._replace(
+                label=f"{config.label} -fpch-instantiate-templates",
+                cxx_flags=f"{config.cxx_flags} -fpch-instantiate-templates",
+            )
+            if cxx_compiler_builds(
+                cxx_compiler=new_config.cxx_compiler,
+                flags=f"{new_config.cxx_flags} {new_config.link_flags}",
+            ):
+                cpp_configs.append(new_config)
 
     def try_add_cxx_configs(
         label: str, cxx_compiler: pathlib.Path, cxx_flags: str
     ) -> None:
-        for pch in (False, True):
-            label_suffix = " PCH" if pch else ""
-            try_add_cxx_config(
-                CPPConfig(
-                    label=f"{label}{label_suffix}",
-                    cxx_compiler=cxx_compiler,
-                    cxx_flags=cxx_flags,
-                    link_flags="",
-                    pch=pch,
-                )
-            )
-            if MOLD_LINKER_EXE is not None:
+        for g in ("", "-g0"):
+            for pch in (False, True):
+                label_suffix = (" PCH" if pch else "") + (" " if g else "") + g
                 try_add_cxx_config(
                     CPPConfig(
-                        label=f"{label}{label_suffix} Mold",
+                        label=f"{label}{label_suffix}",
                         cxx_compiler=cxx_compiler,
-                        cxx_flags=cxx_flags,
-                        link_flags=f"-Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                        cxx_flags=f"{cxx_flags} {g}",
+                        link_flags="",
                         pch=pch,
                     )
                 )
+                if MOLD_LINKER_EXE is not None:
+                    try_add_cxx_config(
+                        CPPConfig(
+                            label=f"{label}{label_suffix} Mold",
+                            cxx_compiler=cxx_compiler,
+                            cxx_flags=f"{cxx_flags} {g}",
+                            link_flags=f"-Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                            pch=pch,
+                        )
+                    )
 
     def try_add_clang_configs(label: str, cxx_compiler: pathlib.Path) -> None:
         try_add_cxx_configs(
