@@ -245,8 +245,12 @@ def multiply_lex_module(project_dir: pathlib.Path, total_copies: int) -> None:
     original_test_lex_rs = project_dir / "libs" / "fe" / "tests" / "test_lex.rs"
     original_test_lex_rs_code = original_test_lex_rs.read_text()
     for i in range(1, total_copies):
-        new_test_lex_rs = original_test_lex_rs.parent / f"{original_test_lex_rs.stem}_{i}.rs"
-        new_test_lex_rs.write_text(original_test_lex_rs_code.replace("::lex::", f"::lex_{i}::"))
+        new_test_lex_rs = (
+            original_test_lex_rs.parent / f"{original_test_lex_rs.stem}_{i}.rs"
+        )
+        new_test_lex_rs.write_text(
+            original_test_lex_rs_code.replace("::lex::", f"::lex_{i}::")
+        )
 
     original_lex_rs = project_dir / "libs" / "fe" / "src" / "lex.rs"
     original_lex_rs_code = original_lex_rs.read_text()
