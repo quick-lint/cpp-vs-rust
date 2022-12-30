@@ -252,7 +252,7 @@ class Benchmark:
 
 
 class CPPBenchmarkBase(Benchmark):
-    project = "C++"
+    project = "cpp"
 
     _cpp_config: CPPConfig
 
