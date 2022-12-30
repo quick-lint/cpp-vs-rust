@@ -576,14 +576,40 @@ def rust_build_packages(rust_config: RustConfig, packages: typing.List[str]) -> 
         command.append(f"--profile={rust_config.cargo_profile}")
     for package in packages:
         command.extend(("--package", package))
-    subprocess.check_call(
-        command,
-        cwd=rust_config.root,
-        env=dict(
-            os.environ,
-            RUSTC=str(rust_config.rustc),
-        ),
-    )
+
+    # HACK(strager): Cargo crashes when specifying memoffset, which is listed in
+    # [dev-dependencies]:
+    #
+    # > thread 'main' panicked at 'activated_features for invalid package:
+    # > features did not find PackageId { name: "memoffset", version: "0.7.1",
+    # > source: "registry `crates-io`" } NormalOrDevOrArtifactTarget(None)',
+    # > src/tools/cargo/src/cargo/core/resolver/features.rs:318:14
+    #
+    # Work around this by moving it into [dependencies] temporarily.
+    manifest_path = rust_config.root / "Cargo.toml"
+    if packages:
+        old_manifest_text = manifest_path.read_text()
+        manifest_path.write_text(
+            old_manifest_text.replace(
+                '\nmemoffset = { version = "0.7.1" }\n',
+                '\n[dependencies.memoffset]\nversion = "0.7.1"\n',
+            )
+        )
+    else:
+        old_manifest_text = None
+
+    try:
+        subprocess.check_call(
+            command,
+            cwd=rust_config.root,
+            env=dict(
+                os.environ,
+                RUSTC=str(rust_config.rustc),
+            ),
+        )
+    finally:
+        if old_manifest_text is not None:
+            manifest_path.write_text(old_manifest_text)
 
 
 def rust_build_and_test(rust_config: RustConfig) -> None:
