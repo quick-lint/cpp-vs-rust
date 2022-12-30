@@ -382,13 +382,17 @@ class RustConfig(typing.NamedTuple):
 def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
     rust_configs = []
 
+    def try_add_rust_config(config: RustConfig) -> None:
+        if config.cargo.exists():
+            rust_configs.append(config)
+
     def add_rust_configs_for_toolchain(
         label: str,
         cargo: pathlib.Path,
         cargo_profile: typing.Optional[str],
         rustflags: str,
     ) -> None:
-        rust_configs.append(
+        try_add_rust_config(
             RustConfig(
                 label=f"{label}",
                 root=root,
@@ -398,7 +402,7 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
                 nextest=False,
             )
         )
-        rust_configs.append(
+        try_add_rust_config(
             RustConfig(
                 label=f"{label} cargo-nextest",
                 root=root,
