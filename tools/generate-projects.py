@@ -186,6 +186,7 @@ edition = "2021"
 members = [ {",".join(f'"libs/{c}"' for c in libs_to_keep)} ]
 
 [lib]
+crate-type = ["cdylib", "lib"]
 doctest = false
 test = false
 
