@@ -26,6 +26,13 @@ memoffset = { version = "0.7.1" }
 default = []
 qljs_debug = []
 
+[build]
+# Avoid linking Rust std's debug info, improving link times.
+# TODO(strager): Only use this where the linker flag is supported.
+# TODO(strager): Only use this for quick-build-incremental and
+# quick-build-nonincremental.
+rustflags = ["-Clink-args=-Wl,-s"]
+
 [profile.quick-build-incremental]
 debug = false
 debug-assertions = false
@@ -36,6 +43,7 @@ opt-level = 0
 overflow-checks = false
 panic = 'abort'
 rpath = false
+# TODO(strager): Add -Zshare-generics=y to rustflags.
 
 [profile.quick-build-nonincremental]
 inherits = "quick-build-incremental"

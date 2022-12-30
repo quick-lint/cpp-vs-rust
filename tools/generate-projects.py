@@ -202,7 +202,7 @@ memoffset = {{ version = "0.7.1" }}
 default = []
 qljs_debug = []
 
-{cargo_toml[cargo_toml.index("[profile"):]}"""
+{cargo_toml[cargo_toml.index("[build"):]}"""
     cargo_toml_path.write_text(cargo_toml)
 
 
