@@ -245,39 +245,46 @@ def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> 
 
 
 def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) -> None:
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strapurp"
-        and run.project == "rust"
-        and run.toolchain_label
-        in (
-            "Rust Nightly Mold quick-build-incremental cargo-nextest",
-            "Rust Nightly Mold quick-build-incremental",
+    for hostname in ("strammer.lan", "strapurp"):
+        runs = [
+            run
+            for run in all_runs
+            if run.hostname == hostname
+            and run.project == "rust"
+            and run.toolchain_label
+            in (
+                "Rust Nightly quick-build-incremental cargo-nextest",
+                "Rust Nightly quick-build-incremental",
+            )
+        ]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                BarChartBar(
+                    name="cargo-nextest"
+                    if "cargo-nextest" in run.toolchain_label
+                    else "Default",
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    emphasize="cargo-nextest" in run.toolchain_label,
+                ),
+            )
+        chart = BarChart(
+            name="Linux: cargo-nextest slows down build+test"
+            if hostname == "strapurp"
+            else "macOS: cargo-nextest speeds up build+test",
+            subtitle="lower is better.",
+            groups=[
+                BarChartGroup(name=group_name, bars=group_bars)
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
         )
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name="cargo-nextest"
-                if "cargo-nextest" in run.toolchain_label
-                else "Default",
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                emphasize="cargo-nextest" in run.toolchain_label,
-            ),
+        write_chart(
+            chart=chart,
+            path=output_dir
+            / f"cargo-nextest-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
         )
-    chart = BarChart(
-        name="cargo-nextest does not speed up build+test",
-        subtitle="tested on Linux. lower is better.",
-        groups=[
-            BarChartGroup(name=group_name, bars=group_bars)
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(chart=chart, path=output_dir / "cargo-nextest.svg")
 
 
 def make_chart_rust_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -> None:
@@ -350,6 +357,7 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
         else:
             toolchains = {
                 "Rust Nightly quick-build-incremental": "Rust Nightly",
+                "Rust Nightly quick-build-incremental cargo-nextest": "Rust Nightly cargo-nextest",
                 "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode",
                 "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15",
                 "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang Xcode lld",
@@ -357,6 +365,7 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
             }
             toolchain_order = [
                 "Rust Nightly",
+                "Rust Nightly cargo-nextest",
                 "Clang Xcode",
                 "Clang Xcode lld",
                 "Clang 15",
