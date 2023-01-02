@@ -72,7 +72,7 @@ def make_chart_rust_linux_linker(
 def make_chart_rust_macos_linker(
     all_runs: typing.List, output_dir: pathlib.Path
 ) -> None:
-    bar_order = ["ld64", "lld", "zld"]
+    bar_order = ["ld64 (default)", "lld", "zld"]
     runs = [
         run
         for run in all_runs
@@ -90,7 +90,7 @@ def make_chart_rust_macos_linker(
             if "ld64.lld" in run.toolchain_label
             else "zld"
             if "zld" in run.toolchain_label
-            else "ld64"
+            else "ld64 (default)"
         )
         group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
             BarChartBar(
@@ -98,7 +98,11 @@ def make_chart_rust_macos_linker(
                 value=avg(run.samples),
                 min=min(run.samples),
                 max=max(run.samples),
-                classes=[f"color-{bar_order.index(name)+1}-of-3"],
+                classes=[
+                    "color-default"
+                    if name == "ld64 (default)"
+                    else f"color-{bar_order.index(name)+1-1}-of-2"
+                ],
             ),
         )
     chart = BarChart(
