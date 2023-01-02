@@ -29,6 +29,7 @@ def main() -> None:
     make_chart_cargo_nextest(all_runs=latest_runs, output_dir=output_dir)
     make_chart_rust_layouts(all_runs=latest_runs, output_dir=output_dir)
     make_chart_rust_toolchains(all_runs=latest_runs, output_dir=output_dir)
+    make_chart_cpp_toolchains(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cpp_vs_rust(all_runs=latest_runs, output_dir=output_dir)
 
 
@@ -339,6 +340,81 @@ def make_chart_rust_toolchains(all_runs: typing.List, output_dir: pathlib.Path) 
     )
 
 
+def make_chart_cpp_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -> None:
+    for hostname in ("strammer.lan", "strapurp"):
+        if hostname == "strapurp":
+            toolchains = {
+                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libstdc++",
+                "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libc++",
+                "Clang 12 libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libstdc++",
+                "Clang 12 libc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libc++",
+                "GCC 12 PCH -g0 Mold": "GCC",
+            }
+            toolchain_order = [
+                "GCC",
+                "Clang (Ubuntu) libc++",
+                "Clang (Ubuntu) libstdc++",
+                "Clang (custom) libc++",
+                "Clang (custom) libstdc++",
+            ]
+        else:
+            toolchains = {
+                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode ld64",
+                "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang Xcode lld",
+                "Clang libc++ PCH -g0 zld -fpch-instantiate-templates": "Clang Xcode zld",
+                "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15 ld64",
+                "Clang 15 libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang 15 lld",
+                "Clang 15 libc++ PCH -g0 zld -fpch-instantiate-templates": "Clang 15 zld",
+            }
+            toolchain_order = [
+                "Clang Xcode ld64",
+                "Clang Xcode lld",
+                "Clang Xcode zld",
+                "Clang 15 ld64",
+                "Clang 15 lld",
+                "Clang 15 zld",
+            ]
+        runs = [
+            run
+            for run in all_runs
+            if run.hostname == hostname
+            and run.project == "cpp"
+            and run.toolchain_label in toolchains.keys()
+        ]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            if run.benchmark_name in ("test only", "full build and test"):
+                continue
+            group_bars_by_name[
+                munge_benchmark_name_portable(run.benchmark_name)
+            ].append(
+                BarChartBar(
+                    name=toolchains[run.toolchain_label],
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                ),
+            )
+        chart = BarChart(
+            name=f"{'Linux' if hostname == 'strapurp' else 'macOS'} C++ toolchain build time comparison",
+            subtitle=f"lower is better.",
+            groups=[
+                BarChartGroup(
+                    name=group_name,
+                    bars=sorted(
+                        group_bars, key=lambda bar: toolchain_order.index(bar.name)
+                    ),
+                )
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
+        )
+        write_chart(
+            chart=chart,
+            path=output_dir
+            / f"cpp-toolchains-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+        )
+
+
 def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> None:
     for hostname in ("strammer.lan", "strapurp"):
         if hostname == "strapurp":
@@ -346,30 +422,22 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
                 "Rust Nightly Mold quick-build-incremental": "Rust Nightly",
                 "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang libstdc++",
                 "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang libc++",
-                "GCC 12 PCH -g0 Mold": "GCC",
             }
             toolchain_order = [
                 "Rust Nightly",
                 "Clang libstdc++",
                 "Clang libc++",
-                "GCC",
             ]
         else:
             toolchains = {
                 "Rust Nightly quick-build-incremental": "Rust Nightly",
                 "Rust Nightly quick-build-incremental cargo-nextest": "Rust Nightly cargo-nextest",
                 "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode",
-                "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15",
-                "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang Xcode lld",
-                "Clang 15 libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang 15 lld",
             }
             toolchain_order = [
                 "Rust Nightly",
                 "Rust Nightly cargo-nextest",
                 "Clang Xcode",
-                "Clang Xcode lld",
-                "Clang 15",
-                "Clang 15 lld",
             ]
         runs = [
             run
@@ -390,7 +458,9 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
                     value=avg(run.samples),
                     min=min(run.samples),
                     max=max(run.samples),
-                    emphasize=toolchains[run.toolchain_label] == "Rust Nightly",
+                    emphasize=toolchains[run.toolchain_label] == "Rust Nightly"
+                    if hostname == "strapurp"
+                    else toolchains[run.toolchain_label] == "Clang Xcode",
                 ),
             )
         chart = BarChart(
