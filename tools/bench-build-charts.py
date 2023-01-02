@@ -316,7 +316,7 @@ def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) ->
                     min=min(run.samples),
                     max=max(run.samples),
                     emphasize="cargo-nextest" in run.toolchain_label,
-                    classes=[]
+                    classes=["color-1-of-2"]
                     if "cargo-nextest" in run.toolchain_label
                     else ["color-default"],
                     show_percent_difference=0
