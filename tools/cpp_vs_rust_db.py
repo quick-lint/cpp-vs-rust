@@ -262,6 +262,10 @@ class TestDB(unittest.TestCase):
         self.assertEqual(sorted(run.id for run in runs), sorted((run_1_id, run_2_id)))
 
 
+def format_ns(ns: NanosecondDuration) -> str:
+    return f"{ns_to_ms(ns)}ms"
+
+
 def ns_to_ms(ns: NanosecondDuration) -> MillisecondDuration:
     return int(math.ceil(ns / 1e6))
 

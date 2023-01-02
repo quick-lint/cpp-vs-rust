@@ -17,7 +17,7 @@ import sys
 import time
 import typing
 import unittest
-from cpp_vs_rust_db import DB, NanosecondDuration, TestDB, ns_to_ms
+from cpp_vs_rust_db import DB, NanosecondDuration, TestDB, format_ns, ns_to_ms
 
 HOSTNAME = socket.gethostname()
 
@@ -725,10 +725,6 @@ def rustup_which(command: str, *, toolchain: str) -> pathlib.Path:
             encoding="utf-8",
         ).rstrip()
     )
-
-
-def format_ns(ns: NanosecondDuration) -> str:
-    return f"{ns_to_ms(ns)}ms"
 
 
 def delete_dir(dir: pathlib.Path) -> None:
