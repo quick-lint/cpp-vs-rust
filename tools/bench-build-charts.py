@@ -55,6 +55,7 @@ def make_chart_rust_linux_linker(
                 max=max(run.samples),
                 emphasize="Mold" in run.toolchain_label,
                 classes=[] if "Mold" in run.toolchain_label else ["color-default"],
+                show_percent_difference=0 if "Mold" in run.toolchain_label else None,
             ),
         )
     chart = BarChart(
@@ -117,6 +118,7 @@ def make_chart_rust_macos_linker(
 def make_chart_cranelift_vs_llvm(
     all_runs: typing.List, output_dir: pathlib.Path
 ) -> None:
+    bar_order = ["LLVM", "Cranelift"]
     runs = [
         run
         for run in all_runs
@@ -136,13 +138,19 @@ def make_chart_cranelift_vs_llvm(
                 max=max(run.samples),
                 emphasize="Cranelift" in run.toolchain_label,
                 classes=[] if "Cranelift" in run.toolchain_label else ["color-default"],
+                show_percent_difference=0
+                if "Cranelift" in run.toolchain_label
+                else None,
             ),
         )
     chart = BarChart(
         name="Rust backend: <tspan class='color-default'>LLVM (default)</tspan> beats <tspan class='color-1-of-2'>Cranelift</tspan>",
         subtitle="lower is better.",
         groups=[
-            BarChartGroup(name=group_name, bars=group_bars)
+            BarChartGroup(
+                name=group_name,
+                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+            )
             for group_name, group_bars in group_bars_by_name.items()
         ],
     )
@@ -187,6 +195,7 @@ def make_chart_optimized_rustc_flags(
                         "color-alternate-shade",
                     ],
                 }[name],
+                show_percent_difference=None if name == "debug" else 0,
             ),
         )
     chart = BarChart(
@@ -310,6 +319,9 @@ def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) ->
                     classes=[]
                     if "cargo-nextest" in run.toolchain_label
                     else ["color-default"],
+                    show_percent_difference=0
+                    if "cargo-nextest" in run.toolchain_label
+                    else None,
                 ),
             )
         chart = BarChart(
@@ -360,6 +372,9 @@ def make_chart_rust_toolchains(all_runs: typing.List, output_dir: pathlib.Path) 
                 min=min(run.samples),
                 max=max(run.samples),
                 emphasize=tc in ("Nightly", "Custom+PGO+BOLT"),
+                show_percent_difference=toolchain_order.index("Nightly")
+                if tc == "Custom+PGO+BOLT"
+                else None,
             ),
         )
     chart = BarChart(
@@ -493,12 +508,10 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
             ]
         else:
             toolchains = {
-                "Rust Nightly quick-build-incremental": "Rust Nightly",
                 "Rust Nightly quick-build-incremental cargo-nextest": "Rust Nightly cargo-nextest",
                 "Clang libc++ PCH -g0 -fpch-instantiate-templates": "C++ Clang",
             }
             toolchain_order = [
-                "Rust Nightly",
                 "Rust Nightly cargo-nextest",
                 "C++ Clang",
             ]
@@ -529,11 +542,8 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
                     max=max(run.samples),
                     emphasize=emphasize,
                     classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"]
-                    + (
-                        ["color-alternate-shade"]
-                        if ("libc++" in name or "cargo-nextest" in name)
-                        else []
-                    ),
+                    + (["color-alternate-shade"] if "libc++" in name else []),
+                    show_percent_difference=0 if "C++" in name else None,
                 ),
             )
         chart = BarChart(
@@ -577,6 +587,8 @@ class BarChartBar(typing.NamedTuple):
     min: float
     max: float
     emphasize: bool = False
+    # Index to the bar to compare to.
+    show_percent_difference: typing.Optional[int] = None
     classes: typing.List[str] = []
 
 
@@ -627,6 +639,15 @@ class BarChartWriter:
         self.group_gap = 7
         self.bar_value_labels_gap = 2
         self.bar_value_labels_width = 30
+        self.bar_value_labels_extra_width = (
+            35
+            if any(
+                bar.show_percent_difference is not None
+                for group in chart.groups
+                for bar in group.bars
+            )
+            else 0
+        )
         self.bar_value_labels_min_x_offset = 40
         self.error_bar_thickness = 0.75
         self.error_bar_height = self.bar_height / 2.5
@@ -650,7 +671,12 @@ class BarChartWriter:
         self.image_height = self.graph_bottom + self.x_labels_height + 2
 
         self.x_scale = (
-            self.graph_width - (self.bar_value_labels_gap + self.bar_value_labels_width)
+            self.graph_width
+            - (
+                self.bar_value_labels_gap
+                + self.bar_value_labels_width
+                + self.bar_value_labels_extra_width
+            )
         ) / chart.maximum_value
 
     def _bar_y(self, group_index: int, bar_index: int) -> None:
@@ -696,6 +722,15 @@ class BarChartWriter:
         if bar.emphasize:
             classes.append("emphasize-bar")
 
+        percent_difference_text = ""
+        if bar.show_percent_difference is not None:
+            baseline = group.bars[bar.show_percent_difference].value
+            percent_difference = (bar.value - baseline) / baseline * 100
+            if abs(percent_difference) < 10:
+                percent_difference_text = f"({percent_difference:+.1f}%)"
+            else:
+                percent_difference_text = f"({percent_difference:+.0f}%)"
+
         y = self._bar_y(group_index=group_index, bar_index=bar_index)
 
         value_label_x_offset = (
@@ -710,12 +745,16 @@ class BarChartWriter:
         error_bar_y_offset = y + self.bar_height / 2
 
         label_x_offset = 3
-        average_width_per_character = 7
+        average_width_per_character = 6
         if any(
             len(cur_bar.name) * average_width_per_character > value_label_x_offset
             for cur_bar in group.bars
         ):
             label_x_offset = value_label_x_offset + 5
+            if any(
+                cur_bar.show_percent_difference is not None for cur_bar in group.bars
+            ):
+                label_x_offset += self.bar_value_labels_extra_width
             classes.append("bar-label-outside-bar")
 
         self.svg.write(
@@ -760,6 +799,16 @@ class BarChartWriter:
                     y="{y + self.bar_height - 2}">{format_ns(bar.value)}</text>
             """
         )
+        if percent_difference_text:
+            self.svg.write(
+                f"""
+                    <text
+                        class="bar-value {' '.join(classes)}"
+                        text-anchor="start"
+                        x="{self.graph_left + value_label_x_offset}"
+                        y="{y + self.bar_height - 2}">&#x00a0;{percent_difference_text}</text>
+                """
+            )
 
     def svg_header(self) -> None:
         self.svg.write(
