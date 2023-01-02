@@ -30,6 +30,18 @@ CPP_BUILD_DIR = CPP_ROOT / "build"
 
 MOLD_LINKER_EXE: typing.Optional[str] = shutil.which("mold")
 
+LD64_LLD_LINKER_EXE: typing.Optional[pathlib.Path] = pathlib.Path(
+    "/Users/strager/tmp/llvm/clang+llvm-15.0.6-arm64-apple-darwin21.0/bin/ld64.lld"
+)
+if not LD64_LLD_LINKER_EXE.exists():
+    LD64_LLD_LINKER_EXE = None
+
+ZLD_LINKER_EXE: typing.Optional[pathlib.Path] = pathlib.Path(
+    "/Users/strager/tmp/Projects/zld/build/Build/Products/Release/zld"
+)
+if not ZLD_LINKER_EXE.exists():
+    ZLD_LINKER_EXE = None
+
 CARGO_CLIF_EXE: typing.Optional[pathlib.Path] = pathlib.Path(
     "/home/strager/tmp/Projects/rustc_codegen_cranelift/dist/cargo-clif"
 )
@@ -184,6 +196,26 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
                             link_flags=f"{link_flags} -Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                            pch=pch,
+                        )
+                    )
+                if ZLD_LINKER_EXE is not None:
+                    try_add_cxx_config(
+                        CPPConfig(
+                            label=f"{label}{label_suffix} zld",
+                            cxx_compiler=cxx_compiler,
+                            cxx_flags=f"{cxx_flags} {g}",
+                            link_flags=f"{link_flags} -fuse-ld={ZLD_LINKER_EXE}",
+                            pch=pch,
+                        )
+                    )
+                if LD64_LLD_LINKER_EXE is not None:
+                    try_add_cxx_config(
+                        CPPConfig(
+                            label=f"{label}{label_suffix} ld64.lld",
+                            cxx_compiler=cxx_compiler,
+                            cxx_flags=f"{cxx_flags} {g}",
+                            link_flags=f"{link_flags} -fuse-ld={LD64_LLD_LINKER_EXE}",
                             pch=pch,
                         )
                     )
@@ -494,6 +526,18 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
                 extra_label=f"Mold {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
                 rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+            )
+        if ZLD_LINKER_EXE is not None:
+            add_rust_configs(
+                extra_label=f"zld {cargo_profile or ''}",
+                cargo_profile=cargo_profile,
+                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={ZLD_LINKER_EXE}",
+            )
+        if LD64_LLD_LINKER_EXE is not None:
+            add_rust_configs(
+                extra_label=f"ld64.lld {cargo_profile or ''}",
+                cargo_profile=cargo_profile,
+                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={LD64_LLD_LINKER_EXE}",
             )
     return reversed(rust_configs)
 

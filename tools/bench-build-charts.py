@@ -22,7 +22,8 @@ def main() -> None:
         latest_runs.extend(db.load_latest_runs())
 
     output_dir.mkdir(exist_ok=True)
-    make_chart_mold_vs_default_linker(all_runs=latest_runs, output_dir=output_dir)
+    make_chart_rust_linux_linker(all_runs=latest_runs, output_dir=output_dir)
+    make_chart_rust_macos_linker(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cranelift_vs_llvm(all_runs=latest_runs, output_dir=output_dir)
     make_chart_optimized_rustc_flags(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cargo_nextest(all_runs=latest_runs, output_dir=output_dir)
@@ -31,7 +32,7 @@ def main() -> None:
     make_chart_cpp_vs_rust(all_runs=latest_runs, output_dir=output_dir)
 
 
-def make_chart_mold_vs_default_linker(
+def make_chart_rust_linux_linker(
     all_runs: typing.List, output_dir: pathlib.Path
 ) -> None:
     runs = [
@@ -55,14 +56,52 @@ def make_chart_mold_vs_default_linker(
             ),
         )
     chart = BarChart(
-        name="Linker: Mold barely beats default",
-        subtitle="tested on Linux. lower is better.",
+        name="Linux: Mold barely beats default linker",
+        subtitle="lower is better.",
         groups=[
             BarChartGroup(name=group_name, bars=group_bars)
             for group_name, group_bars in group_bars_by_name.items()
         ],
     )
-    write_chart(chart=chart, path=output_dir / "mold-vs-default-linker.svg")
+    write_chart(chart=chart, path=output_dir / "rust-linux-linker.svg")
+
+
+def make_chart_rust_macos_linker(
+    all_runs: typing.List, output_dir: pathlib.Path
+) -> None:
+    runs = [
+        run
+        for run in all_runs
+        if run.hostname == "strammer.lan"
+        and run.project == "rust"
+        and run.toolchain_label
+        in ("Rust Stable ld64.lld", "Rust Stable zld", "Rust Stable")
+    ]
+    group_bars_by_name = collections.defaultdict(list)
+    for run in runs:
+        if run.benchmark_name == "test only":
+            continue
+        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+            BarChartBar(
+                name="lld"
+                if "ld64.lld" in run.toolchain_label
+                else "zld"
+                if "zld" in run.toolchain_label
+                else "ld64",
+                value=avg(run.samples),
+                min=min(run.samples),
+                max=max(run.samples),
+            ),
+        )
+    chart = BarChart(
+        name="macOS: linkers perform about the same",
+        subtitle="lower is better.",
+        groups=[
+            BarChartGroup(name=group_name, bars=group_bars)
+            for group_name, group_bars in group_bars_by_name.items()
+        ],
+    )
+    write_chart(chart=chart, path=output_dir / "rust-macos-linker.svg")
 
 
 def make_chart_cranelift_vs_llvm(
@@ -313,11 +352,15 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
                 "Rust Nightly quick-build-incremental": "Rust Nightly",
                 "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode",
                 "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15",
+                "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang Xcode lld",
+                "Clang 15 libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang 15 lld",
             }
             toolchain_order = [
                 "Rust Nightly",
                 "Clang Xcode",
+                "Clang Xcode lld",
                 "Clang 15",
+                "Clang 15 lld",
             ]
         runs = [
             run
