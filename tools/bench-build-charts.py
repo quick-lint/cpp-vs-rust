@@ -28,6 +28,7 @@ def main() -> None:
     make_chart_cargo_nextest(all_runs=latest_runs, output_dir=output_dir)
     make_chart_rust_layouts(all_runs=latest_runs, output_dir=output_dir)
     make_chart_rust_toolchains(all_runs=latest_runs, output_dir=output_dir)
+    make_chart_cpp_vs_rust(all_runs=latest_runs, output_dir=output_dir)
 
 
 def make_chart_mold_vs_default_linker(
@@ -290,6 +291,72 @@ def make_chart_rust_toolchains(all_runs: typing.List, output_dir: pathlib.Path) 
         chart=chart,
         path=output_dir / f"rust-toolchain.svg",
     )
+
+
+def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> None:
+    for hostname in ("strammer.lan", "strapurp"):
+        if hostname == "strapurp":
+            toolchains = {
+                "Rust Nightly Mold quick-build-incremental": "Rust Nightly",
+                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang libstdc++",
+                "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang libc++",
+                "GCC 12 PCH -g0 Mold": "GCC",
+            }
+            toolchain_order = [
+                "Rust Nightly",
+                "Clang libstdc++",
+                "Clang libc++",
+                "GCC",
+            ]
+        else:
+            toolchains = {
+                "Rust Nightly quick-build-incremental": "Rust Nightly",
+                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang",
+            }
+            toolchain_order = [
+                "Rust Nightly",
+                "Clang",
+            ]
+        runs = [
+            run
+            for run in all_runs
+            if run.hostname == hostname
+            and run.project in ("rust", "cpp")
+            and run.toolchain_label in toolchains.keys()
+        ]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            if run.benchmark_name in ("test only", "full build and test"):
+                continue
+            group_bars_by_name[
+                munge_benchmark_name_portable(run.benchmark_name)
+            ].append(
+                BarChartBar(
+                    name=toolchains[run.toolchain_label],
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    emphasize=toolchains[run.toolchain_label] == "Rust Nightly",
+                ),
+            )
+        chart = BarChart(
+            name=f"C++ vs Rust build times",
+            subtitle=f"tested on {'Linux' if hostname == 'strapurp' else 'macOS'}. lower is better.",
+            groups=[
+                BarChartGroup(
+                    name=group_name,
+                    bars=sorted(
+                        group_bars, key=lambda bar: toolchain_order.index(bar.name)
+                    ),
+                )
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
+        )
+        write_chart(
+            chart=chart,
+            path=output_dir
+            / f"cpp-vs-rust-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+        )
 
 
 class BarChart(typing.NamedTuple):
@@ -583,6 +650,20 @@ def munge_benchmark_name(benchmark_name: str) -> str:
         "incremental build and test (diagnostic_types.rs)": "incremental\ndiag_types.rs",
         "incremental build and test (lex.rs)": "incremental\nlex.rs",
         "incremental build and test (test_utf_8.rs)": "incremental\ntest_utf_8.rs",
+        "test only": "test only",
+    }[benchmark_name]
+
+
+def munge_benchmark_name_portable(benchmark_name: str) -> str:
+    return {
+        "build and test only my code": "build\nw/o deps",
+        "full build and test": "build\nw/ deps",
+        "incremental build and test (diagnostic_types.rs)": "incremental\ndiag-types",
+        "incremental build and test (diagnostic-types.h)": "incremental\ndiag-types",
+        "incremental build and test (lex.rs)": "incremental\nlex",
+        "incremental build and test (lex.cpp)": "incremental\nlex",
+        "incremental build and test (test_utf_8.rs)": "incremental\ntest-utf-8",
+        "incremental build and test (test-utf-8.cpp)": "incremental\ntest-utf-8",
         "test only": "test only",
     }[benchmark_name]
 
