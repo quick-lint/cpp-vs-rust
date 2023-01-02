@@ -54,10 +54,11 @@ def make_chart_rust_linux_linker(
                 min=min(run.samples),
                 max=max(run.samples),
                 emphasize="Mold" in run.toolchain_label,
+                classes=[] if "Mold" in run.toolchain_label else ["color-default"],
             ),
         )
     chart = BarChart(
-        name="Linux: Mold barely beats default linker",
+        name="Linux: <tspan class='color-1-of-2'>Mold</tspan> barely beats <tspan class='color-default'>default linker</tspan>",
         subtitle="lower is better.",
         groups=[
             BarChartGroup(name=group_name, bars=group_bars)
@@ -70,6 +71,7 @@ def make_chart_rust_linux_linker(
 def make_chart_rust_macos_linker(
     all_runs: typing.List, output_dir: pathlib.Path
 ) -> None:
+    bar_order = ["ld64", "lld", "zld"]
     runs = [
         run
         for run in all_runs
@@ -82,23 +84,30 @@ def make_chart_rust_macos_linker(
     for run in runs:
         if run.benchmark_name == "test only":
             continue
+        name = (
+            "lld"
+            if "ld64.lld" in run.toolchain_label
+            else "zld"
+            if "zld" in run.toolchain_label
+            else "ld64"
+        )
         group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
             BarChartBar(
-                name="lld"
-                if "ld64.lld" in run.toolchain_label
-                else "zld"
-                if "zld" in run.toolchain_label
-                else "ld64",
+                name=name,
                 value=avg(run.samples),
                 min=min(run.samples),
                 max=max(run.samples),
+                classes=[f"color-{bar_order.index(name)+1}-of-3"],
             ),
         )
     chart = BarChart(
         name="macOS: linkers perform about the same",
         subtitle="lower is better.",
         groups=[
-            BarChartGroup(name=group_name, bars=group_bars)
+            BarChartGroup(
+                name=group_name,
+                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+            )
             for group_name, group_bars in group_bars_by_name.items()
         ],
     )
@@ -126,10 +135,11 @@ def make_chart_cranelift_vs_llvm(
                 min=min(run.samples),
                 max=max(run.samples),
                 emphasize="Cranelift" in run.toolchain_label,
+                classes=[] if "Cranelift" in run.toolchain_label else ["color-default"],
             ),
         )
     chart = BarChart(
-        name="Rust backend: LLVM (default) beats Cranelift",
+        name="Rust backend: <tspan class='color-default'>LLVM (default)</tspan> beats <tspan class='color-1-of-2'>Cranelift</tspan>",
         subtitle="lower is better.",
         groups=[
             BarChartGroup(name=group_name, bars=group_bars)
@@ -158,20 +168,29 @@ def make_chart_optimized_rustc_flags(
     for run in runs:
         if run.benchmark_name in ("test only", "full build and test"):
             continue
+        name = {
+            "Rust Stable": "debug",
+            "Rust Stable quick-build-incremental": "quick, incremental=true",
+            "Rust Stable quick-build-nonincremental": "quick, incremental=false",
+        }[run.toolchain_label]
         group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
             BarChartBar(
-                name={
-                    "Rust Stable": "debug",
-                    "Rust Stable quick-build-incremental": "quick, incremental=true",
-                    "Rust Stable quick-build-nonincremental": "quick, incremental=false",
-                }[run.toolchain_label],
+                name=name,
                 value=avg(run.samples),
                 min=min(run.samples),
                 max=max(run.samples),
+                classes={
+                    "debug": ["color-default"],
+                    "quick, incremental=true": ["color-1-of-2"],
+                    "quick, incremental=false": [
+                        "color-1-of-2",
+                        "color-alternate-shade",
+                    ],
+                }[name],
             ),
         )
     chart = BarChart(
-        name="rustc flags: quick build beats debug build",
+        name="rustc flags: <tspan class='color-1-of-2'>quick build</tspan> beats <tspan class='color-default'>debug build</tspan>",
         subtitle="lower is better.",
         groups=[
             BarChartGroup(name=group_name, bars=group_bars)
@@ -223,10 +242,29 @@ def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> 
                     max=max(run.samples),
                     emphasize="workspace" in projects[run.project]
                     and not is_incremental_chart,
+                    classes={
+                        "workspace; test crates": ["color-1-of-3"],
+                        "workspace; merged test crate": [
+                            "color-1-of-3",
+                            "color-alternate-shade",
+                        ],
+                        "single crate; test crates": ["color-2-of-3"],
+                        "single crate; tests in lib": [
+                            "color-2-of-3",
+                            "color-alternate-shade",
+                        ],
+                        "2 crates; test crates": ["color-3-of-3"],
+                        "2 crates; merged test crate": [
+                            "color-3-of-3",
+                            "color-alternate-shade",
+                        ],
+                    }[projects[run.project]],
                 ),
             )
         chart = BarChart(
-            name=f"Rust {'incremental' if is_incremental_chart else 'full'} builds: {'best layout is unclear' if is_incremental_chart else 'workspace layout is fastest'}",
+            name="Rust incremental builds: best layout is unclear"
+            if is_incremental_chart
+            else "Rust full builds: <tspan class='color-1-of-3'>workspace layout</tspan> is fastest",
             subtitle="lower is better.",
             groups=[
                 BarChartGroup(
@@ -269,12 +307,15 @@ def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) ->
                     min=min(run.samples),
                     max=max(run.samples),
                     emphasize="cargo-nextest" in run.toolchain_label,
+                    classes=[]
+                    if "cargo-nextest" in run.toolchain_label
+                    else ["color-default"],
                 ),
             )
         chart = BarChart(
-            name="Linux: cargo-nextest slows down build+test"
+            name="Linux: <tspan class='color-1-of-2'>cargo-nextest</tspan> slows down build+test"
             if hostname == "strapurp"
-            else "macOS: cargo-nextest speeds up build+test",
+            else "macOS: <tspan class='color-1-of-2'>cargo-nextest</tspan> speeds up build+test",
             subtitle="lower is better.",
             groups=[
                 BarChartGroup(name=group_name, bars=group_bars)
@@ -359,17 +400,17 @@ def make_chart_cpp_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -
             ]
         else:
             toolchains = {
-                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode ld64",
-                "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang Xcode lld",
-                "Clang libc++ PCH -g0 zld -fpch-instantiate-templates": "Clang Xcode zld",
+                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Xcode ld64",
+                "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Xcode lld",
+                "Clang libc++ PCH -g0 zld -fpch-instantiate-templates": "Xcode zld",
                 "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15 ld64",
                 "Clang 15 libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang 15 lld",
                 "Clang 15 libc++ PCH -g0 zld -fpch-instantiate-templates": "Clang 15 zld",
             }
             toolchain_order = [
-                "Clang Xcode ld64",
-                "Clang Xcode lld",
-                "Clang Xcode zld",
+                "Xcode ld64",
+                "Xcode lld",
+                "Xcode zld",
                 "Clang 15 ld64",
                 "Clang 15 lld",
                 "Clang 15 zld",
@@ -393,10 +434,32 @@ def make_chart_cpp_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -
                     value=avg(run.samples),
                     min=min(run.samples),
                     max=max(run.samples),
+                    emphasize="Clang (custom)" in toolchains[run.toolchain_label],
+                    classes={
+                        "GCC": ["color-1-of-3"],
+                        "Clang (Ubuntu) libc++": ["color-2-of-3"],
+                        "Clang (Ubuntu) libstdc++": [
+                            "color-2-of-3",
+                            "color-alternate-shade",
+                        ],
+                        "Clang (custom) libc++": ["color-3-of-3"],
+                        "Clang (custom) libstdc++": [
+                            "color-3-of-3",
+                            "color-alternate-shade",
+                        ],
+                        "Xcode ld64": ["color-1-of-2"],
+                        "Xcode lld": ["color-1-of-2", "color-alternate-shade"],
+                        "Xcode zld": ["color-1-of-2", "color-alternate-shade-2"],
+                        "Clang 15 ld64": ["color-2-of-2"],
+                        "Clang 15 lld": ["color-2-of-2", "color-alternate-shade"],
+                        "Clang 15 zld": ["color-2-of-2", "color-alternate-shade-2"],
+                    }[toolchains[run.toolchain_label]],
                 ),
             )
         chart = BarChart(
-            name=f"{'Linux' if hostname == 'strapurp' else 'macOS'} C++ toolchain build time comparison",
+            name="Linux: <tspan class='color-3-of-3'>custom Clang</tspan> is fastest toolchain"
+            if hostname == "strapurp"
+            else "macOS: <tspan class='color-1-of-2'>Xcode</tspan> is fastest toolchain",
             subtitle=f"lower is better.",
             groups=[
                 BarChartGroup(
@@ -420,24 +483,24 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
         if hostname == "strapurp":
             toolchains = {
                 "Rust Nightly Mold quick-build-incremental": "Rust Nightly",
-                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang libstdc++",
-                "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang libc++",
+                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++ Clang libstdc++",
+                "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "C++ Clang libc++",
             }
             toolchain_order = [
                 "Rust Nightly",
-                "Clang libstdc++",
-                "Clang libc++",
+                "C++ Clang libstdc++",
+                "C++ Clang libc++",
             ]
         else:
             toolchains = {
                 "Rust Nightly quick-build-incremental": "Rust Nightly",
                 "Rust Nightly quick-build-incremental cargo-nextest": "Rust Nightly cargo-nextest",
-                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode",
+                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "C++ Clang",
             }
             toolchain_order = [
                 "Rust Nightly",
                 "Rust Nightly cargo-nextest",
-                "Clang Xcode",
+                "C++ Clang",
             ]
         runs = [
             run
@@ -450,22 +513,34 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
         for run in runs:
             if run.benchmark_name in ("test only", "full build and test"):
                 continue
+            emphasize = (
+                toolchains[run.toolchain_label] == "Rust Nightly"
+                if hostname == "strapurp"
+                else toolchains[run.toolchain_label] == "C++ Clang"
+            )
+            name = toolchains[run.toolchain_label]
             group_bars_by_name[
                 munge_benchmark_name_portable(run.benchmark_name)
             ].append(
                 BarChartBar(
-                    name=toolchains[run.toolchain_label],
+                    name=name,
                     value=avg(run.samples),
                     min=min(run.samples),
                     max=max(run.samples),
-                    emphasize=toolchains[run.toolchain_label] == "Rust Nightly"
-                    if hostname == "strapurp"
-                    else toolchains[run.toolchain_label] == "Clang Xcode",
+                    emphasize=emphasize,
+                    classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"]
+                    + (
+                        ["color-alternate-shade"]
+                        if ("libc++" in name or "cargo-nextest" in name)
+                        else []
+                    ),
                 ),
             )
         chart = BarChart(
-            name=f"C++ vs Rust build times",
-            subtitle=f"tested on {'Linux' if hostname == 'strapurp' else 'macOS'}. lower is better.",
+            name="Linux: <tspan class='color-1-of-2'>Rust</tspan> usually builds faster than <tspan class='color-2-of-2'>C++</tspan>"
+            if hostname == "strapurp"
+            else "macOS: <tspan class='color-2-of-2'>C++</tspan> usually builds faster than <tspan class='color-1-of-2'>Rust</tspan>",
+            subtitle=f"lower is better.",
             groups=[
                 BarChartGroup(
                     name=group_name,
@@ -502,6 +577,7 @@ class BarChartBar(typing.NamedTuple):
     min: float
     max: float
     emphasize: bool = False
+    classes: typing.List[str] = []
 
 
 class BarChartGroup(typing.NamedTuple):
@@ -516,7 +592,6 @@ def write_chart(chart: BarChart, path: pathlib.Path) -> None:
             chart=chart,
         )
         svg_writer.svg_header()
-        svg_writer.axis_lines()
 
         for group_index, group in enumerate(chart.groups):
             svg_writer.write_group_label(
@@ -549,7 +624,7 @@ class BarChartWriter:
 
         self.bar_height = 10
         self.bar_gap = 2
-        self.group_gap = 5
+        self.group_gap = 7
         self.bar_value_labels_gap = 2
         self.bar_value_labels_width = 30
         self.bar_value_labels_min_x_offset = 40
@@ -617,7 +692,7 @@ class BarChartWriter:
     def write_bar(self, bar: BarChartBar, group_index: int, bar_index: int) -> None:
         group = self.chart.groups[group_index]
 
-        classes = []
+        classes = list(bar.classes)
         if bar.emphasize:
             classes.append("emphasize-bar")
 
@@ -641,23 +716,23 @@ class BarChartWriter:
             for cur_bar in group.bars
         ):
             label_x_offset = value_label_x_offset + 5
+            classes.append("bar-label-outside-bar")
 
         self.svg.write(
             f"""
                 <rect
                     class="bar {' '.join(classes)}"
-                    style="fill:#ff3cff"
                     width="{self._bar_width(bar.value)}"
                     height="{self.bar_height}"
                     x="{self.graph_left}"
                     y="{y}" />
 
-                <!-- vertical error bar -->
+                <!-- horizontal error bar -->
                 <rect
                     class="error-bar {' '.join(classes)}"
-                    width="{self._bar_width(bar.max - bar.min)}"
+                    width="{self._bar_width(bar.max - bar.min) - self.error_bar_thickness}"
                     height="{self.error_bar_thickness}"
-                    x="{self.graph_left + self._bar_width(bar.min)}"
+                    x="{self.graph_left + self._bar_width(bar.min) + self.error_bar_thickness/2}"
                     y="{error_bar_y_offset - self.error_bar_thickness/2}" />
                 <!-- left error bar -->
                 <rect
@@ -683,18 +758,6 @@ class BarChartWriter:
                     text-anchor="end"
                     x="{self.graph_left + value_label_x_offset}"
                     y="{y + self.bar_height - 2}">{format_ns(bar.value)}</text>
-            """
-        )
-
-    def axis_lines(self) -> None:
-        self.svg.write(
-            f"""
-                <rect
-                    style="fill:#ff3cff"
-                    width="1"
-                    height="{self.graph_bottom - self.graph_top}"
-                    x="{self.graph_left}"
-                    y="{self.graph_top}" />
             """
         )
 
@@ -729,20 +792,103 @@ class BarChartWriter:
             font-style: italic;
         }}
 
+        rect.bar,
+        rect.bar.color-default {{
+            fill: #444;
+        }}
         rect.bar.emphasize-bar {{
-            fill: blue;
+            fill: #c33;
         }}
-        text.bar-label,
-        text.bar-value {{
-            font-size:{self.bar_height*0.8}px;
+        .chart-title .color-1-of-2,
+        .chart-title .color-1-of-3,
+        .bar.color-1-of-2,
+        .bar.color-1-of-3,
+        .bar-label.bar-label-outside-bar.color-1-of-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3 {{
+            fill: #933;
         }}
-        text.bar-value.emphasize-bar,
-        text.bar-label.emphasize-bar {{
+        .bar.color-1-of-2.emphasize-bar,
+        .bar.color-1-of-3.emphasize-bar,
+        .bar-label.bar-label-outside-bar.color-1-of-2.emphasize-bar,
+        .bar-label.bar-label-outside-bar.color-1-of-3.emphasize-bar {{
+            fill: #c33;
+        }}
+        .bar.color-1-of-2.color-alternate-shade,
+        .bar.color-1-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {{
+            fill: #a52;
+        }}
+        .bar.color-1-of-2.color-alternate-shade-2,
+        .bar.color-1-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {{
+            fill: #915;
+        }}
+        .chart-title .color-2-of-2,
+        .chart-title .color-2-of-3,
+        .bar.color-2-of-2,
+        .bar.color-2-of-3,
+        .bar-label.bar-label-outside-bar.color-2-of-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3 {{
+            fill: #339;
+        }}
+        .bar.color-2-of-2.emphasize-bar,
+        .bar.color-2-of-3.emphasize-bar,
+        .bar-label.bar-label-outside-bar.color-2-of-2.emphasize-bar,
+        .bar-label.bar-label-outside-bar.color-2-of-3.emphasize-bar {{
+            fill: #33c;
+        }}
+        .bar.color-2-of-2.color-alternate-shade,
+        .bar.color-2-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {{
+            fill: #52a;
+        }}
+        .bar.color-2-of-2.color-alternate-shade-2,
+        .bar.color-2-of-3.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade-2,
+        .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {{
+            fill: #25a;
+        }}
+        .chart-title .color-3-of-3,
+        .bar.color-3-of-3,
+        .bar-label.bar-label-outside-bar.color-3-of-3 {{
+            fill: #393;
+        }}
+        .bar.color-3-of-3.emphasize-bar,
+        .bar-label.bar-label-outside-bar.color-3-of-3.emphasize-bar {{
+            fill: #3a3;
+        }}
+        .bar.color-3-of-3.color-alternate-shade,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {{
+            fill: #891;
+        }}
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar,
+        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade.emphasize-bar {{
+            fill: #8a1;
+        }}
+        .chart-title .color-default,
+        .bar-label.color-default {{
+            fill: #ccc;
+        }}
+
+        .bar-label,
+        .bar-value {{
+            font-size: {self.bar_height*0.8}px;
+        }}
+        .bar-value.emphasize-bar,
+        .bar-label.emphasize-bar {{
             font-weight: bold;
         }}
 
         rect.error-bar {{
-            fill-color: black;
+            fill: rgba(0, 0, 0, 0.35);
+        }}
+        @media (prefers-color-scheme: dark) {{
+            rect.error-bar {{
+                fill: rgba(255, 255, 255, 0.35);
+            }}
         }}
 
         text.group {{
