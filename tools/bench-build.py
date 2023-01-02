@@ -163,7 +163,7 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                 cpp_configs.append(new_config)
 
     def try_add_cxx_configs(
-        label: str, cxx_compiler: pathlib.Path, cxx_flags: str
+        label: str, cxx_compiler: pathlib.Path, cxx_flags: str, link_flags: str
     ) -> None:
         for g in ("", "-g0"):
             for pch in (False, True):
@@ -173,7 +173,7 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                         label=f"{label}{label_suffix}",
                         cxx_compiler=cxx_compiler,
                         cxx_flags=f"{cxx_flags} {g}",
-                        link_flags="",
+                        link_flags=link_flags,
                         pch=pch,
                     )
                 )
@@ -183,21 +183,28 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                             label=f"{label}{label_suffix} Mold",
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
-                            link_flags=f"-Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                            link_flags=f"{link_flags} -Wl,-fuse-ld={MOLD_LINKER_EXE}",
                             pch=pch,
                         )
                     )
 
-    def try_add_clang_configs(label: str, cxx_compiler: pathlib.Path) -> None:
+    def try_add_clang_configs(
+        label: str,
+        cxx_compiler: pathlib.Path,
+        cxx_flags: str = "",
+        link_flags: str = "",
+    ) -> None:
         try_add_cxx_configs(
             label=f"{label} libstdc++",
             cxx_compiler=cxx_compiler,
-            cxx_flags="-stdlib=libstdc++",
+            cxx_flags=f"{cxx_flags} -stdlib=libstdc++",
+            link_flags=link_flags,
         )
         try_add_cxx_configs(
             label=f"{label} libc++",
             cxx_compiler=cxx_compiler,
-            cxx_flags="-stdlib=libc++",
+            cxx_flags=f"{cxx_flags} -stdlib=libc++",
+            link_flags=link_flags,
         )
 
     try_add_clang_configs(label="Clang 12", cxx_compiler=pathlib.Path("clang++-12"))
@@ -221,10 +228,21 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
         label="Clang",
         cxx_compiler=pathlib.Path("clang++"),
     )
+    try_add_clang_configs(
+        label="Clang 15",
+        cxx_compiler=pathlib.Path(
+            "/Users/strager/tmp/llvm/clang+llvm-15.0.6-arm64-apple-darwin21.0/bin/clang++"
+        ),
+        cxx_flags="-isystem /Users/strager/tmp/llvm/clang+llvm-15.0.6-arm64-apple-darwin21.0/include/c++/v1/ "
+        + "-isystem /Users/strager/Applications/Xcode_14.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/ ",
+        link_flags="-L/Users/strager/tmp/llvm/clang+llvm-15.0.6-arm64-apple-darwin21.0/lib/ "
+        + "-L/Users/strager/Applications/Xcode_14.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/ ",
+    )
     try_add_cxx_configs(
         label="GCC 12",
         cxx_compiler=pathlib.Path("g++-12"),
         cxx_flags="",
+        link_flags="",
     )
     return cpp_configs
 

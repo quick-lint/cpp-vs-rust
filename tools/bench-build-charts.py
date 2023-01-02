@@ -311,11 +311,13 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
         else:
             toolchains = {
                 "Rust Nightly quick-build-incremental": "Rust Nightly",
-                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang",
+                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Clang Xcode",
+                "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15",
             }
             toolchain_order = [
                 "Rust Nightly",
-                "Clang",
+                "Clang Xcode",
+                "Clang 15",
             ]
         runs = [
             run
@@ -656,8 +658,8 @@ def munge_benchmark_name(benchmark_name: str) -> str:
 
 def munge_benchmark_name_portable(benchmark_name: str) -> str:
     return {
-        "build and test only my code": "build\nw/o deps",
-        "full build and test": "build\nw/ deps",
+        "build and test only my code": "full build\nw/o deps",
+        "full build and test": "full build\nw/ deps",
         "incremental build and test (diagnostic_types.rs)": "incremental\ndiag-types",
         "incremental build and test (diagnostic-types.h)": "incremental\ndiag-types",
         "incremental build and test (lex.rs)": "incremental\nlex",
