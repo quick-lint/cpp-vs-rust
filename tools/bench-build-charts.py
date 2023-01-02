@@ -177,7 +177,7 @@ def make_chart_optimized_rustc_flags(
         if run.benchmark_name in ("test only", "full build and test"):
             continue
         name = {
-            "Rust Stable": "debug",
+            "Rust Stable": "debug (default)",
             "Rust Stable quick-build-incremental": "quick, incremental=true",
             "Rust Stable quick-build-nonincremental": "quick, incremental=false",
         }[run.toolchain_label]
@@ -188,14 +188,14 @@ def make_chart_optimized_rustc_flags(
                 min=min(run.samples),
                 max=max(run.samples),
                 classes={
-                    "debug": ["color-default"],
+                    "debug (default)": ["color-default"],
                     "quick, incremental=true": ["color-1-of-2"],
                     "quick, incremental=false": [
                         "color-1-of-2",
                         "color-alternate-shade",
                     ],
                 }[name],
-                show_percent_difference=None if name == "debug" else 0,
+                show_percent_difference=None if name == "debug (default)" else 0,
             ),
         )
     chart = BarChart(
@@ -239,7 +239,10 @@ def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> 
         ]
         group_bars_by_name = collections.defaultdict(list)
         for run in runs:
-            if run.benchmark_name in ("test only", "full build and test"):
+            if (
+                run.benchmark_name in ("test only", "full build and test")
+                or "lex.rs" in run.benchmark_name
+            ):
                 continue
             if ("incremental" in run.benchmark_name) != is_incremental_chart:
                 continue
@@ -325,7 +328,7 @@ def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) ->
                 ),
             )
         chart = BarChart(
-            name="Linux: <tspan class='color-1-of-2'>cargo-nextest</tspan> slows down build+test"
+            name="Linux: <tspan class='color-1-of-2'>cargo-nextest</tspan> slows down testing"
             if hostname == "strapurp"
             else "macOS: <tspan class='color-1-of-2'>cargo-nextest</tspan> speeds up build+test",
             subtitle="lower is better.",
@@ -372,6 +375,11 @@ def make_chart_rust_toolchains(all_runs: typing.List, output_dir: pathlib.Path) 
                 min=min(run.samples),
                 max=max(run.samples),
                 emphasize=tc in ("Nightly", "Custom+PGO+BOLT"),
+                classes=["color-1-of-2"]
+                if tc == "Nightly"
+                else ["color-2-of-2"]
+                if tc == "Custom+PGO+BOLT"
+                else [],
                 show_percent_difference=toolchain_order.index("Nightly")
                 if tc == "Custom+PGO+BOLT"
                 else None,
@@ -497,23 +505,21 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
     for hostname in ("strammer.lan", "strapurp"):
         if hostname == "strapurp":
             toolchains = {
-                "Rust Nightly Mold quick-build-incremental": "Rust Nightly",
-                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++ Clang libstdc++",
-                "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "C++ Clang libc++",
+                "Rust Nightly Mold quick-build-incremental": "Rust",
+                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
             }
             toolchain_order = [
-                "Rust Nightly",
-                "C++ Clang libstdc++",
-                "C++ Clang libc++",
+                "Rust",
+                "C++",
             ]
         else:
             toolchains = {
-                "Rust Nightly quick-build-incremental cargo-nextest": "Rust Nightly cargo-nextest",
-                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "C++ Clang",
+                "Rust Nightly quick-build-incremental cargo-nextest": "Rust",
+                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "C++",
             }
             toolchain_order = [
-                "Rust Nightly cargo-nextest",
-                "C++ Clang",
+                "Rust",
+                "C++",
             ]
         runs = [
             run
@@ -541,8 +547,7 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
                     min=min(run.samples),
                     max=max(run.samples),
                     emphasize=emphasize,
-                    classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"]
-                    + (["color-alternate-shade"] if "libc++" in name else []),
+                    classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"],
                     show_percent_difference=0 if "C++" in name else None,
                 ),
             )
@@ -724,12 +729,14 @@ class BarChartWriter:
 
         percent_difference_text = ""
         if bar.show_percent_difference is not None:
-            baseline = group.bars[bar.show_percent_difference].value
+            baseline_bar = group.bars[bar.show_percent_difference]
+            baseline = baseline_bar.value
             percent_difference = (bar.value - baseline) / baseline * 100
             if abs(percent_difference) < 10:
                 percent_difference_text = f"({percent_difference:+.1f}%)"
             else:
                 percent_difference_text = f"({percent_difference:+.0f}%)"
+            percent_difference_classes = baseline_bar.classes
 
         y = self._bar_y(group_index=group_index, bar_index=bar_index)
 
@@ -803,7 +810,7 @@ class BarChartWriter:
             self.svg.write(
                 f"""
                     <text
-                        class="bar-value {' '.join(classes)}"
+                        class="bar-value bar-percent-difference {' '.join(percent_difference_classes)}"
                         text-anchor="start"
                         x="{self.graph_left + value_label_x_offset}"
                         y="{y + self.bar_height - 2}">&#x00a0;{percent_difference_text}</text>
@@ -852,6 +859,7 @@ class BarChartWriter:
         .chart-title .color-1-of-3,
         .bar.color-1-of-2,
         .bar.color-1-of-3,
+        .bar-percent-difference.color-1-of-2,
         .bar-label.bar-label-outside-bar.color-1-of-2,
         .bar-label.bar-label-outside-bar.color-1-of-3 {{
             fill: #933;
@@ -878,6 +886,8 @@ class BarChartWriter:
         .chart-title .color-2-of-3,
         .bar.color-2-of-2,
         .bar.color-2-of-3,
+        .bar-percent-difference.color-2-of-2,
+        .bar-percent-difference.color-2-of-3,
         .bar-label.bar-label-outside-bar.color-2-of-2,
         .bar-label.bar-label-outside-bar.color-2-of-3 {{
             fill: #339;
@@ -918,6 +928,7 @@ class BarChartWriter:
             fill: #8a1;
         }}
         .chart-title .color-default,
+        .bar-percent-difference.color-default,
         .bar-label.color-default {{
             fill: #ccc;
         }}
@@ -964,8 +975,8 @@ class BarChartWriter:
 
 def munge_benchmark_name(benchmark_name: str) -> str:
     return {
-        "build and test only my code": "build\nw/o deps",
-        "full build and test": "build\nw/ deps",
+        "build and test only my code": "build+test\nw/o deps",
+        "full build and test": "build+test\nw/ deps",
         "incremental build and test (diagnostic_types.rs)": "incremental\ndiag_types.rs",
         "incremental build and test (lex.rs)": "incremental\nlex.rs",
         "incremental build and test (test_utf_8.rs)": "incremental\ntest_utf_8.rs",
@@ -975,8 +986,8 @@ def munge_benchmark_name(benchmark_name: str) -> str:
 
 def munge_benchmark_name_portable(benchmark_name: str) -> str:
     return {
-        "build and test only my code": "full build\nw/o deps",
-        "full build and test": "full build\nw/ deps",
+        "build and test only my code": "build+test\nw/o deps",
+        "full build and test": "build+test\nw/ deps",
         "incremental build and test (diagnostic_types.rs)": "incremental\ndiag-types",
         "incremental build and test (diagnostic-types.h)": "incremental\ndiag-types",
         "incremental build and test (lex.rs)": "incremental\nlex",
