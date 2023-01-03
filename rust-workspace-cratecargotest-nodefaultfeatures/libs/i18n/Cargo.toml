@@ -11,7 +11,7 @@ test = false
 cpp_vs_rust_container = { path = "../container" }
 cpp_vs_rust_port = { path = "../port" }
 cpp_vs_rust_util = { path = "../util" }
-libc = { version = "0.2.138" }
+libc = { version = "0.2.138", default-features = false }
 
 [dev-dependencies]
 cpp_vs_rust_fe = { path = "../fe" }

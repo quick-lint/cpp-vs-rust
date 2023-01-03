@@ -28,6 +28,7 @@ def main() -> None:
     make_chart_optimized_rustc_flags(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cargo_nextest(all_runs=latest_runs, output_dir=output_dir)
     make_chart_rust_layouts(all_runs=latest_runs, output_dir=output_dir)
+    make_chart_rust_crate_features(all_runs=latest_runs, output_dir=output_dir)
     make_chart_rust_toolchains(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cpp_toolchains(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cpp_vs_rust(all_runs=latest_runs, output_dir=output_dir)
@@ -54,7 +55,9 @@ def make_chart_rust_linux_linker(
                 min=min(run.samples),
                 max=max(run.samples),
                 emphasize="Mold" in run.toolchain_label,
-                classes=["color-1-of-2"] if "Mold" in run.toolchain_label else ["color-default"],
+                classes=["color-1-of-2"]
+                if "Mold" in run.toolchain_label
+                else ["color-default"],
                 show_percent_difference=0 if "Mold" in run.toolchain_label else None,
             ),
         )
@@ -204,9 +207,10 @@ def make_chart_optimized_rustc_flags(
                     "quick, incremental=false": [
                         "color-1-of-2",
                     ],
-                    "quick, incremental=true": ["color-2-of-2",
+                    "quick, incremental=true": [
+                        "color-2-of-2",
                         "color-alternate-shade",
-                        ],
+                    ],
                     "quick, -Zshare-generics": ["color-2-of-2"],
                 }[name],
                 show_percent_difference=None if name == "debug (default)" else 0,
@@ -216,7 +220,10 @@ def make_chart_optimized_rustc_flags(
         name="rustc flags: <tspan class='color-1-of-2'>quick build</tspan> beats <tspan class='color-default'>debug build</tspan>",
         subtitle="lower is better.",
         groups=[
-            BarChartGroup(name=group_name, bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)))
+            BarChartGroup(
+                name=group_name,
+                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+            )
             for group_name, group_bars in group_bars_by_name.items()
         ],
     )
@@ -307,6 +314,53 @@ def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> 
             path=output_dir
             / f"rust-layouts-{'incremental' if is_incremental_chart else 'full'}.svg",
         )
+
+
+def make_chart_rust_crate_features(
+    all_runs: typing.List, output_dir: pathlib.Path
+) -> None:
+    bar_order = ["default", "disable libc default features"]
+    runs = [
+        run
+        for run in all_runs
+        if run.hostname == "strapurp"
+        and run.project in ("rust", "rust-workspace-cratecargotest-nodefaultfeatures")
+        and run.toolchain_label == "Rust Nightly"
+    ]
+    group_bars_by_name = collections.defaultdict(list)
+    for run in runs:
+        if run.benchmark_name != "full build and test":
+            continue
+        is_no_default_features = (
+            run.project == "rust-workspace-cratecargotest-nodefaultfeatures"
+        )
+        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+            BarChartBar(
+                name="disable libc default features"
+                if is_no_default_features
+                else "default",
+                value=avg(run.samples),
+                min=min(run.samples),
+                max=max(run.samples),
+                emphasize=is_no_default_features,
+                classes=["color-1-of-2"]
+                if is_no_default_features
+                else ["color-default"],
+                show_percent_difference=0 if is_no_default_features else None,
+            ),
+        )
+    chart = BarChart(
+        name="Disabling libc features makes no difference",
+        subtitle="tested on Linux. lower is better.",
+        groups=[
+            BarChartGroup(
+                name=group_name,
+                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+            )
+            for group_name, group_bars in group_bars_by_name.items()
+        ],
+    )
+    write_chart(chart=chart, path=output_dir / "rust-crate-features.svg")
 
 
 def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) -> None:

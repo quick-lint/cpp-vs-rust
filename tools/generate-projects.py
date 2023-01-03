@@ -50,9 +50,9 @@ def main() -> None:
     cargotest_to_unotest(project_dir)
     fix_cargo_lock(project_dir)
 
-    project_dir = ROOT / "rust-workspace-cratecargotest-defaultfeatures"
+    project_dir = ROOT / "rust-workspace-cratecargotest-nodefaultfeatures"
     new_project_from_template(project_dir, template_dir=ROOT / "rust")
-    use_default_crate_features(project_dir)
+    disable_default_crate_features(project_dir)
     fix_cargo_lock(project_dir)
 
     project_dir = ROOT / "rust-twocrate-cratecargotest"
@@ -246,11 +246,14 @@ def cargotest_to_unittest(project_dir: pathlib.Path) -> None:
     (project_dir / "tests").rmdir()
 
 
-def use_default_crate_features(project_dir: pathlib.Path) -> None:
+def disable_default_crate_features(project_dir: pathlib.Path) -> None:
     did_update_cargo_toml = False
     for cargo_toml_path in project_dir.glob("**/Cargo.toml"):
         cargo_toml = cargo_toml_path.read_text()
-        updated_cargo_toml = cargo_toml.replace(", default-features = false", "")
+        updated_cargo_toml = cargo_toml.replace(
+            'libc = { version = "0.2.138" }',
+            'libc = { version = "0.2.138", default-features = false }',
+        )
         if updated_cargo_toml == cargo_toml:
             continue
         did_update_cargo_toml = True
