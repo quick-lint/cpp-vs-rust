@@ -229,20 +229,20 @@ def make_chart_optimized_rustc_flags(
 def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> None:
     for is_incremental_chart in (True, False):
         projects = {
-            "rust": "workspace; test crates",
-            "rust-workspace-crateunotest": "workspace; merged test crate",
-            "rust-threecrate-cratecargotest": "2 crates; test crates",
-            "rust-threecrate-crateunotest": "2 crates; merged test crate",
-            "rust-twocrate-cratecargotest": "single crate; test crates",
+            "rust": "workspace; many test exes",
+            "rust-workspace-crateunotest": "workspace; 1 test exe",
+            "rust-threecrate-cratecargotest": "2 crates; many test exes",
+            "rust-threecrate-crateunotest": "2 crates; 1 test exe",
+            "rust-twocrate-cratecargotest": "single crate; many test exes",
             "rust-twocrate-unittest": "single crate; tests in lib",
         }
         project_order = [
-            "workspace; test crates",
-            "workspace; merged test crate",
-            "single crate; test crates",
+            "workspace; many test exes",
+            "workspace; 1 test exe",
+            "single crate; many test exes",
             "single crate; tests in lib",
-            "2 crates; test crates",
-            "2 crates; merged test crate",
+            "2 crates; many test exes",
+            "2 crates; 1 test exe",
         ]
         runs = [
             run
@@ -269,18 +269,18 @@ def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> 
                     emphasize="workspace" in projects[run.project]
                     and not is_incremental_chart,
                     classes={
-                        "workspace; test crates": ["color-1-of-3"],
-                        "workspace; merged test crate": [
+                        "workspace; many test exes": ["color-1-of-3"],
+                        "workspace; 1 test exe": [
                             "color-1-of-3",
                             "color-alternate-shade",
                         ],
-                        "single crate; test crates": ["color-2-of-3"],
+                        "single crate; many test exes": ["color-2-of-3"],
                         "single crate; tests in lib": [
                             "color-2-of-3",
                             "color-alternate-shade",
                         ],
-                        "2 crates; test crates": ["color-3-of-3"],
-                        "2 crates; merged test crate": [
+                        "2 crates; many test exes": ["color-3-of-3"],
+                        "2 crates; 1 test exe": [
                             "color-3-of-3",
                             "color-alternate-shade",
                         ],
