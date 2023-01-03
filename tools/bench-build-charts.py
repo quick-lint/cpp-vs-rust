@@ -49,7 +49,7 @@ def make_chart_rust_linux_linker(
             continue
         group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
             BarChartBar(
-                name="Mold" if "Mold" in run.toolchain_label else "Default",
+                name="Mold" if "Mold" in run.toolchain_label else "GNU ld (default)",
                 value=avg(run.samples),
                 min=min(run.samples),
                 max=max(run.samples),
@@ -59,7 +59,7 @@ def make_chart_rust_linux_linker(
             ),
         )
     chart = BarChart(
-        name="Linux: <tspan class='color-1-of-2'>Mold</tspan> barely beats <tspan class='color-default'>default linker</tspan>",
+        name="Linux: <tspan class='color-1-of-2'>Mold</tspan> barely beats <tspan class='color-default'>GNU ld (default)</tspan>",
         subtitle="lower is better.",
         groups=[
             BarChartGroup(name=group_name, bars=group_bars)
