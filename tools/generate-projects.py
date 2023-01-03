@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import pathlib
+import re
 import shutil
 import subprocess
 import typing
@@ -77,8 +78,13 @@ def main() -> None:
     for total_copies in (8, 16, 24):
         project_dir = ROOT / f"rust-workspace-cratecargotest-{total_copies}"
         new_project_from_template(project_dir, template_dir=ROOT / "rust")
-        multiply_lex_module(project_dir, total_copies=total_copies)
+        multiply_lex_module_rs(project_dir, total_copies=total_copies)
         fix_cargo_lock(project_dir)
+
+    for total_copies in (8, 16, 24):
+        project_dir = ROOT / f"cpp-{total_copies}"
+        new_project_from_template(project_dir, template_dir=ROOT / "cpp")
+        multiply_lex_module_cpp(project_dir, total_copies=total_copies)
 
 
 def new_project_from_template(
@@ -261,7 +267,7 @@ def disable_default_crate_features(project_dir: pathlib.Path) -> None:
     assert did_update_cargo_toml, "Cargo.toml should have changed"
 
 
-def multiply_lex_module(project_dir: pathlib.Path, total_copies: int) -> None:
+def multiply_lex_module_rs(project_dir: pathlib.Path, total_copies: int) -> None:
     assert total_copies > 1
 
     original_test_lex_rs = project_dir / "libs" / "fe" / "tests" / "test_lex.rs"
@@ -285,6 +291,57 @@ def multiply_lex_module(project_dir: pathlib.Path, total_copies: int) -> None:
         new_mods += f"pub mod lex_{i};\n"
     lib_rs = project_dir / "libs" / "fe" / "src" / "lib.rs"
     lib_rs.write_text(lib_rs.read_text().replace("pub mod lex;\n", new_mods))
+
+
+def multiply_lex_module_cpp(project_dir: pathlib.Path, total_copies: int) -> None:
+    assert total_copies > 1
+
+    def fix_source(source: str, i: int) -> str:
+        return re.sub(
+            r"\b(lexer(_transaction)?|test_lex)\b",
+            lambda math: f"{math.group(0)}_{i}",
+            source,
+        ).replace("quick-lint-js/fe/lex.h", f"quick-lint-js/fe/lex-{i}.h")
+
+    original_test_lex_cpp = project_dir / "test" / "test-lex.cpp"
+    original_test_lex_cpp_code = original_test_lex_cpp.read_text()
+    for i in range(1, total_copies):
+        new_test_lex_cpp = (
+            original_test_lex_cpp.parent / f"{original_test_lex_cpp.stem}-{i}.cpp"
+        )
+        new_test_lex_cpp.write_text(fix_source(original_test_lex_cpp_code, i=i))
+
+    original_lex_cpp = project_dir / "src" / "quick-lint-js" / "fe" / "lex.cpp"
+    original_lex_cpp_code = original_lex_cpp.read_text()
+    for i in range(1, total_copies):
+        new_lex_cpp = original_lex_cpp.parent / f"{original_lex_cpp.stem}-{i}.cpp"
+        new_lex_cpp.write_text(fix_source(original_lex_cpp_code, i=i))
+
+    original_lex_h = project_dir / "src" / "quick-lint-js" / "fe" / "lex.h"
+    original_lex_h_code = original_lex_h.read_text()
+    for i in range(1, total_copies):
+        new_lex_h = original_lex_h.parent / f"{original_lex_h.stem}-{i}.h"
+        new_lex_h.write_text(fix_source(original_lex_h_code, i=i))
+
+    original_src_files = "  quick-lint-js/fe/lex.cpp\n  quick-lint-js/fe/lex.h"
+    new_src_files = original_src_files
+    for i in range(1, total_copies):
+        new_src_files += (
+            f"\n  quick-lint-js/fe/lex-{i}.cpp\n  quick-lint-js/fe/lex-{i}.h"
+        )
+    src_cmakelists_txt = project_dir / "src" / "CMakeLists.txt"
+    src_cmakelists_txt.write_text(
+        src_cmakelists_txt.read_text().replace(original_src_files, new_src_files)
+    )
+
+    original_test_files = "  test-lex.cpp"
+    new_test_files = original_test_files
+    for i in range(1, total_copies):
+        new_test_files += f"\n  test-lex-{i}.cpp"
+    test_cmakelists_txt = project_dir / "test" / "CMakeLists.txt"
+    test_cmakelists_txt.write_text(
+        test_cmakelists_txt.read_text().replace(original_test_files, new_test_files)
+    )
 
 
 def fix_cargo_lock(project_dir: pathlib.Path) -> None:

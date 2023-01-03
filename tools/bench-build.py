@@ -25,8 +25,7 @@ ROOT = pathlib.Path(__file__).parent / ".."
 
 BENCH_BUILD_DB = ROOT / "bench-build.db"
 
-CPP_ROOT = ROOT / "cpp"
-CPP_BUILD_DIR = CPP_ROOT / "build"
+CPP_BUILD_DIR = "build"
 
 MOLD_LINKER_EXE: typing.Optional[str] = shutil.which("mold")
 
@@ -85,36 +84,35 @@ def main() -> None:
         )
     profiler = Filterer(profiler, filter=args.filter)
 
-    cpp_configs = find_cpp_configs()
-
-    for cpp_config in cpp_configs:
-        profiler.profile(CPPFullBenchmark(cpp_config))
-        profiler.profile(CPPHalfBenchmark(cpp_config))
-        profiler.profile(CPPTestOnlyBenchmark(cpp_config))
-        profiler.profile(
-            CPPIncrementalBenchmark(
-                cpp_config,
-                files_to_mutate=[
-                    CPP_ROOT / "src/quick-lint-js/fe/lex.cpp",
-                ],
+    for cpp_root in ROOT.glob("cpp*"):
+        for cpp_config in find_cpp_configs(root=cpp_root):
+            profiler.profile(CPPFullBenchmark(cpp_config))
+            profiler.profile(CPPHalfBenchmark(cpp_config))
+            profiler.profile(CPPTestOnlyBenchmark(cpp_config))
+            profiler.profile(
+                CPPIncrementalBenchmark(
+                    cpp_config,
+                    files_to_mutate=[
+                        cpp_root / "src/quick-lint-js/fe/lex.cpp",
+                    ],
+                )
             )
-        )
-        profiler.profile(
-            CPPIncrementalBenchmark(
-                cpp_config,
-                files_to_mutate=[
-                    CPP_ROOT / "src/quick-lint-js/fe/diagnostic-types.h",
-                ],
+            profiler.profile(
+                CPPIncrementalBenchmark(
+                    cpp_config,
+                    files_to_mutate=[
+                        cpp_root / "src/quick-lint-js/fe/diagnostic-types.h",
+                    ],
+                )
             )
-        )
-        profiler.profile(
-            CPPIncrementalBenchmark(
-                cpp_config,
-                files_to_mutate=[
-                    CPP_ROOT / "test/test-utf-8.cpp",
-                ],
+            profiler.profile(
+                CPPIncrementalBenchmark(
+                    cpp_config,
+                    files_to_mutate=[
+                        cpp_root / "test/test-utf-8.cpp",
+                    ],
+                )
             )
-        )
 
     for rust_root in ROOT.glob("rust*"):
         lex_rs_path = find_unique_file(rust_root, "lex.rs")
@@ -147,6 +145,7 @@ def main() -> None:
 
 
 class CPPConfig(typing.NamedTuple):
+    root: pathlib.Path
     label: str
     cxx_compiler: pathlib.Path
     cxx_flags: str
@@ -154,7 +153,7 @@ class CPPConfig(typing.NamedTuple):
     pch: bool
 
 
-def find_cpp_configs() -> typing.List[CPPConfig]:
+def find_cpp_configs(root: pathlib.Path) -> typing.List[CPPConfig]:
     cpp_configs = []
 
     def try_add_cxx_config(config: CPPConfig) -> None:
@@ -182,6 +181,7 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                 label_suffix = (" PCH" if pch else "") + (" " if g else "") + g
                 try_add_cxx_config(
                     CPPConfig(
+                        root=root,
                         label=f"{label}{label_suffix}",
                         cxx_compiler=cxx_compiler,
                         cxx_flags=f"{cxx_flags} {g}",
@@ -192,6 +192,7 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                 if MOLD_LINKER_EXE is not None:
                     try_add_cxx_config(
                         CPPConfig(
+                            root=root,
                             label=f"{label}{label_suffix} Mold",
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
@@ -202,6 +203,7 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                 if ZLD_LINKER_EXE is not None:
                     try_add_cxx_config(
                         CPPConfig(
+                            root=root,
                             label=f"{label}{label_suffix} zld",
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
@@ -212,6 +214,7 @@ def find_cpp_configs() -> typing.List[CPPConfig]:
                 if LD64_LLD_LINKER_EXE is not None:
                     try_add_cxx_config(
                         CPPConfig(
+                            root=root,
                             label=f"{label}{label_suffix} ld64.lld",
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
@@ -305,12 +308,14 @@ class Benchmark:
 
 
 class CPPBenchmarkBase(Benchmark):
-    project = "cpp"
-
     _cpp_config: CPPConfig
 
     def __init__(self, cpp_config: CPPConfig) -> None:
         self._cpp_config = cpp_config
+
+    @property
+    def project(self) -> str:
+        return self._cpp_config.root.name
 
     @property
     def toolchain_label(self) -> str:
@@ -321,25 +326,25 @@ class CPPFullBenchmark(CPPBenchmarkBase):
     name = "full build and test"
 
     def before_each_untimed(self) -> None:
-        cpp_clean()
+        cpp_clean(self._cpp_config)
 
     def run_timed(self) -> None:
         cpp_configure(self._cpp_config)
-        cpp_build(targets=["quick-lint-js-test"])
-        cpp_test()
+        cpp_build(self._cpp_config, targets=["quick-lint-js-test"])
+        cpp_test(self._cpp_config)
 
 
 class CPPHalfBenchmark(CPPBenchmarkBase):
     name = "build and test only my code"
 
     def before_each_untimed(self) -> None:
-        cpp_clean()
+        cpp_clean(self._cpp_config)
         cpp_configure(self._cpp_config)
-        cpp_build(targets=["gmock", "gmock_main", "gtest"])
+        cpp_build(self._cpp_config, targets=["gmock", "gmock_main", "gtest"])
 
     def run_timed(self) -> None:
-        cpp_build(targets=["quick-lint-js-test"])
-        cpp_test()
+        cpp_build(self._cpp_config, targets=["quick-lint-js-test"])
+        cpp_test(self._cpp_config)
 
 
 class CPPIncrementalBenchmark(CPPBenchmarkBase):
@@ -357,17 +362,17 @@ class CPPIncrementalBenchmark(CPPBenchmarkBase):
         return f"incremental build and test ({names})"
 
     def before_all_untimed(self) -> None:
-        cpp_clean()
+        cpp_clean(self._cpp_config)
         cpp_configure(self._cpp_config)
-        cpp_build(targets=["quick-lint-js-test"])
+        cpp_build(self._cpp_config, targets=["quick-lint-js-test"])
 
     def before_each_untimed(self) -> None:
         for f in self._files_to_mutate:
             mutate_file(f)
 
     def run_timed(self) -> None:
-        cpp_build(targets=["quick-lint-js-test"])
-        cpp_test()
+        cpp_build(self._cpp_config, targets=["quick-lint-js-test"])
+        cpp_test(self._cpp_config)
 
     def after_all_untimed(self) -> None:
         for f in self._files_to_mutate:
@@ -378,16 +383,16 @@ class CPPTestOnlyBenchmark(CPPBenchmarkBase):
     name = "test only"
 
     def before_all_untimed(self) -> None:
-        cpp_clean()
+        cpp_clean(self._cpp_config)
         cpp_configure(self._cpp_config)
-        cpp_build(targets=["quick-lint-js-test"])
+        cpp_build(self._cpp_config, targets=["quick-lint-js-test"])
 
     def run_timed(self) -> None:
-        cpp_test()
+        cpp_test(self._cpp_config)
 
 
-def cpp_clean() -> None:
-    delete_dir(CPP_BUILD_DIR)
+def cpp_clean(cpp_config: CPPConfig) -> None:
+    delete_dir(cpp_config.root / CPP_BUILD_DIR)
 
 
 def cpp_configure(cpp_config: CPPConfig) -> None:
@@ -397,7 +402,7 @@ def cpp_configure(cpp_config: CPPConfig) -> None:
             "-S",
             ".",
             "-B",
-            CPP_BUILD_DIR.relative_to(CPP_ROOT),
+            CPP_BUILD_DIR,
             "-G",
             "Ninja",
             f"-DCMAKE_CXX_COMPILER={cpp_config.cxx_compiler}",
@@ -406,16 +411,20 @@ def cpp_configure(cpp_config: CPPConfig) -> None:
             f"-DCMAKE_SHARED_LINKER_FLAGS={cpp_config.link_flags}",
             f"-DQUICK_LINT_JS_PRECOMPILE_HEADERS={'YES' if cpp_config.pch else 'NO'}",
         ],
-        cwd=CPP_ROOT,
+        cwd=cpp_config.root,
     )
 
 
-def cpp_build(targets: typing.List[str] = []) -> None:
-    subprocess.check_call(["ninja", "-C", CPP_BUILD_DIR, "--"] + targets)
+def cpp_build(cpp_config: CPPConfig, targets: typing.List[str] = []) -> None:
+    subprocess.check_call(
+        ["ninja", "-C", cpp_config.root / CPP_BUILD_DIR, "--"] + targets
+    )
 
 
-def cpp_test() -> None:
-    subprocess.check_call([CPP_BUILD_DIR / "test" / "quick-lint-js-test"])
+def cpp_test(cpp_config: CPPConfig) -> None:
+    subprocess.check_call(
+        [cpp_config.root / CPP_BUILD_DIR / "test" / "quick-lint-js-test"]
+    )
 
 
 class RustConfig(typing.NamedTuple):
