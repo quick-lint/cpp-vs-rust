@@ -54,7 +54,7 @@ def make_chart_rust_linux_linker(
                 min=min(run.samples),
                 max=max(run.samples),
                 emphasize="Mold" in run.toolchain_label,
-                classes=[] if "Mold" in run.toolchain_label else ["color-default"],
+                classes=["color-1-of-2"] if "Mold" in run.toolchain_label else ["color-default"],
                 show_percent_difference=0 if "Mold" in run.toolchain_label else None,
             ),
         )
