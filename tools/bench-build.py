@@ -152,6 +152,24 @@ class CPPConfig(typing.NamedTuple):
     link_flags: str
     pch: bool
 
+    @property
+    def c_compiler(self) -> pathlib.Path:
+        if "clang++" in self.cxx_compiler.name:
+            return self.cxx_compiler.parent / self.cxx_compiler.name.replace(
+                "clang++", "clang"
+            )
+        if "g++" in self.cxx_compiler.name:
+            return self.cxx_compiler.parent / self.cxx_compiler.name.replace(
+                "g++", "gcc"
+            )
+        if "c++" in self.cxx_compiler.name:
+            return self.cxx_compiler.parent / self.cxx_compiler.name.replace(
+                "c++", "cc"
+            )
+        raise ValueError(
+            f"cannot get C compiler from C++ compiler: {self.cxx_compiler}"
+        )
+
 
 def find_cpp_configs(root: pathlib.Path) -> typing.List[CPPConfig]:
     cpp_configs = []
@@ -196,7 +214,7 @@ def find_cpp_configs(root: pathlib.Path) -> typing.List[CPPConfig]:
                             label=f"{label}{label_suffix} Mold",
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
-                            link_flags=f"{link_flags} -Wl,-fuse-ld={MOLD_LINKER_EXE}",
+                            link_flags=f"{link_flags} -fuse-ld={MOLD_LINKER_EXE}",
                             pch=pch,
                         )
                     )
@@ -405,6 +423,7 @@ def cpp_configure(cpp_config: CPPConfig) -> None:
             CPP_BUILD_DIR,
             "-G",
             "Ninja",
+            f"-DCMAKE_C_COMPILER={cpp_config.c_compiler}",
             f"-DCMAKE_CXX_COMPILER={cpp_config.cxx_compiler}",
             f"-DCMAKE_CXX_FLAGS={cpp_config.cxx_flags}",
             f"-DCMAKE_EXE_LINKER_FLAGS={cpp_config.link_flags}",
