@@ -32,6 +32,7 @@ def main() -> None:
     make_chart_rust_toolchains(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cpp_toolchains(all_runs=latest_runs, output_dir=output_dir)
     make_chart_cpp_vs_rust(all_runs=latest_runs, output_dir=output_dir)
+    make_chart_cpp_vs_rust_scaling(all_runs=latest_runs, output_dir=output_dir)
 
 
 def make_chart_rust_linux_linker(
@@ -638,6 +639,90 @@ def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> N
             chart=chart,
             path=output_dir
             / f"cpp-vs-rust-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+        )
+
+
+def make_chart_cpp_vs_rust_scaling(
+    all_runs: typing.List, output_dir: pathlib.Path
+) -> None:
+    for is_incremental_chart in (True, False):
+        toolchains = {
+            "Rust Nightly Mold quick-build-incremental": "Rust",
+            "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
+        }
+        bar_order = [
+            "1x Rust",
+            "8x Rust",
+            "16x Rust",
+            "24x Rust",
+            "1x C++",
+            "8x C++",
+            "16x C++",
+            "24x C++",
+        ]
+        project_sizes = {
+            "cpp": 1,
+            "cpp-8": 8,
+            "cpp-16": 16,
+            "cpp-24": 24,
+            "rust": 1,
+            "rust-workspace-cratecargotest-8": 8,
+            "rust-workspace-cratecargotest-16": 16,
+            "rust-workspace-cratecargotest-24": 24,
+        }
+        runs = [
+            run
+            for run in all_runs
+            if run.hostname == "strapurp"
+            and run.project in project_sizes.keys()
+            and run.toolchain_label in toolchains.keys()
+        ]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            if run.benchmark_name in ("test only", "full build and test"):
+                continue
+            if ("incremental" in run.benchmark_name) != is_incremental_chart:
+                continue
+            name = toolchains[run.toolchain_label]
+            project_size = project_sizes[run.project]
+            group_bars_by_name[
+                munge_benchmark_name_portable(run.benchmark_name)
+            ].append(
+                BarChartBar(
+                    name=f"{project_size}x {name}",
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"],
+                    show_percent_difference=None
+                    if project_size == 1
+                    else (
+                        bar_order.index("1x C++")
+                        if "C++" in name
+                        else bar_order.index("1x Rust")
+                    ),
+                ),
+            )
+        chart = BarChart(
+            name=f"<tspan class='color-2-of-2'>C++</tspan> {'incremental' if is_incremental_chart else 'full'} builds scale better than <tspan class='color-1-of-2'>Rust</tspan>",
+            subtitle=f"tested on Linux. lower is better.",
+            groups=sorted(
+                [
+                    BarChartGroup(
+                        name=group_name,
+                        bars=sorted(
+                            group_bars, key=lambda bar: bar_order.index(bar.name)
+                        ),
+                    )
+                    for group_name, group_bars in group_bars_by_name.items()
+                ],
+                key=lambda group: group.name,
+            ),
+        )
+        write_chart(
+            chart=chart,
+            path=output_dir
+            / f"cpp-vs-rust-scale-{'incremental' if is_incremental_chart else 'full'}.svg",
         )
 
 
