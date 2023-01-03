@@ -39,6 +39,8 @@ add_library(
   quick-lint-js/fe/linter.h
   quick-lint-js/fe/source-code-span.cpp
   quick-lint-js/fe/source-code-span.h
+  quick-lint-js/fe/token.cpp
+  quick-lint-js/fe/token.h
   quick-lint-js/i18n/locale.cpp
   quick-lint-js/i18n/locale.h
   quick-lint-js/i18n/translation-table-generated.cpp
