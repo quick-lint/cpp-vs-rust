@@ -522,28 +522,38 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
         "quick-build-incremental",
         "quick-build-nonincremental",
     ):
+        rustflags = ""
+        if cargo_profile in (
+            "quick-build-incremental",
+            "quick-build-nonincremental",
+        ):
+            # Avoid linking Rust std's debug info, improving link times.
+            # TODO(strager): Only use this where the linker flag is supported.
+            # HACK(strager): We would put this in the Cargo.toml, but
+            # profile-specific rustflags are unstable.
+            rustflags = f"{rustflags} -Clink-args=-Wl,-s"
         add_rust_configs(
             extra_label=f"{cargo_profile or ''}",
             cargo_profile=cargo_profile,
-            rustflags="",
+            rustflags=rustflags,
         )
         if MOLD_LINKER_EXE is not None:
             add_rust_configs(
                 extra_label=f"Mold {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
-                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+                rustflags=f"{rustflags} -Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
         if ZLD_LINKER_EXE is not None:
             add_rust_configs(
                 extra_label=f"zld {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
-                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={ZLD_LINKER_EXE}",
+                rustflags=f"{rustflags} -Clinker=clang -Clink-arg=-fuse-ld={ZLD_LINKER_EXE}",
             )
         if LD64_LLD_LINKER_EXE is not None:
             add_rust_configs(
                 extra_label=f"ld64.lld {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
-                rustflags=f"-Clinker=clang -Clink-arg=-fuse-ld={LD64_LLD_LINKER_EXE}",
+                rustflags=f"{rustflags} -Clinker=clang -Clink-arg=-fuse-ld={LD64_LLD_LINKER_EXE}",
             )
     return reversed(rust_configs)
 
