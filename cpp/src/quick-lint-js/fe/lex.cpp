@@ -92,9 +92,9 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
                               char32_t code_point) {
   constexpr int bits_per_byte = 8;
   constexpr char32_t max_code_point = U'\U0010ffff';
-  constexpr std::size_t bits_per_chunk = lexer::unicode_table_chunk_size;
+  constexpr std::size_t bits_per_chunk = unicode_table_chunk_size;
   constexpr std::size_t bytes_per_chunk = bits_per_chunk / bits_per_byte;
-  using chunk_index_type = lexer::unicode_table_chunk_index_type;
+  using chunk_index_type = unicode_table_chunk_index_type;
 
   QLJS_ASSERT(code_point <= max_code_point);
   std::size_t chunk_index_index = code_point / bits_per_chunk;
@@ -104,7 +104,7 @@ bool look_up_in_unicode_table(const std::uint8_t* table, std::size_t table_size,
   chunk_index_type chunk_index = table[chunk_index_index];
 
   const std::uint8_t* chunk =
-      &lexer::unicode_tables_chunks[chunk_index * bytes_per_chunk];
+      &unicode_tables_chunks[chunk_index * bytes_per_chunk];
   std::size_t bit_in_chunk = code_point % bits_per_chunk;
   return chunk[bit_in_chunk / bits_per_byte] &
          (1 << (bit_in_chunk % bits_per_byte));

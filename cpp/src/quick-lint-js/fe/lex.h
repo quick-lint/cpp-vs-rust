@@ -24,6 +24,17 @@ namespace quick_lint_js {
 class diag_reporter;
 struct lexer_transaction;
 
+constexpr std::size_t unicode_table_chunk_size = 256;
+constexpr std::size_t unicode_tables_chunks_size = 49152;
+extern const std::uint8_t unicode_tables_chunks[];
+
+using unicode_table_chunk_index_type = std::uint8_t;
+constexpr std::size_t identifier_start_chunk_indexes_size = 804;
+extern const unicode_table_chunk_index_type identifier_start_chunk_indexes[];
+
+constexpr std::size_t identifier_part_chunk_indexes_size = 3586;
+extern const unicode_table_chunk_index_type identifier_part_chunk_indexes[];
+
 // A lexer reads JavaScript source code one token at a time.
 //
 // A token is (roughly) either a keyword (if, function, let, etc.), an operator
@@ -184,17 +195,6 @@ class lexer {
   const char8* end_of_previous_token() const noexcept;
 
   padded_string_view original_input() const noexcept;
-
-  static constexpr std::size_t unicode_table_chunk_size = 256;
-  static constexpr std::size_t unicode_tables_chunks_size = 49152;
-  static const std::uint8_t unicode_tables_chunks[];
-
-  using unicode_table_chunk_index_type = std::uint8_t;
-  static constexpr std::size_t identifier_start_chunk_indexes_size = 804;
-  static const unicode_table_chunk_index_type identifier_start_chunk_indexes[];
-
-  static constexpr std::size_t identifier_part_chunk_indexes_size = 3586;
-  static const unicode_table_chunk_index_type identifier_part_chunk_indexes[];
 
  private:
   struct parsed_template_body {
