@@ -484,6 +484,12 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
             rustflags=rustflags,
         )
         add_rust_configs_for_toolchain(
+            label=f"Rust Nightly {extra_label} -Zshare-generics=y".rstrip(),
+            cargo=rustup_which("cargo", toolchain="nightly"),
+            cargo_profile=cargo_profile,
+            rustflags=f"{rustflags} -Zshare-generics=y",
+        )
+        add_rust_configs_for_toolchain(
             label=f"Rust Custom {extra_label}".rstrip(),
             cargo=pathlib.Path("/home/strager/Toolchains/rustc-stage2/bin/cargo"),
             cargo_profile=cargo_profile,

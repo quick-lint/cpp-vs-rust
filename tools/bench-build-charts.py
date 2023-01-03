@@ -164,6 +164,12 @@ def make_chart_cranelift_vs_llvm(
 def make_chart_optimized_rustc_flags(
     all_runs: typing.List, output_dir: pathlib.Path
 ) -> None:
+    bar_order = [
+        "debug (default)",
+        "quick, incremental=false",
+        "quick, incremental=true",
+        "quick, -Zshare-generics",
+    ]
     runs = [
         run
         for run in all_runs
@@ -171,9 +177,10 @@ def make_chart_optimized_rustc_flags(
         and run.project == "rust"
         and run.toolchain_label
         in (
-            "Rust Stable",
-            "Rust Stable quick-build-incremental",
-            "Rust Stable quick-build-nonincremental",
+            "Rust Nightly",
+            "Rust Nightly quick-build-incremental",
+            "Rust Nightly quick-build-nonincremental",
+            "Rust Nightly quick-build-incremental -Zshare-generics=y",
         )
     ]
     group_bars_by_name = collections.defaultdict(list)
@@ -181,9 +188,10 @@ def make_chart_optimized_rustc_flags(
         if run.benchmark_name in ("test only", "full build and test"):
             continue
         name = {
-            "Rust Stable": "debug (default)",
-            "Rust Stable quick-build-incremental": "quick, incremental=true",
-            "Rust Stable quick-build-nonincremental": "quick, incremental=false",
+            "Rust Nightly": "debug (default)",
+            "Rust Nightly quick-build-incremental": "quick, incremental=true",
+            "Rust Nightly quick-build-nonincremental": "quick, incremental=false",
+            "Rust Nightly quick-build-incremental -Zshare-generics=y": "quick, -Zshare-generics",
         }[run.toolchain_label]
         group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
             BarChartBar(
@@ -193,11 +201,13 @@ def make_chart_optimized_rustc_flags(
                 max=max(run.samples),
                 classes={
                     "debug (default)": ["color-default"],
-                    "quick, incremental=true": ["color-1-of-2"],
                     "quick, incremental=false": [
                         "color-1-of-2",
-                        "color-alternate-shade",
                     ],
+                    "quick, incremental=true": ["color-2-of-2",
+                        "color-alternate-shade",
+                        ],
+                    "quick, -Zshare-generics": ["color-2-of-2"],
                 }[name],
                 show_percent_difference=None if name == "debug (default)" else 0,
             ),
@@ -206,7 +216,7 @@ def make_chart_optimized_rustc_flags(
         name="rustc flags: <tspan class='color-1-of-2'>quick build</tspan> beats <tspan class='color-default'>debug build</tspan>",
         subtitle="lower is better.",
         groups=[
-            BarChartGroup(name=group_name, bars=group_bars)
+            BarChartGroup(name=group_name, bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)))
             for group_name, group_bars in group_bars_by_name.items()
         ],
     )
