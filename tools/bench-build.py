@@ -541,19 +541,19 @@ def find_rust_configs(root: pathlib.Path) -> typing.List[RustConfig]:
             add_rust_configs(
                 extra_label=f"Mold {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
-                rustflags=f"{rustflags} -Clinker=clang -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
+                rustflags=f"{rustflags} -Clink-arg=-fuse-ld={MOLD_LINKER_EXE}",
             )
         if ZLD_LINKER_EXE is not None:
             add_rust_configs(
                 extra_label=f"zld {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
-                rustflags=f"{rustflags} -Clinker=clang -Clink-arg=-fuse-ld={ZLD_LINKER_EXE}",
+                rustflags=f"{rustflags} -Clink-arg=-fuse-ld={ZLD_LINKER_EXE}",
             )
         if LD64_LLD_LINKER_EXE is not None:
             add_rust_configs(
                 extra_label=f"ld64.lld {cargo_profile or ''}",
                 cargo_profile=cargo_profile,
-                rustflags=f"{rustflags} -Clinker=clang -Clink-arg=-fuse-ld={LD64_LLD_LINKER_EXE}",
+                rustflags=f"{rustflags} -Clink-arg=-fuse-ld={LD64_LLD_LINKER_EXE}",
             )
     return reversed(rust_configs)
 
