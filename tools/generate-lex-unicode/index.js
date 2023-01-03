@@ -70,8 +70,9 @@ function main() {
     "..",
     "..",
     "rust",
-    "src",
+    "libs",
     "fe",
+    "src",
     "lex_unicode_generated.rs"
   );
   console.log(`Creating ${rustOutputPath} ...`);

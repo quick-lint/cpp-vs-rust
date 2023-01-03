@@ -118,7 +118,7 @@ func main() {
 	if err := WriteTranslationTableSource(&table, "cpp/src/quick-lint-js/i18n/translation-table-generated.cpp"); err != nil {
 		log.Fatal(err)
 	}
-	if err := WriteTranslationTableRustSource(&table, "rust/src/i18n/translation_table_generated.rs"); err != nil {
+	if err := WriteTranslationTableRustSource(&table, "rust/libs/i18n/src/translation_table_generated.rs"); err != nil {
 		log.Fatal(err)
 	}
 	if err := WriteTranslationTestHeader(locales, "cpp/test/quick-lint-js/test-translation-table-generated.h"); err != nil {
@@ -127,7 +127,7 @@ func main() {
 	if err := WriteTranslationTestSource(locales, "cpp/test/test-translation-table-generated.cpp"); err != nil {
 		log.Fatal(err)
 	}
-	if err := WriteTranslationTestRustSource(locales, "rust/tests/test_translation_table_generated.rs"); err != nil {
+	if err := WriteTranslationTestRustSource(locales, "rust/libs/i18n/tests/test_translation_table_generated.rs"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -561,7 +561,7 @@ func WriteTranslationTableRustSource(table *TranslationTable, path string) error
 
 	writer.WriteString(
 		`
-use crate::i18n::translation_table::*;
+use crate::translation_table::*;
 
 `)
 	fmt.Fprintf(writer, "pub const TRANSLATION_TABLE_LOCALE_COUNT: u32 = %d;\n", len(table.Locales)-1)
@@ -756,9 +756,9 @@ func WriteTranslationTestRustSource(locales map[string][]TranslationEntry, path 
 	fmt.Fprintf(writer, `
 #![allow(clippy::redundant_static_lifetimes)]
 
-use cpp_vs_rust::i18n::translation::*;
-use cpp_vs_rust::qljs_translatable;
-use cpp_vs_rust::scoped_trace;
+use cpp_vs_rust_i18n::qljs_translatable;
+use cpp_vs_rust_i18n::translation::*;
+use cpp_vs_rust_test::scoped_trace;
 
 #[rustfmt::skip]
 pub const TEST_LOCALE_NAMES: [&'static str; %d] = [
