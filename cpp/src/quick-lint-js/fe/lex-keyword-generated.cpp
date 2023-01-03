@@ -553,7 +553,7 @@ lexer_keyword::look_up (const char *str, size_t len)
 
 QLJS_WARNING_PUSH
 QLJS_WARNING_IGNORE_GCC("-Wuseless-cast")
-token_type lexer::identifier_token_type(string8_view identifier) noexcept {
+token_type identifier_token_type(string8_view identifier) noexcept {
   const keyword_entry *entry = lexer_keyword::look_up(
       reinterpret_cast<const char *>(identifier.data()), identifier.size());
   if (entry) {

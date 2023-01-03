@@ -323,8 +323,6 @@ class lexer {
   static int newline_character_size(const char8*);
   static bool is_newline_character(char32_t code_point) noexcept;
 
-  static token_type identifier_token_type(string8_view) noexcept;
-
   token last_token_;
   const char8* last_last_token_end_;
   const char8* input_;
@@ -370,6 +368,8 @@ struct lexer_transaction {
   std::optional<buffering_diag_reporter> reporter;
   diag_reporter* old_diag_reporter;
 };
+
+token_type identifier_token_type(string8_view) noexcept;
 }
 
 #endif

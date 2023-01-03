@@ -229,7 +229,7 @@ bool lexer::try_parse_current_token() {
     this->input_ = ident.after;
     this->last_token_.normalized_identifier = ident.normalized;
     this->last_token_.end = ident.after;
-    this->last_token_.type = this->identifier_token_type(ident.normalized);
+    this->last_token_.type = identifier_token_type(ident.normalized);
     if (ident.escape_sequences && !ident.escape_sequences->empty()) {
       switch (this->last_token_.type) {
       case token_type::identifier:
