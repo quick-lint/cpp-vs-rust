@@ -50,6 +50,11 @@ def main() -> None:
     cargotest_to_unotest(project_dir)
     fix_cargo_lock(project_dir)
 
+    project_dir = ROOT / "rust-workspace-cratecargotest-defaultfeatures"
+    new_project_from_template(project_dir, template_dir=ROOT / "rust")
+    use_default_crate_features(project_dir)
+    fix_cargo_lock(project_dir)
+
     project_dir = ROOT / "rust-twocrate-cratecargotest"
     new_project_from_template(project_dir, template_dir=ROOT / "rust")
     workspace_to_twocrate(project_dir)
@@ -239,6 +244,18 @@ def cargotest_to_unittest(project_dir: pathlib.Path) -> None:
     cargo_toml_path.write_text(cargo_toml)
 
     (project_dir / "tests").rmdir()
+
+
+def use_default_crate_features(project_dir: pathlib.Path) -> None:
+    did_update_cargo_toml = False
+    for cargo_toml_path in project_dir.glob("**/Cargo.toml"):
+        cargo_toml = cargo_toml_path.read_text()
+        updated_cargo_toml = cargo_toml.replace(", default-features = false", "")
+        if updated_cargo_toml == cargo_toml:
+            continue
+        did_update_cargo_toml = True
+        cargo_toml_path.write_text(updated_cargo_toml)
+    assert did_update_cargo_toml, "Cargo.toml should have changed"
 
 
 def multiply_lex_module(project_dir: pathlib.Path, total_copies: int) -> None:
