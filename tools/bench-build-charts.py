@@ -356,7 +356,7 @@ class OptimizedRustcFlagsCharter(Charter):
             )
         chart = BarChart(
             name="rustc flags: <tspan class='color-1-of-2'>quick build</tspan> beats <tspan class='color-default'>debug build</tspan>",
-            subtitle="lower is better.",
+            subtitle="tested on Linux. lower is better.",
             groups=[
                 BarChartGroup(
                     name=group_name,
@@ -442,7 +442,7 @@ class RustLayoutsCharter(Charter):
                 name="Rust incremental builds: best layout is unclear"
                 if is_incremental_chart
                 else "Rust full builds: <tspan class='color-1-of-3'>workspace layout</tspan> is fastest",
-                subtitle="lower is better.",
+                subtitle="tested on Linux. lower is better.",
                 groups=[
                     BarChartGroup(
                         name=group_name,
