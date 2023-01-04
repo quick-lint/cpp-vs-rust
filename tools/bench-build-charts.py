@@ -709,9 +709,7 @@ class CPPToolchainsCharter(Charter):
             for run in runs:
                 if run.hostname != hostname:
                     continue
-                group_bars_by_name[
-                    munge_benchmark_name_portable(run.benchmark_name)
-                ].append(
+                group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
                     BarChartBar(
                         name=toolchains[run.toolchain_label],
                         value=avg(run.samples),
@@ -826,9 +824,7 @@ class CPPVSRustCharter(Charter):
                     else toolchains[run.toolchain_label] == "C++ Clang"
                 )
                 name = toolchains[run.toolchain_label]
-                group_bars_by_name[
-                    munge_benchmark_name_portable(run.benchmark_name)
-                ].append(
+                group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
                     BarChartBar(
                         name=name,
                         value=avg(run.samples),
@@ -925,9 +921,7 @@ class CPPVSRustScalingCharter(Charter):
                     continue
                 name = self._toolchains[run.toolchain_label]
                 project_size = self._project_sizes[run.project]
-                group_bars_by_name[
-                    munge_benchmark_name_portable(run.benchmark_name)
-                ].append(
+                group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
                     BarChartBar(
                         name=f"{project_size}x {name}",
                         value=avg(run.samples),
@@ -1425,17 +1419,6 @@ class BarChartWriter:
 
 
 def munge_benchmark_name(benchmark_name: str) -> str:
-    return {
-        "build and test only my code": "build+test\nw/o deps",
-        "full build and test": "build+test\nw/ deps",
-        "incremental build and test (diagnostic_types.rs)": "incremental\ndiag_types.rs",
-        "incremental build and test (lex.rs)": "incremental\nlex.rs",
-        "incremental build and test (test_utf_8.rs)": "incremental\ntest_utf_8.rs",
-        "test only": "test only",
-    }[benchmark_name]
-
-
-def munge_benchmark_name_portable(benchmark_name: str) -> str:
     return {
         "build and test only my code": "build+test\nw/o deps",
         "full build and test": "build+test\nw/ deps",
