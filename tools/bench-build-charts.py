@@ -1026,7 +1026,7 @@ class BarChartWriter:
         self.y_labels_width = 60
 
         self.title_height = 20
-        self.subtitle_height = 15
+        self.subtitle_height = 12
         self.title_gap = 10  # Margin between subtitle and chart.
 
         self.graph_width = 300
@@ -1036,9 +1036,9 @@ class BarChartWriter:
         self.bar_gap = 2
         self.group_gap = 7
         self.bar_value_labels_gap = 2
-        self.bar_value_labels_width = 30
+        self.bar_value_labels_width = 34
         self.bar_value_labels_extra_width = (
-            35
+            37
             if any(
                 bar.show_percent_difference is not None
                 for group in chart.groups
@@ -1240,10 +1240,11 @@ class BarChartWriter:
         }}
 
         text.chart-title {{
-            font-size:{self.title_height*0.8}px;
+            font-size: {self.title_height*0.6}px;
+            font-weight: bold;
         }}
         text.chart-subtitle {{
-            font-size:{self.subtitle_height*0.6}px;
+            font-size: {self.subtitle_height*0.6}px;
             font-style: italic;
         }}
 
