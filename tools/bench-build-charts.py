@@ -23,6 +23,14 @@ class BenchmarkSpec(typing.NamedTuple):
             benchmark_name=run.benchmark_name,
         )
 
+    def matches_run(self, run: DB.Run) -> bool:
+        return (
+            self.hostname == run.hostname
+            and self.project == run.project
+            and self.toolchain_label == run.toolchain_label
+            and self.benchmark_name == run.benchmark_name
+        )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -60,8 +68,12 @@ class Charter:
     def make_chart_filtering_runs(
         self, all_runs: typing.List[DB.Run], output_dir: pathlib.Path
     ) -> None:
-        specs = list(self.get_benchmark_specs())
-        runs = [run for run in all_runs if BenchmarkSpec.from_run(run) in specs]
+        runs = []
+        for spec in self.get_benchmark_specs():
+            for run in all_runs:
+                if spec.matches_run(run):
+                    runs.append(run)
+                    break
         self.make_chart_with_runs(runs=runs, output_dir=output_dir)
 
     def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
@@ -75,7 +87,7 @@ class Charter:
 
 class RustLinuxLinkerCharter(Charter):
     def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
-        for toolchain_label in ("Rust Stable Mold", "Rust Stable"):
+        for toolchain_label in ("Rust Stable", "Rust Stable Mold"):
             for benchmark_name in (
                 "build and test only my code",
                 "full build and test",
@@ -452,8 +464,8 @@ class CargoNextestCharter(Charter):
     def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
         for hostname in ("strammer.lan", "strapurp"):
             for toolchain_label in (
-                "Rust Nightly quick-build-incremental cargo-nextest",
                 "Rust Nightly quick-build-incremental",
+                "Rust Nightly quick-build-incremental cargo-nextest",
             ):
                 for benchmark_name in (
                     "build and test only my code",
