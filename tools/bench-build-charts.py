@@ -8,11 +8,41 @@ import argparse
 import pathlib
 
 
+class BenchmarkSpec(typing.NamedTuple):
+    hostname: str
+    project: str
+    toolchain_label: str
+    benchmark_name: str
+
+    @staticmethod
+    def from_run(run: DB.Run) -> "BenchmarkSpec":
+        return BenchmarkSpec(
+            hostname=run.hostname,
+            project=run.project,
+            toolchain_label=run.toolchain_label,
+            benchmark_name=run.benchmark_name,
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", metavar="PATH", required=True, nargs="+")
     parser.add_argument("--output-dir", metavar="PATH", required=True)
     args = parser.parse_args()
+
+    charters = [
+        RustLinuxLinkerCharter(),
+        RustMacosLinkerCharter(),
+        CraneliftVSLLVMCharter(),
+        OptimizedRustcFlagsCharter(),
+        CargoNextestCharter(),
+        RustLayoutsCharter(),
+        RustCrateFeaturesCharter(),
+        RustToolchainsCharter(),
+        CPPToolchainsCharter(),
+        CPPVSRustCharter(),
+        CPPVSRustScalingCharter(),
+    ]
 
     dbs = [DB(db_path) for db_path in args.db]
     output_dir = pathlib.Path(args.output_dir)
@@ -22,537 +52,521 @@ def main() -> None:
         latest_runs.extend(db.load_latest_runs())
 
     output_dir.mkdir(exist_ok=True)
-    make_chart_rust_linux_linker(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_rust_macos_linker(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_cranelift_vs_llvm(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_optimized_rustc_flags(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_cargo_nextest(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_rust_layouts(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_rust_crate_features(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_rust_toolchains(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_cpp_toolchains(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_cpp_vs_rust(all_runs=latest_runs, output_dir=output_dir)
-    make_chart_cpp_vs_rust_scaling(all_runs=latest_runs, output_dir=output_dir)
+    for charter in charters:
+        charter.make_chart_filtering_runs(all_runs=latest_runs, output_dir=output_dir)
 
 
-def make_chart_rust_linux_linker(
-    all_runs: typing.List, output_dir: pathlib.Path
-) -> None:
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strapurp"
-        and run.project == "rust"
-        and run.toolchain_label in ("Rust Stable Mold", "Rust Stable")
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        if run.benchmark_name == "test only":
-            continue
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name="Mold" if "Mold" in run.toolchain_label else "GNU ld (default)",
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                emphasize="Mold" in run.toolchain_label,
-                classes=["color-1-of-2"]
-                if "Mold" in run.toolchain_label
-                else ["color-default"],
-                show_percent_difference=0 if "Mold" in run.toolchain_label else None,
-            ),
-        )
-    chart = BarChart(
-        name="Linux: <tspan class='color-1-of-2'>Mold</tspan> barely beats <tspan class='color-default'>GNU ld (default)</tspan>",
-        subtitle="lower is better.",
-        groups=[
-            BarChartGroup(name=group_name, bars=group_bars)
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(chart=chart, path=output_dir / "rust-linux-linker.svg")
+class Charter:
+    def make_chart_filtering_runs(
+        self, all_runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        specs = list(self.get_benchmark_specs())
+        runs = [run for run in all_runs if BenchmarkSpec.from_run(run) in specs]
+        self.make_chart_with_runs(runs=runs, output_dir=output_dir)
+
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        raise NotImplementedError()
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        raise NotImplementedError()
 
 
-def make_chart_rust_macos_linker(
-    all_runs: typing.List, output_dir: pathlib.Path
-) -> None:
-    bar_order = ["ld64 (default)", "lld", "zld"]
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strammer.lan"
-        and run.project == "rust"
-        and run.toolchain_label
-        in ("Rust Stable ld64.lld", "Rust Stable zld", "Rust Stable")
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        if run.benchmark_name == "test only":
-            continue
-        name = (
-            "lld"
-            if "ld64.lld" in run.toolchain_label
-            else "zld"
-            if "zld" in run.toolchain_label
-            else "ld64 (default)"
-        )
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name=name,
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                classes=[
-                    "color-default"
-                    if name == "ld64 (default)"
-                    else f"color-{bar_order.index(name)+1-1}-of-2"
-                ],
-            ),
-        )
-    chart = BarChart(
-        name="macOS: linkers perform about the same",
-        subtitle="lower is better.",
-        groups=[
-            BarChartGroup(
-                name=group_name,
-                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
-            )
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(chart=chart, path=output_dir / "rust-macos-linker.svg")
-
-
-def make_chart_cranelift_vs_llvm(
-    all_runs: typing.List, output_dir: pathlib.Path
-) -> None:
-    bar_order = ["LLVM", "Cranelift"]
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strapurp"
-        and run.project == "rust"
-        and run.toolchain_label in ("Rust Nightly", "Rust Cranelift")
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        if run.benchmark_name == "test only":
-            continue
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name="Cranelift" if "Cranelift" in run.toolchain_label else "LLVM",
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                emphasize="Cranelift" in run.toolchain_label,
-                classes=[] if "Cranelift" in run.toolchain_label else ["color-default"],
-                show_percent_difference=0
-                if "Cranelift" in run.toolchain_label
-                else None,
-            ),
-        )
-    chart = BarChart(
-        name="Rust backend: <tspan class='color-default'>LLVM (default)</tspan> beats <tspan class='color-1-of-2'>Cranelift</tspan>",
-        subtitle="lower is better.",
-        groups=[
-            BarChartGroup(
-                name=group_name,
-                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
-            )
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(chart=chart, path=output_dir / "cranelift-vs-llvm.svg")
-
-
-def make_chart_optimized_rustc_flags(
-    all_runs: typing.List, output_dir: pathlib.Path
-) -> None:
-    bar_order = [
-        "debug (default)",
-        "quick, incremental=false",
-        "quick, incremental=true",
-        "quick, -Zshare-generics",
-    ]
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strapurp"
-        and run.project == "rust"
-        and run.toolchain_label
-        in (
-            "Rust Nightly",
-            "Rust Nightly quick-build-incremental",
-            "Rust Nightly quick-build-nonincremental",
-            "Rust Nightly quick-build-incremental -Zshare-generics=y",
-        )
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        if run.benchmark_name in ("test only", "full build and test"):
-            continue
-        name = {
-            "Rust Nightly": "debug (default)",
-            "Rust Nightly quick-build-incremental": "quick, incremental=true",
-            "Rust Nightly quick-build-nonincremental": "quick, incremental=false",
-            "Rust Nightly quick-build-incremental -Zshare-generics=y": "quick, -Zshare-generics",
-        }[run.toolchain_label]
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name=name,
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                classes={
-                    "debug (default)": ["color-default"],
-                    "quick, incremental=false": [
-                        "color-1-of-2",
-                    ],
-                    "quick, incremental=true": [
-                        "color-2-of-2",
-                        "color-alternate-shade",
-                    ],
-                    "quick, -Zshare-generics": ["color-2-of-2"],
-                }[name],
-                show_percent_difference=None if name == "debug (default)" else 0,
-            ),
-        )
-    chart = BarChart(
-        name="rustc flags: <tspan class='color-1-of-2'>quick build</tspan> beats <tspan class='color-default'>debug build</tspan>",
-        subtitle="lower is better.",
-        groups=[
-            BarChartGroup(
-                name=group_name,
-                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
-            )
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(
-        chart=chart,
-        path=output_dir / f"optimized-rustc-flags.svg",
-    )
-
-
-def make_chart_rust_layouts(all_runs: typing.List, output_dir: pathlib.Path) -> None:
-    for is_incremental_chart in (True, False):
-        projects = {
-            "rust": "workspace; many test exes",
-            "rust-workspace-crateunotest": "workspace; 1 test exe",
-            "rust-threecrate-cratecargotest": "2 crates; many test exes",
-            "rust-threecrate-crateunotest": "2 crates; 1 test exe",
-            "rust-twocrate-cratecargotest": "single crate; many test exes",
-            "rust-twocrate-unittest": "single crate; tests in lib",
-        }
-        project_order = [
-            "workspace; many test exes",
-            "workspace; 1 test exe",
-            "single crate; many test exes",
-            "single crate; tests in lib",
-            "2 crates; many test exes",
-            "2 crates; 1 test exe",
-        ]
-        runs = [
-            run
-            for run in all_runs
-            if run.hostname == "strapurp"
-            and run.project in projects.keys()
-            and run.toolchain_label == "Rust Stable quick-build-incremental"
-        ]
-        group_bars_by_name = collections.defaultdict(list)
-        for run in runs:
-            if (
-                run.benchmark_name in ("test only", "full build and test")
-                or "lex.rs" in run.benchmark_name
+class RustLinuxLinkerCharter(Charter):
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for toolchain_label in ("Rust Stable Mold", "Rust Stable"):
+            for benchmark_name in (
+                "build and test only my code",
+                "full build and test",
+                "incremental build and test (diagnostic_types.rs)",
+                "incremental build and test (lex.rs)",
+                "incremental build and test (test_utf_8.rs)",
             ):
-                continue
-            if ("incremental" in run.benchmark_name) != is_incremental_chart:
-                continue
-            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-                BarChartBar(
-                    name=projects[run.project],
-                    value=avg(run.samples),
-                    min=min(run.samples),
-                    max=max(run.samples),
-                    emphasize="workspace" in projects[run.project]
-                    and not is_incremental_chart,
-                    classes={
-                        "workspace; many test exes": ["color-1-of-3"],
-                        "workspace; 1 test exe": [
-                            "color-1-of-3",
-                            "color-alternate-shade",
-                        ],
-                        "single crate; many test exes": ["color-2-of-3"],
-                        "single crate; tests in lib": [
-                            "color-2-of-3",
-                            "color-alternate-shade",
-                        ],
-                        "2 crates; many test exes": ["color-3-of-3"],
-                        "2 crates; 1 test exe": [
-                            "color-3-of-3",
-                            "color-alternate-shade",
-                        ],
-                    }[projects[run.project]],
-                ),
-            )
-        chart = BarChart(
-            name="Rust incremental builds: best layout is unclear"
-            if is_incremental_chart
-            else "Rust full builds: <tspan class='color-1-of-3'>workspace layout</tspan> is fastest",
-            subtitle="lower is better.",
-            groups=[
-                BarChartGroup(
-                    name=group_name,
-                    bars=sorted(
-                        group_bars, key=lambda bar: project_order.index(bar.name)
-                    ),
+                yield BenchmarkSpec(
+                    hostname="strapurp",
+                    project="rust",
+                    toolchain_label=toolchain_label,
+                    benchmark_name=benchmark_name,
                 )
-                for group_name, group_bars in group_bars_by_name.items()
-            ],
-        )
-        write_chart(
-            chart=chart,
-            path=output_dir
-            / f"rust-layouts-{'incremental' if is_incremental_chart else 'full'}.svg",
-        )
 
-
-def make_chart_rust_crate_features(
-    all_runs: typing.List, output_dir: pathlib.Path
-) -> None:
-    bar_order = ["default", "disable libc default features"]
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strapurp"
-        and run.project in ("rust", "rust-workspace-cratecargotest-nodefaultfeatures")
-        and run.toolchain_label == "Rust Nightly"
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        if run.benchmark_name != "full build and test":
-            continue
-        is_no_default_features = (
-            run.project == "rust-workspace-cratecargotest-nodefaultfeatures"
-        )
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name="disable libc default features"
-                if is_no_default_features
-                else "default",
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                emphasize=is_no_default_features,
-                classes=["color-1-of-2"]
-                if is_no_default_features
-                else ["color-default"],
-                show_percent_difference=0 if is_no_default_features else None,
-            ),
-        )
-    chart = BarChart(
-        name="Disabling libc features makes no difference",
-        subtitle="tested on Linux. lower is better.",
-        groups=[
-            BarChartGroup(
-                name=group_name,
-                bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
-            )
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(chart=chart, path=output_dir / "rust-crate-features.svg")
-
-
-def make_chart_cargo_nextest(all_runs: typing.List, output_dir: pathlib.Path) -> None:
-    for hostname in ("strammer.lan", "strapurp"):
-        runs = [
-            run
-            for run in all_runs
-            if run.hostname == hostname
-            and run.project == "rust"
-            and run.toolchain_label
-            in (
-                "Rust Nightly quick-build-incremental cargo-nextest",
-                "Rust Nightly quick-build-incremental",
-            )
-        ]
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
         group_bars_by_name = collections.defaultdict(list)
         for run in runs:
             group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
                 BarChartBar(
-                    name="cargo-nextest"
-                    if "cargo-nextest" in run.toolchain_label
-                    else "Default",
+                    name="Mold"
+                    if "Mold" in run.toolchain_label
+                    else "GNU ld (default)",
                     value=avg(run.samples),
                     min=min(run.samples),
                     max=max(run.samples),
-                    emphasize="cargo-nextest" in run.toolchain_label,
+                    emphasize="Mold" in run.toolchain_label,
                     classes=["color-1-of-2"]
-                    if "cargo-nextest" in run.toolchain_label
+                    if "Mold" in run.toolchain_label
                     else ["color-default"],
                     show_percent_difference=0
-                    if "cargo-nextest" in run.toolchain_label
+                    if "Mold" in run.toolchain_label
                     else None,
                 ),
             )
         chart = BarChart(
-            name="Linux: <tspan class='color-1-of-2'>cargo-nextest</tspan> slows down testing"
-            if hostname == "strapurp"
-            else "macOS: <tspan class='color-1-of-2'>cargo-nextest</tspan> speeds up build+test",
+            name="Linux: <tspan class='color-1-of-2'>Mold</tspan> barely beats <tspan class='color-default'>GNU ld (default)</tspan>",
             subtitle="lower is better.",
             groups=[
                 BarChartGroup(name=group_name, bars=group_bars)
                 for group_name, group_bars in group_bars_by_name.items()
             ],
         )
+        write_chart(chart=chart, path=output_dir / "rust-linux-linker.svg")
+
+
+class RustMacosLinkerCharter(Charter):
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for toolchain_label in (
+            "Rust Stable ld64.lld",
+            "Rust Stable zld",
+            "Rust Stable",
+        ):
+            for benchmark_name in (
+                "build and test only my code",
+                "full build and test",
+                "incremental build and test (diagnostic_types.rs)",
+                "incremental build and test (lex.rs)",
+                "incremental build and test (test_utf_8.rs)",
+            ):
+                yield BenchmarkSpec(
+                    hostname="strammer.lan",
+                    project="rust",
+                    toolchain_label=toolchain_label,
+                    benchmark_name=benchmark_name,
+                )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        bar_order = ["ld64 (default)", "lld", "zld"]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            name = (
+                "lld"
+                if "ld64.lld" in run.toolchain_label
+                else "zld"
+                if "zld" in run.toolchain_label
+                else "ld64 (default)"
+            )
+            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                BarChartBar(
+                    name=name,
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    classes=[
+                        "color-default"
+                        if name == "ld64 (default)"
+                        else f"color-{bar_order.index(name)+1-1}-of-2"
+                    ],
+                ),
+            )
+        chart = BarChart(
+            name="macOS: linkers perform about the same",
+            subtitle="lower is better.",
+            groups=[
+                BarChartGroup(
+                    name=group_name,
+                    bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+                )
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
+        )
+        write_chart(chart=chart, path=output_dir / "rust-macos-linker.svg")
+
+
+class CraneliftVSLLVMCharter(Charter):
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for toolchain_label in ("Rust Nightly", "Rust Cranelift"):
+            for benchmark_name in (
+                "build and test only my code",
+                "full build and test",
+                "incremental build and test (diagnostic_types.rs)",
+                "incremental build and test (lex.rs)",
+                "incremental build and test (test_utf_8.rs)",
+            ):
+                yield BenchmarkSpec(
+                    hostname="strapurp",
+                    project="rust",
+                    toolchain_label=toolchain_label,
+                    benchmark_name=benchmark_name,
+                )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        bar_order = ["LLVM", "Cranelift"]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                BarChartBar(
+                    name="Cranelift" if "Cranelift" in run.toolchain_label else "LLVM",
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    emphasize="Cranelift" in run.toolchain_label,
+                    classes=[]
+                    if "Cranelift" in run.toolchain_label
+                    else ["color-default"],
+                    show_percent_difference=0
+                    if "Cranelift" in run.toolchain_label
+                    else None,
+                ),
+            )
+        chart = BarChart(
+            name="Rust backend: <tspan class='color-default'>LLVM (default)</tspan> beats <tspan class='color-1-of-2'>Cranelift</tspan>",
+            subtitle="lower is better.",
+            groups=[
+                BarChartGroup(
+                    name=group_name,
+                    bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+                )
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
+        )
+        write_chart(chart=chart, path=output_dir / "cranelift-vs-llvm.svg")
+
+
+class OptimizedRustcFlagsCharter(Charter):
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for toolchain_label in (
+            "Rust Nightly",
+            "Rust Nightly quick-build-incremental",
+            "Rust Nightly quick-build-nonincremental",
+            "Rust Nightly quick-build-incremental -Zshare-generics=y",
+        ):
+            for benchmark_name in (
+                "build and test only my code",
+                "incremental build and test (diagnostic_types.rs)",
+                "incremental build and test (lex.rs)",
+                "incremental build and test (test_utf_8.rs)",
+            ):
+                yield BenchmarkSpec(
+                    hostname="strapurp",
+                    project="rust",
+                    toolchain_label=toolchain_label,
+                    benchmark_name=benchmark_name,
+                )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        bar_order = [
+            "debug (default)",
+            "quick, incremental=false",
+            "quick, incremental=true",
+            "quick, -Zshare-generics",
+        ]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            name = {
+                "Rust Nightly": "debug (default)",
+                "Rust Nightly quick-build-incremental": "quick, incremental=true",
+                "Rust Nightly quick-build-nonincremental": "quick, incremental=false",
+                "Rust Nightly quick-build-incremental -Zshare-generics=y": "quick, -Zshare-generics",
+            }[run.toolchain_label]
+            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                BarChartBar(
+                    name=name,
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    classes={
+                        "debug (default)": ["color-default"],
+                        "quick, incremental=false": [
+                            "color-1-of-2",
+                        ],
+                        "quick, incremental=true": [
+                            "color-2-of-2",
+                            "color-alternate-shade",
+                        ],
+                        "quick, -Zshare-generics": ["color-2-of-2"],
+                    }[name],
+                    show_percent_difference=None if name == "debug (default)" else 0,
+                ),
+            )
+        chart = BarChart(
+            name="rustc flags: <tspan class='color-1-of-2'>quick build</tspan> beats <tspan class='color-default'>debug build</tspan>",
+            subtitle="lower is better.",
+            groups=[
+                BarChartGroup(
+                    name=group_name,
+                    bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+                )
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
+        )
         write_chart(
             chart=chart,
-            path=output_dir
-            / f"cargo-nextest-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+            path=output_dir / f"optimized-rustc-flags.svg",
         )
 
 
-def make_chart_rust_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -> None:
-    toolchains = {
+class RustLayoutsCharter(Charter):
+    _projects = {
+        "rust": "workspace; many test exes",
+        "rust-workspace-crateunotest": "workspace; 1 test exe",
+        "rust-threecrate-cratecargotest": "2 crates; many test exes",
+        "rust-threecrate-crateunotest": "2 crates; 1 test exe",
+        "rust-twocrate-cratecargotest": "single crate; many test exes",
+        "rust-twocrate-unittest": "single crate; tests in lib",
+    }
+
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for project in self._projects.keys():
+            for benchmark_name in (
+                "build and test only my code",
+                "incremental build and test (diagnostic_types.rs)",
+                "incremental build and test (test_utf_8.rs)",
+            ):
+                yield BenchmarkSpec(
+                    hostname="strapurp",
+                    project=project,
+                    toolchain_label="Rust Stable quick-build-incremental",
+                    benchmark_name=benchmark_name,
+                )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        for is_incremental_chart in (True, False):
+            project_order = [
+                "workspace; many test exes",
+                "workspace; 1 test exe",
+                "single crate; many test exes",
+                "single crate; tests in lib",
+                "2 crates; many test exes",
+                "2 crates; 1 test exe",
+            ]
+            group_bars_by_name = collections.defaultdict(list)
+            for run in runs:
+                if ("incremental" in run.benchmark_name) != is_incremental_chart:
+                    continue
+                group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                    BarChartBar(
+                        name=self._projects[run.project],
+                        value=avg(run.samples),
+                        min=min(run.samples),
+                        max=max(run.samples),
+                        emphasize="workspace" in self._projects[run.project]
+                        and not is_incremental_chart,
+                        classes={
+                            "workspace; many test exes": ["color-1-of-3"],
+                            "workspace; 1 test exe": [
+                                "color-1-of-3",
+                                "color-alternate-shade",
+                            ],
+                            "single crate; many test exes": ["color-2-of-3"],
+                            "single crate; tests in lib": [
+                                "color-2-of-3",
+                                "color-alternate-shade",
+                            ],
+                            "2 crates; many test exes": ["color-3-of-3"],
+                            "2 crates; 1 test exe": [
+                                "color-3-of-3",
+                                "color-alternate-shade",
+                            ],
+                        }[self._projects[run.project]],
+                    ),
+                )
+            chart = BarChart(
+                name="Rust incremental builds: best layout is unclear"
+                if is_incremental_chart
+                else "Rust full builds: <tspan class='color-1-of-3'>workspace layout</tspan> is fastest",
+                subtitle="lower is better.",
+                groups=[
+                    BarChartGroup(
+                        name=group_name,
+                        bars=sorted(
+                            group_bars, key=lambda bar: project_order.index(bar.name)
+                        ),
+                    )
+                    for group_name, group_bars in group_bars_by_name.items()
+                ],
+            )
+            write_chart(
+                chart=chart,
+                path=output_dir
+                / f"rust-layouts-{'incremental' if is_incremental_chart else 'full'}.svg",
+            )
+
+
+class RustCrateFeaturesCharter(Charter):
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for project in ("rust", "rust-workspace-cratecargotest-nodefaultfeatures"):
+            yield BenchmarkSpec(
+                hostname="strapurp",
+                project=project,
+                toolchain_label="Rust Nightly",
+                benchmark_name="full build and test",
+            )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        bar_order = ["default", "disable libc default features"]
+        group_bars_by_name = collections.defaultdict(list)
+        for run in runs:
+            is_no_default_features = (
+                run.project == "rust-workspace-cratecargotest-nodefaultfeatures"
+            )
+            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                BarChartBar(
+                    name="disable libc default features"
+                    if is_no_default_features
+                    else "default",
+                    value=avg(run.samples),
+                    min=min(run.samples),
+                    max=max(run.samples),
+                    emphasize=is_no_default_features,
+                    classes=["color-1-of-2"]
+                    if is_no_default_features
+                    else ["color-default"],
+                    show_percent_difference=0 if is_no_default_features else None,
+                ),
+            )
+        chart = BarChart(
+            name="Disabling libc features makes no difference",
+            subtitle="tested on Linux. lower is better.",
+            groups=[
+                BarChartGroup(
+                    name=group_name,
+                    bars=sorted(group_bars, key=lambda bar: bar_order.index(bar.name)),
+                )
+                for group_name, group_bars in group_bars_by_name.items()
+            ],
+        )
+        write_chart(chart=chart, path=output_dir / "rust-crate-features.svg")
+
+
+class CargoNextestCharter(Charter):
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for hostname in ("strammer.lan", "strapurp"):
+            for toolchain_label in (
+                "Rust Nightly quick-build-incremental cargo-nextest",
+                "Rust Nightly quick-build-incremental",
+            ):
+                for benchmark_name in (
+                    "build and test only my code",
+                    "full build and test",
+                    "incremental build and test (diagnostic_types.rs)",
+                    "incremental build and test (lex.rs)",
+                    "incremental build and test (test_utf_8.rs)",
+                    "test only",
+                ):
+                    yield BenchmarkSpec(
+                        hostname=hostname,
+                        project="rust",
+                        toolchain_label=toolchain_label,
+                        benchmark_name=benchmark_name,
+                    )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        for hostname in ("strammer.lan", "strapurp"):
+            group_bars_by_name = collections.defaultdict(list)
+            for run in runs:
+                if run.hostname != hostname:
+                    continue
+                group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
+                    BarChartBar(
+                        name="cargo-nextest"
+                        if "cargo-nextest" in run.toolchain_label
+                        else "Default",
+                        value=avg(run.samples),
+                        min=min(run.samples),
+                        max=max(run.samples),
+                        emphasize="cargo-nextest" in run.toolchain_label,
+                        classes=["color-1-of-2"]
+                        if "cargo-nextest" in run.toolchain_label
+                        else ["color-default"],
+                        show_percent_difference=0
+                        if "cargo-nextest" in run.toolchain_label
+                        else None,
+                    ),
+                )
+            chart = BarChart(
+                name="Linux: <tspan class='color-1-of-2'>cargo-nextest</tspan> slows down testing"
+                if hostname == "strapurp"
+                else "macOS: <tspan class='color-1-of-2'>cargo-nextest</tspan> speeds up build+test",
+                subtitle="lower is better.",
+                groups=[
+                    BarChartGroup(name=group_name, bars=group_bars)
+                    for group_name, group_bars in group_bars_by_name.items()
+                ],
+            )
+            write_chart(
+                chart=chart,
+                path=output_dir
+                / f"cargo-nextest-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+            )
+
+
+class RustToolchainsCharter(Charter):
+    _toolchains = {
         "Rust Stable quick-build-incremental": "Stable",
         "Rust Nightly quick-build-incremental": "Nightly",
         "Rust Custom quick-build-incremental": "Custom",
         "Rust Custom PGO quick-build-incremental": "Custom+PGO",
         "Rust Custom PGO BOLT quick-build-incremental": "Custom+PGO+BOLT",
     }
-    toolchain_order = ["Stable", "Nightly", "Custom", "Custom+PGO", "Custom+PGO+BOLT"]
-    runs = [
-        run
-        for run in all_runs
-        if run.hostname == "strapurp"
-        and run.project == "rust"
-        and run.toolchain_label in toolchains.keys()
-    ]
-    group_bars_by_name = collections.defaultdict(list)
-    for run in runs:
-        if run.benchmark_name not in (
-            "full build and test",
-            "incremental build and test (lex.rs)",
-        ):
-            continue
-        tc = toolchains[run.toolchain_label]
-        group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
-            BarChartBar(
-                name=tc,
-                value=avg(run.samples),
-                min=min(run.samples),
-                max=max(run.samples),
-                emphasize=tc in ("Nightly", "Custom+PGO+BOLT"),
-                classes=["color-1-of-2"]
-                if tc == "Nightly"
-                else ["color-2-of-2"]
-                if tc == "Custom+PGO+BOLT"
-                else [],
-                show_percent_difference=toolchain_order.index("Nightly")
-                if tc == "Custom+PGO+BOLT"
-                else None,
-            ),
-        )
-    chart = BarChart(
-        name="Rust toolchains: Nightly is fastest",
-        subtitle="tested on Linux. lower is better.",
-        groups=[
-            BarChartGroup(
-                name=group_name,
-                bars=sorted(
-                    group_bars, key=lambda bar: toolchain_order.index(bar.name)
-                ),
-            )
-            for group_name, group_bars in group_bars_by_name.items()
-        ],
-    )
-    write_chart(
-        chart=chart,
-        path=output_dir / f"rust-toolchain.svg",
-    )
 
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for toolchain_label in self._toolchains.keys():
+            for benchmark_name in (
+                "full build and test",
+                "incremental build and test (lex.rs)",
+            ):
+                yield BenchmarkSpec(
+                    hostname="strapurp",
+                    project="rust",
+                    toolchain_label=toolchain_label,
+                    benchmark_name=benchmark_name,
+                )
 
-def make_chart_cpp_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -> None:
-    for hostname in ("strammer.lan", "strapurp"):
-        if hostname == "strapurp":
-            toolchains = {
-                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libstdc++",
-                "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libc++",
-                "Clang 12 libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libstdc++",
-                "Clang 12 libc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libc++",
-                "GCC 12 PCH -g0 Mold": "GCC",
-            }
-            toolchain_order = [
-                "GCC",
-                "Clang (Ubuntu) libc++",
-                "Clang (Ubuntu) libstdc++",
-                "Clang (custom) libc++",
-                "Clang (custom) libstdc++",
-            ]
-        else:
-            toolchains = {
-                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Xcode ld64",
-                "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Xcode lld",
-                "Clang libc++ PCH -g0 zld -fpch-instantiate-templates": "Xcode zld",
-                "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15 ld64",
-                "Clang 15 libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang 15 lld",
-                "Clang 15 libc++ PCH -g0 zld -fpch-instantiate-templates": "Clang 15 zld",
-            }
-            toolchain_order = [
-                "Xcode ld64",
-                "Xcode lld",
-                "Xcode zld",
-                "Clang 15 ld64",
-                "Clang 15 lld",
-                "Clang 15 zld",
-            ]
-        runs = [
-            run
-            for run in all_runs
-            if run.hostname == hostname
-            and run.project == "cpp"
-            and run.toolchain_label in toolchains.keys()
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        toolchain_order = [
+            "Stable",
+            "Nightly",
+            "Custom",
+            "Custom+PGO",
+            "Custom+PGO+BOLT",
         ]
         group_bars_by_name = collections.defaultdict(list)
         for run in runs:
-            if run.benchmark_name in ("test only", "full build and test"):
-                continue
-            group_bars_by_name[
-                munge_benchmark_name_portable(run.benchmark_name)
-            ].append(
+            tc = self._toolchains[run.toolchain_label]
+            group_bars_by_name[munge_benchmark_name(run.benchmark_name)].append(
                 BarChartBar(
-                    name=toolchains[run.toolchain_label],
+                    name=tc,
                     value=avg(run.samples),
                     min=min(run.samples),
                     max=max(run.samples),
-                    emphasize="Clang (custom)" in toolchains[run.toolchain_label],
-                    classes={
-                        "GCC": ["color-1-of-3"],
-                        "Clang (Ubuntu) libc++": ["color-2-of-3"],
-                        "Clang (Ubuntu) libstdc++": [
-                            "color-2-of-3",
-                            "color-alternate-shade",
-                        ],
-                        "Clang (custom) libc++": ["color-3-of-3"],
-                        "Clang (custom) libstdc++": [
-                            "color-3-of-3",
-                            "color-alternate-shade",
-                        ],
-                        "Xcode ld64": ["color-1-of-2"],
-                        "Xcode lld": ["color-1-of-2", "color-alternate-shade"],
-                        "Xcode zld": ["color-1-of-2", "color-alternate-shade-2"],
-                        "Clang 15 ld64": ["color-2-of-2"],
-                        "Clang 15 lld": ["color-2-of-2", "color-alternate-shade"],
-                        "Clang 15 zld": ["color-2-of-2", "color-alternate-shade-2"],
-                    }[toolchains[run.toolchain_label]],
+                    emphasize=tc in ("Nightly", "Custom+PGO+BOLT"),
+                    classes=["color-1-of-2"]
+                    if tc == "Nightly"
+                    else ["color-2-of-2"]
+                    if tc == "Custom+PGO+BOLT"
+                    else [],
+                    show_percent_difference=toolchain_order.index("Nightly")
+                    if tc == "Custom+PGO+BOLT"
+                    else None,
                 ),
             )
         chart = BarChart(
-            name="Linux: <tspan class='color-3-of-3'>custom Clang</tspan> is fastest toolchain"
-            if hostname == "strapurp"
-            else "macOS: <tspan class='color-1-of-2'>Xcode</tspan> is fastest toolchain",
-            subtitle=f"lower is better.",
+            name="Rust toolchains: Nightly is fastest",
+            subtitle="tested on Linux. lower is better.",
             groups=[
                 BarChartGroup(
                     name=group_name,
@@ -565,165 +579,331 @@ def make_chart_cpp_toolchains(all_runs: typing.List, output_dir: pathlib.Path) -
         )
         write_chart(
             chart=chart,
-            path=output_dir
-            / f"cpp-toolchains-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+            path=output_dir / f"rust-toolchain.svg",
         )
 
 
-def make_chart_cpp_vs_rust(all_runs: typing.List, output_dir: pathlib.Path) -> None:
-    for hostname in ("strammer.lan", "strapurp"):
-        if hostname == "strapurp":
-            toolchains = {
-                "Rust Nightly Mold quick-build-incremental": "Rust",
-                "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
-            }
-            toolchain_order = [
-                "Rust",
-                "C++",
-            ]
-        else:
-            toolchains = {
-                "Rust Nightly quick-build-incremental cargo-nextest": "Rust",
-                "Clang libc++ PCH -g0 -fpch-instantiate-templates": "C++",
-            }
-            toolchain_order = [
-                "Rust",
-                "C++",
-            ]
-        runs = [
-            run
-            for run in all_runs
-            if run.hostname == hostname
-            and run.project in ("rust", "cpp")
-            and run.toolchain_label in toolchains.keys()
-        ]
-        group_bars_by_name = collections.defaultdict(list)
-        for run in runs:
-            if run.benchmark_name in ("test only", "full build and test"):
-                continue
-            emphasize = (
-                toolchains[run.toolchain_label] == "Rust Nightly"
+class CPPToolchainsCharter(Charter):
+    _linux_toolchains = {
+        "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libstdc++",
+        "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libc++",
+        "Clang 12 libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libstdc++",
+        "Clang 12 libc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libc++",
+        "GCC 12 PCH -g0 Mold": "GCC",
+    }
+
+    _macos_toolchains = {
+        "Clang libc++ PCH -g0 -fpch-instantiate-templates": "Xcode ld64",
+        "Clang libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Xcode lld",
+        "Clang libc++ PCH -g0 zld -fpch-instantiate-templates": "Xcode zld",
+        "Clang 15 libc++ PCH -g0 -fpch-instantiate-templates": "Clang 15 ld64",
+        "Clang 15 libc++ PCH -g0 ld64.lld -fpch-instantiate-templates": "Clang 15 lld",
+        "Clang 15 libc++ PCH -g0 zld -fpch-instantiate-templates": "Clang 15 zld",
+    }
+
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for hostname in ("strammer.lan", "strapurp"):
+            if hostname == "strapurp":
+                toolchains = self._linux_toolchains
+            else:
+                toolchains = self._macos_toolchains
+
+            for toolchain_label in toolchains.keys():
+                for benchmark_name in (
+                    "build and test only my code",
+                    "incremental build and test (diagnostic-types.h)",
+                    "incremental build and test (lex.cpp)",
+                    "incremental build and test (test-utf-8.cpp)",
+                ):
+                    yield BenchmarkSpec(
+                        hostname=hostname,
+                        project="cpp",
+                        toolchain_label=toolchain_label,
+                        benchmark_name=benchmark_name,
+                    )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        for hostname in ("strammer.lan", "strapurp"):
+            if hostname == "strapurp":
+                toolchains = self._linux_toolchains
+                toolchain_order = [
+                    "GCC",
+                    "Clang (Ubuntu) libc++",
+                    "Clang (Ubuntu) libstdc++",
+                    "Clang (custom) libc++",
+                    "Clang (custom) libstdc++",
+                ]
+            else:
+                toolchains = self._macos_toolchains
+                toolchain_order = [
+                    "Xcode ld64",
+                    "Xcode lld",
+                    "Xcode zld",
+                    "Clang 15 ld64",
+                    "Clang 15 lld",
+                    "Clang 15 zld",
+                ]
+            group_bars_by_name = collections.defaultdict(list)
+            for run in runs:
+                if run.hostname != hostname:
+                    continue
+                group_bars_by_name[
+                    munge_benchmark_name_portable(run.benchmark_name)
+                ].append(
+                    BarChartBar(
+                        name=toolchains[run.toolchain_label],
+                        value=avg(run.samples),
+                        min=min(run.samples),
+                        max=max(run.samples),
+                        emphasize="Clang (custom)" in toolchains[run.toolchain_label],
+                        classes={
+                            "GCC": ["color-1-of-3"],
+                            "Clang (Ubuntu) libc++": ["color-2-of-3"],
+                            "Clang (Ubuntu) libstdc++": [
+                                "color-2-of-3",
+                                "color-alternate-shade",
+                            ],
+                            "Clang (custom) libc++": ["color-3-of-3"],
+                            "Clang (custom) libstdc++": [
+                                "color-3-of-3",
+                                "color-alternate-shade",
+                            ],
+                            "Xcode ld64": ["color-1-of-2"],
+                            "Xcode lld": ["color-1-of-2", "color-alternate-shade"],
+                            "Xcode zld": ["color-1-of-2", "color-alternate-shade-2"],
+                            "Clang 15 ld64": ["color-2-of-2"],
+                            "Clang 15 lld": ["color-2-of-2", "color-alternate-shade"],
+                            "Clang 15 zld": ["color-2-of-2", "color-alternate-shade-2"],
+                        }[toolchains[run.toolchain_label]],
+                    ),
+                )
+            chart = BarChart(
+                name="Linux: <tspan class='color-3-of-3'>custom Clang</tspan> is fastest toolchain"
                 if hostname == "strapurp"
-                else toolchains[run.toolchain_label] == "C++ Clang"
-            )
-            name = toolchains[run.toolchain_label]
-            group_bars_by_name[
-                munge_benchmark_name_portable(run.benchmark_name)
-            ].append(
-                BarChartBar(
-                    name=name,
-                    value=avg(run.samples),
-                    min=min(run.samples),
-                    max=max(run.samples),
-                    emphasize=emphasize,
-                    classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"],
-                    show_percent_difference=0 if "C++" in name else None,
-                ),
-            )
-        chart = BarChart(
-            name="Linux: <tspan class='color-1-of-2'>Rust</tspan> usually builds faster than <tspan class='color-2-of-2'>C++</tspan>"
-            if hostname == "strapurp"
-            else "macOS: <tspan class='color-2-of-2'>C++</tspan> usually builds faster than <tspan class='color-1-of-2'>Rust</tspan>",
-            subtitle=f"lower is better.",
-            groups=[
-                BarChartGroup(
-                    name=group_name,
-                    bars=sorted(
-                        group_bars, key=lambda bar: toolchain_order.index(bar.name)
-                    ),
-                )
-                for group_name, group_bars in group_bars_by_name.items()
-            ],
-        )
-        write_chart(
-            chart=chart,
-            path=output_dir
-            / f"cpp-vs-rust-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
-        )
-
-
-def make_chart_cpp_vs_rust_scaling(
-    all_runs: typing.List, output_dir: pathlib.Path
-) -> None:
-    for is_incremental_chart in (True, False):
-        toolchains = {
-            "Rust Nightly Mold quick-build-incremental": "Rust",
-            "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
-        }
-        bar_order = [
-            "1x Rust",
-            "8x Rust",
-            "16x Rust",
-            "24x Rust",
-            "1x C++",
-            "8x C++",
-            "16x C++",
-            "24x C++",
-        ]
-        project_sizes = {
-            "cpp": 1,
-            "cpp-8": 8,
-            "cpp-16": 16,
-            "cpp-24": 24,
-            "rust": 1,
-            "rust-workspace-cratecargotest-8": 8,
-            "rust-workspace-cratecargotest-16": 16,
-            "rust-workspace-cratecargotest-24": 24,
-        }
-        runs = [
-            run
-            for run in all_runs
-            if run.hostname == "strapurp"
-            and run.project in project_sizes.keys()
-            and run.toolchain_label in toolchains.keys()
-        ]
-        group_bars_by_name = collections.defaultdict(list)
-        for run in runs:
-            if run.benchmark_name in ("test only", "full build and test"):
-                continue
-            if ("incremental" in run.benchmark_name) != is_incremental_chart:
-                continue
-            name = toolchains[run.toolchain_label]
-            project_size = project_sizes[run.project]
-            group_bars_by_name[
-                munge_benchmark_name_portable(run.benchmark_name)
-            ].append(
-                BarChartBar(
-                    name=f"{project_size}x {name}",
-                    value=avg(run.samples),
-                    min=min(run.samples),
-                    max=max(run.samples),
-                    classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"],
-                    show_percent_difference=None
-                    if project_size == 1
-                    else (
-                        bar_order.index("1x C++")
-                        if "C++" in name
-                        else bar_order.index("1x Rust")
-                    ),
-                ),
-            )
-        chart = BarChart(
-            name=f"<tspan class='color-2-of-2'>C++</tspan> {'incremental' if is_incremental_chart else 'full'} builds scale better than <tspan class='color-1-of-2'>Rust</tspan>",
-            subtitle=f"tested on Linux. lower is better.",
-            groups=sorted(
-                [
+                else "macOS: <tspan class='color-1-of-2'>Xcode</tspan> is fastest toolchain",
+                subtitle=f"lower is better.",
+                groups=[
                     BarChartGroup(
                         name=group_name,
                         bars=sorted(
-                            group_bars, key=lambda bar: bar_order.index(bar.name)
+                            group_bars, key=lambda bar: toolchain_order.index(bar.name)
                         ),
                     )
                     for group_name, group_bars in group_bars_by_name.items()
                 ],
-                key=lambda group: group.name,
-            ),
-        )
-        write_chart(
-            chart=chart,
-            path=output_dir
-            / f"cpp-vs-rust-scale-{'incremental' if is_incremental_chart else 'full'}.svg",
-        )
+            )
+            write_chart(
+                chart=chart,
+                path=output_dir
+                / f"cpp-toolchains-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+            )
+
+
+class CPPVSRustCharter(Charter):
+    _linux_toolchains = {
+        "Rust Nightly Mold quick-build-incremental": "Rust",
+        "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
+    }
+
+    _macos_toolchains = {
+        "Rust Nightly quick-build-incremental cargo-nextest": "Rust",
+        "Clang libc++ PCH -g0 -fpch-instantiate-templates": "C++",
+    }
+
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for hostname in ("strammer.lan", "strapurp"):
+            if hostname == "strapurp":
+                toolchains = self._linux_toolchains
+            else:
+                toolchains = self._macos_toolchains
+
+            for project in ("rust", "cpp"):
+                for toolchain_label in toolchains.keys():
+                    for benchmark_name in (
+                        "build and test only my code",
+                        "incremental build and test (diagnostic_types.rs)"
+                        if project == "rust"
+                        else "incremental build and test (diagnostic-types.h)",
+                        "incremental build and test (lex.rs)"
+                        if project == "rust"
+                        else "incremental build and test (lex.cpp)",
+                        "incremental build and test (test_utf_8.rs)"
+                        if project == "rust"
+                        else "incremental build and test (test-utf-8.cpp)",
+                    ):
+                        yield BenchmarkSpec(
+                            hostname=hostname,
+                            project=project,
+                            toolchain_label=toolchain_label,
+                            benchmark_name=benchmark_name,
+                        )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        for hostname in ("strammer.lan", "strapurp"):
+            if hostname == "strapurp":
+                toolchains = self._linux_toolchains
+                toolchain_order = [
+                    "Rust",
+                    "C++",
+                ]
+            else:
+                toolchains = self._macos_toolchains
+                toolchain_order = [
+                    "Rust",
+                    "C++",
+                ]
+            group_bars_by_name = collections.defaultdict(list)
+            for run in runs:
+                if run.hostname != hostname:
+                    continue
+                emphasize = (
+                    toolchains[run.toolchain_label] == "Rust Nightly"
+                    if hostname == "strapurp"
+                    else toolchains[run.toolchain_label] == "C++ Clang"
+                )
+                name = toolchains[run.toolchain_label]
+                group_bars_by_name[
+                    munge_benchmark_name_portable(run.benchmark_name)
+                ].append(
+                    BarChartBar(
+                        name=name,
+                        value=avg(run.samples),
+                        min=min(run.samples),
+                        max=max(run.samples),
+                        emphasize=emphasize,
+                        classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"],
+                        show_percent_difference=0 if "C++" in name else None,
+                    ),
+                )
+            chart = BarChart(
+                name="Linux: <tspan class='color-1-of-2'>Rust</tspan> usually builds faster than <tspan class='color-2-of-2'>C++</tspan>"
+                if hostname == "strapurp"
+                else "macOS: <tspan class='color-2-of-2'>C++</tspan> usually builds faster than <tspan class='color-1-of-2'>Rust</tspan>",
+                subtitle=f"lower is better.",
+                groups=[
+                    BarChartGroup(
+                        name=group_name,
+                        bars=sorted(
+                            group_bars, key=lambda bar: toolchain_order.index(bar.name)
+                        ),
+                    )
+                    for group_name, group_bars in group_bars_by_name.items()
+                ],
+            )
+            write_chart(
+                chart=chart,
+                path=output_dir
+                / f"cpp-vs-rust-{'linux' if hostname == 'strapurp' else 'macos'}.svg",
+            )
+
+
+class CPPVSRustScalingCharter(Charter):
+    _toolchains = {
+        "Rust Nightly Mold quick-build-incremental": "Rust",
+        "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
+    }
+
+    _project_sizes = {
+        "cpp": 1,
+        "cpp-8": 8,
+        "cpp-16": 16,
+        "cpp-24": 24,
+        "rust": 1,
+        "rust-workspace-cratecargotest-8": 8,
+        "rust-workspace-cratecargotest-16": 16,
+        "rust-workspace-cratecargotest-24": 24,
+    }
+
+    def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
+        for is_rust in (True, False):
+            for project in self._project_sizes.keys():
+                if ("rust" in project) != is_rust:
+                    continue
+                for toolchain_label in self._toolchains:
+                    if ("Rust" in toolchain_label) != is_rust:
+                        continue
+                    for benchmark_name in (
+                        "build and test only my code",
+                        "incremental build and test (diagnostic_types.rs)"
+                        if is_rust
+                        else "incremental build and test (diagnostic-types.h)",
+                        "incremental build and test (lex.rs)"
+                        if is_rust
+                        else "incremental build and test (lex.cpp)",
+                        "incremental build and test (test_utf_8.rs)"
+                        if is_rust
+                        else "incremental build and test (test-utf-8.cpp)",
+                    ):
+                        yield BenchmarkSpec(
+                            hostname="strapurp",
+                            project=project,
+                            toolchain_label=toolchain_label,
+                            benchmark_name=benchmark_name,
+                        )
+
+    def make_chart_with_runs(
+        self, runs: typing.List[DB.Run], output_dir: pathlib.Path
+    ) -> None:
+        for is_incremental_chart in (True, False):
+            bar_order = [
+                "1x Rust",
+                "8x Rust",
+                "16x Rust",
+                "24x Rust",
+                "1x C++",
+                "8x C++",
+                "16x C++",
+                "24x C++",
+            ]
+            group_bars_by_name = collections.defaultdict(list)
+            for run in runs:
+                if ("incremental" in run.benchmark_name) != is_incremental_chart:
+                    continue
+                name = self._toolchains[run.toolchain_label]
+                project_size = self._project_sizes[run.project]
+                group_bars_by_name[
+                    munge_benchmark_name_portable(run.benchmark_name)
+                ].append(
+                    BarChartBar(
+                        name=f"{project_size}x {name}",
+                        value=avg(run.samples),
+                        min=min(run.samples),
+                        max=max(run.samples),
+                        classes=["color-1-of-2" if "Rust" in name else "color-2-of-2"],
+                        show_percent_difference=None
+                        if project_size == 1
+                        else (
+                            bar_order.index("1x C++")
+                            if "C++" in name
+                            else bar_order.index("1x Rust")
+                        ),
+                    ),
+                )
+            chart = BarChart(
+                name=f"<tspan class='color-2-of-2'>C++</tspan> {'incremental' if is_incremental_chart else 'full'} builds scale better than <tspan class='color-1-of-2'>Rust</tspan>",
+                subtitle=f"tested on Linux. lower is better.",
+                groups=sorted(
+                    [
+                        BarChartGroup(
+                            name=group_name,
+                            bars=sorted(
+                                group_bars, key=lambda bar: bar_order.index(bar.name)
+                            ),
+                        )
+                        for group_name, group_bars in group_bars_by_name.items()
+                    ],
+                    key=lambda group: group.name,
+                ),
+            )
+            write_chart(
+                chart=chart,
+                path=output_dir
+                / f"cpp-vs-rust-scale-{'incremental' if is_incremental_chart else 'full'}.svg",
+            )
 
 
 class BarChart(typing.NamedTuple):
