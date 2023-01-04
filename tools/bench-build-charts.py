@@ -761,7 +761,7 @@ class CPPToolchainsCharter(Charter):
 
 class CPPVSRustCharter(Charter):
     _linux_toolchains = {
-        "Rust Nightly Mold quick-build-incremental": "Rust",
+        "Rust Custom PGO BOLT Mold quick-build-incremental": "Rust",
         "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
     }
 
@@ -859,7 +859,7 @@ class CPPVSRustCharter(Charter):
 
 class CPPVSRustScalingCharter(Charter):
     _toolchains = {
-        "Rust Nightly Mold quick-build-incremental": "Rust",
+        "Rust Custom PGO BOLT Mold quick-build-incremental": "Rust",
         "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "C++",
     }
 
