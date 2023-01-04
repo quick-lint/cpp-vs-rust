@@ -92,6 +92,7 @@ build_clang_stage2() {
             -DLLVM_INCLUDE_UTILS=YES \
             -DLLVM_INSTALL_UTILS=YES \
             -DCMAKE_BUILD_WITH_INSTALL_RPATH=YES \
+            -DLLVM_PARALLEL_LINK_JOBS=3 \
             -G Ninja
         # HACK(strager): This build often OOMs when linking. On failure, build again
         # with no parallelization.
@@ -176,6 +177,8 @@ build_clang_stage4_qljs() {
             -DLLVM_INCLUDE_TESTS=NO \
             -DLLVM_INCLUDE_UTILS=YES \
             -DLLVM_INSTALL_UTILS=YES \
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH=YES \
+            -DLLVM_PARALLEL_LINK_JOBS=3 \
             -G Ninja
         # HACK(strager): This build often OOMs when linking. On failure, build again
         # with no parallelization.
@@ -266,6 +269,8 @@ build_clang_stage4_rustcpgo() {
             -DLLVM_INCLUDE_TESTS=NO \
             -DLLVM_INCLUDE_UTILS=YES \
             -DLLVM_INSTALL_UTILS=YES \
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH=YES \
+            -DLLVM_PARALLEL_LINK_JOBS=3 \
             -G Ninja
         # HACK(strager): This build often OOMs when linking. On failure, build again
         # with no parallelization.
