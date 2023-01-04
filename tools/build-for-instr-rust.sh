@@ -18,5 +18,5 @@ build_dir() {
 }
 
 build_dir rust
-build_dir rust-workspace
+build_dir rust-twocrate-cratecargotest
 build_dir rust-workspace-crateunotest
