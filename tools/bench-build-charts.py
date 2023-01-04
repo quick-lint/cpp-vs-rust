@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-import math
-import collections
-import typing
 from cpp_vs_rust_db import DB, avg, format_ns
 import argparse
+import collections
+import math
 import pathlib
+import re
+import socket
+import subprocess
+import typing
 
 
 class BenchmarkSpec(typing.NamedTuple):
@@ -34,8 +37,22 @@ class BenchmarkSpec(typing.NamedTuple):
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--db", metavar="PATH", required=True, nargs="+")
-    parser.add_argument("--output-dir", metavar="PATH", required=True)
+    commands = parser.add_subparsers()
+
+    make_charts_command = commands.add_parser("make-charts")
+    make_charts_command.add_argument("--db", metavar="PATH", required=True, nargs="+")
+    make_charts_command.add_argument("--output-dir", metavar="PATH", required=True)
+    make_charts_command.set_defaults(command="make-charts")
+
+    run_bench_command = commands.add_parser("run-bench")
+    run_bench_command.add_argument("--iterations", type=int, default=3)
+    run_bench_command.add_argument("--warmup-iterations", type=int, default=2)
+    run_bench_command.add_argument("chart", nargs="+")
+    run_bench_command.set_defaults(command="run-bench")
+
+    list_charts_command = commands.add_parser("list-charts")
+    list_charts_command.set_defaults(command="list-charts")
+
     args = parser.parse_args()
 
     charters = [
@@ -52,19 +69,50 @@ def main() -> None:
         CPPVSRustScalingCharter(),
     ]
 
-    dbs = [DB(db_path) for db_path in args.db]
-    output_dir = pathlib.Path(args.output_dir)
+    if args.command == "run-bench":
+        chart_name_filter = args.chart
+        hostname = socket.gethostname()
+        full_benchmark_names = {
+            f"{spec.project}, {spec.toolchain_label}, {spec.benchmark_name}"
+            for charter in charters
+            for spec in charter.get_benchmark_specs()
+            if spec.hostname == hostname
+            and (not chart_name_filter or charter.name in chart_name_filter)
+        }
+        filter = (
+            "^(" + "|".join(re.escape(name) for name in full_benchmark_names) + ")$"
+        )
+        subprocess.check_call(
+            [
+                pathlib.Path(__file__).parent / "bench-build.py",
+                f"--iterations={args.iterations}",
+                f"--warmup-iterations={args.warmup_iterations}",
+                filter,
+            ]
+        )
+    elif args.command == "list-charts":
+        for charter in charters:
+            print(charter.name)
+    elif args.command == "make-charts":
+        dbs = [DB(db_path) for db_path in args.db]
+        output_dir = pathlib.Path(args.output_dir)
 
-    latest_runs = []
-    for db in dbs:
-        latest_runs.extend(db.load_latest_runs())
+        latest_runs = []
+        for db in dbs:
+            latest_runs.extend(db.load_latest_runs())
 
-    output_dir.mkdir(exist_ok=True)
-    for charter in charters:
-        charter.make_chart_filtering_runs(all_runs=latest_runs, output_dir=output_dir)
+        output_dir.mkdir(exist_ok=True)
+        for charter in charters:
+            charter.make_chart_filtering_runs(
+                all_runs=latest_runs, output_dir=output_dir
+            )
 
 
 class Charter:
+    @property
+    def name(self) -> str:
+        return type(self).__name__.replace("Charter", "")
+
     def make_chart_filtering_runs(
         self, all_runs: typing.List[DB.Run], output_dir: pathlib.Path
     ) -> None:
