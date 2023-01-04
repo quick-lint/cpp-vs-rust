@@ -620,7 +620,7 @@ class RustToolchainsCharter(Charter):
                     if tc == "Custom+PGO+BOLT"
                     else [],
                     show_percent_difference=toolchain_order.index("Nightly")
-                    if tc == "Custom+PGO+BOLT"
+                    if tc in ("Custom", "Custom+PGO", "Custom+PGO+BOLT")
                     else None,
                 ),
             )
