@@ -261,6 +261,7 @@ def find_cpp_configs(root: pathlib.Path) -> typing.List[CPPConfig]:
         )
 
     try_add_clang_configs(label="Clang 12", cxx_compiler=pathlib.Path("clang++-12"))
+    try_add_clang_configs(label="Clang 14", cxx_compiler=pathlib.Path("clang++-14"))
     try_add_clang_configs(
         label="Clang Custom",
         cxx_compiler=pathlib.Path("/home/strager/Toolchains/clang-stage2/bin/clang++"),

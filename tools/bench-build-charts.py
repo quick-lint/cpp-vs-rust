@@ -647,8 +647,8 @@ class CPPToolchainsCharter(Charter):
     _linux_toolchains = {
         "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libstdc++",
         "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libc++",
-        "Clang 12 libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libstdc++",
-        "Clang 12 libc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libc++",
+        "Clang 14 libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libstdc++",
+        "Clang 14 libc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libc++",
         "GCC 12 PCH -g0 Mold": "GCC",
     }
 
