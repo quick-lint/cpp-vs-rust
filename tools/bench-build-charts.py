@@ -1156,6 +1156,8 @@ class BarChartWriter:
             ):
                 label_x_offset += self.bar_value_labels_extra_width
             classes.append("bar-label-outside-bar")
+        else:
+            classes.append("bar-label-inside-bar")
 
         self.svg.write(
             f"""
@@ -1233,6 +1235,10 @@ class BarChartWriter:
             }}
         }}
 
+        .bar-label {{
+            fill: #fff;
+        }}
+
         text.chart-title {{
             font-size:{self.title_height*0.8}px;
         }}
@@ -1248,26 +1254,39 @@ class BarChartWriter:
         rect.bar.emphasize-bar {{
             fill: #c33;
         }}
+
         .chart-title .color-1-of-2,
         .chart-title .color-1-of-3,
         .bar.color-1-of-2,
         .bar.color-1-of-3,
         .bar-percent-difference.color-1-of-2,
+        .bar-percent-difference.color-1-of-3,
         .bar-label.bar-label-outside-bar.color-1-of-2,
         .bar-label.bar-label-outside-bar.color-1-of-3 {{
             fill: #933;
         }}
-        .bar.color-1-of-2.emphasize-bar,
-        .bar.color-1-of-3.emphasize-bar,
-        .bar-label.bar-label-outside-bar.color-1-of-2.emphasize-bar,
-        .bar-label.bar-label-outside-bar.color-1-of-3.emphasize-bar {{
-            fill: #c33;
+        @media (prefers-color-scheme: dark) {{
+            .chart-title .color-1-of-2,
+            .chart-title .color-1-of-3,
+            .bar-percent-difference.color-1-of-2,
+            .bar-percent-difference.color-1-of-3,
+            .bar-label.bar-label-outside-bar.color-1-of-2,
+            .bar-label.bar-label-outside-bar.color-1-of-3 {{
+                fill: #d55;
+            }}
         }}
+
         .bar.color-1-of-2.color-alternate-shade,
         .bar.color-1-of-3.color-alternate-shade,
         .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
         .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {{
             fill: #a52;
+        }}
+        @media (prefers-color-scheme: dark) {{
+            .bar-label.bar-label-outside-bar.color-1-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade {{
+                fill: #d73;
+            }}
         }}
         .bar.color-1-of-2.color-alternate-shade-2,
         .bar.color-1-of-3.color-alternate-shade-2,
@@ -1275,6 +1294,7 @@ class BarChartWriter:
         .bar-label.bar-label-outside-bar.color-1-of-3.color-alternate-shade-2 {{
             fill: #915;
         }}
+
         .chart-title .color-2-of-2,
         .chart-title .color-2-of-3,
         .bar.color-2-of-2,
@@ -1285,17 +1305,32 @@ class BarChartWriter:
         .bar-label.bar-label-outside-bar.color-2-of-3 {{
             fill: #339;
         }}
+        @media (prefers-color-scheme: dark) {{
+            .chart-title .color-2-of-2,
+            .chart-title .color-2-of-3,
+            .bar-percent-difference.color-2-of-2,
+            .bar-percent-difference.color-2-of-3,
+            .bar-label.bar-label-outside-bar.color-2-of-2,
+            .bar-label.bar-label-outside-bar.color-2-of-3 {{
+                fill: #67d;
+            }}
+        }}
         .bar.color-2-of-2.emphasize-bar,
-        .bar.color-2-of-3.emphasize-bar,
-        .bar-label.bar-label-outside-bar.color-2-of-2.emphasize-bar,
-        .bar-label.bar-label-outside-bar.color-2-of-3.emphasize-bar {{
+        .bar.color-2-of-3.emphasize-bar {{
             fill: #33c;
         }}
+
         .bar.color-2-of-2.color-alternate-shade,
         .bar.color-2-of-3.color-alternate-shade,
         .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
         .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {{
-            fill: #52a;
+            fill: #629;
+        }}
+        @media (prefers-color-scheme: dark) {{
+            .bar-label.bar-label-outside-bar.color-2-of-2.color-alternate-shade,
+            .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade {{
+                fill: #73d;
+            }}
         }}
         .bar.color-2-of-2.color-alternate-shade-2,
         .bar.color-2-of-3.color-alternate-shade-2,
@@ -1303,27 +1338,49 @@ class BarChartWriter:
         .bar-label.bar-label-outside-bar.color-2-of-3.color-alternate-shade-2 {{
             fill: #25a;
         }}
+
         .chart-title .color-3-of-3,
         .bar.color-3-of-3,
         .bar-label.bar-label-outside-bar.color-3-of-3 {{
             fill: #393;
         }}
-        .bar.color-3-of-3.emphasize-bar,
-        .bar-label.bar-label-outside-bar.color-3-of-3.emphasize-bar {{
+        .bar.color-3-of-3.emphasize-bar {{
             fill: #3a3;
         }}
+        @media (prefers-color-scheme: dark) {{
+            .chart-title .color-3-of-3,
+            .bar-label.bar-label-outside-bar.color-3-of-3 {{
+                fill: #5b5;
+            }}
+        }}
+
         .bar.color-3-of-3.color-alternate-shade,
         .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {{
             fill: #891;
         }}
-        .bar.color-3-of-3.color-alternate-shade.emphasize-bar,
-        .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade.emphasize-bar {{
+        .bar.color-3-of-3.color-alternate-shade.emphasize-bar {{
             fill: #8a1;
         }}
+        @media (prefers-color-scheme: dark) {{
+            .bar-label.bar-label-outside-bar.color-3-of-3.color-alternate-shade {{
+                fill: #8a3;
+            }}
+        }}
+
         .chart-title .color-default,
-        .bar-percent-difference.color-default,
-        .bar-label.color-default {{
-            fill: #ccc;
+        .bar-label.color-default,
+        .bar-percent-difference.color-default {{
+            fill: #666;
+        }}
+        .bar-label.bar-label-inside-bar.color-default {{
+            fill: #ccc
+        }}
+        @media (prefers-color-scheme: dark) {{
+            .chart-title .color-default,
+            .bar-label.color-default,
+            .bar-percent-difference.color-default {{
+                fill: #ccc;
+            }}
         }}
 
         .bar-label,
