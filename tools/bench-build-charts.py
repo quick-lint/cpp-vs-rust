@@ -435,7 +435,12 @@ class RustLayoutsCharter(Charter):
                                 "color-3-of-3",
                                 "color-alternate-shade",
                             ],
-                        }[self._projects[run.project]],
+                        }[self._projects[run.project]]
+                        + (
+                            ["bar-label-very-small"]
+                            if "test_utf_8" in run.benchmark_name
+                            else []
+                        ),
                     ),
                 )
             chart = BarChart(
@@ -645,10 +650,10 @@ class RustToolchainsCharter(Charter):
 
 class CPPToolchainsCharter(Charter):
     _linux_toolchains = {
-        "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libstdc++",
-        "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "Clang (custom) libc++",
-        "Clang 14 libstdc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libstdc++",
-        "Clang 14 libc++ PCH Mold -fpch-instantiate-templates": "Clang (Ubuntu) libc++",
+        "Clang Custom PGO BOLT libstdc++ PCH Mold -fpch-instantiate-templates": "My Clang libstdc++",
+        "Clang Custom PGO BOLT libc++ PCH Mold -fpch-instantiate-templates": "My Clang libc++",
+        "Clang 14 libstdc++ PCH Mold -fpch-instantiate-templates": "Ubuntu Clang libstdc++",
+        "Clang 14 libc++ PCH Mold -fpch-instantiate-templates": "Ubuntu Clang libc++",
         "GCC 12 PCH -g0 Mold": "GCC",
     }
 
@@ -690,10 +695,10 @@ class CPPToolchainsCharter(Charter):
                 toolchains = self._linux_toolchains
                 toolchain_order = [
                     "GCC",
-                    "Clang (Ubuntu) libc++",
-                    "Clang (Ubuntu) libstdc++",
-                    "Clang (custom) libc++",
-                    "Clang (custom) libstdc++",
+                    "Ubuntu Clang libc++",
+                    "Ubuntu Clang libstdc++",
+                    "My Clang libc++",
+                    "My Clang libstdc++",
                 ]
             else:
                 toolchains = self._macos_toolchains
@@ -715,16 +720,16 @@ class CPPToolchainsCharter(Charter):
                         value=avg(run.samples),
                         min=min(run.samples),
                         max=max(run.samples),
-                        emphasize="Clang (custom)" in toolchains[run.toolchain_label],
+                        emphasize="My Clang" in toolchains[run.toolchain_label],
                         classes={
                             "GCC": ["color-1-of-3"],
-                            "Clang (Ubuntu) libc++": ["color-2-of-3"],
-                            "Clang (Ubuntu) libstdc++": [
+                            "Ubuntu Clang libc++": ["color-2-of-3"],
+                            "Ubuntu Clang libstdc++": [
                                 "color-2-of-3",
                                 "color-alternate-shade",
                             ],
-                            "Clang (custom) libc++": ["color-3-of-3"],
-                            "Clang (custom) libstdc++": [
+                            "My Clang libc++": ["color-3-of-3"],
+                            "My Clang libstdc++": [
                                 "color-3-of-3",
                                 "color-alternate-shade",
                             ],
@@ -1030,7 +1035,7 @@ class BarChartWriter:
         self.bar_gap = 2
         self.group_gap = 7
         self.bar_value_labels_gap = 2
-        self.bar_value_labels_width = 34
+        self.bar_value_labels_width = 36
         self.bar_value_labels_extra_width = (
             37
             if any(
@@ -1139,11 +1144,21 @@ class BarChartWriter:
         error_bar_y_offset = y + self.bar_height / 2
 
         label_x_offset = 3
-        average_width_per_character = 6
-        if any(
-            len(cur_bar.name) * average_width_per_character > value_label_x_offset
+        average_width_per_character = 7
+        average_width_per_character_small = 4
+        label_fits_in_bar = all(
+            len(cur_bar.name) * average_width_per_character
+            <= self._bar_width(cur_bar.min)
             for cur_bar in group.bars
-        ):
+        )
+        small_label_fits_in_bar = all(
+            len(cur_bar.name) * average_width_per_character_small
+            <= self._bar_width(cur_bar.min)
+            for cur_bar in group.bars
+        )
+        if "bar-label-very-small" in classes:
+            pass
+        elif not label_fits_in_bar and not small_label_fits_in_bar:
             label_x_offset = value_label_x_offset + 5
             if any(
                 cur_bar.show_percent_difference is not None for cur_bar in group.bars
@@ -1152,6 +1167,11 @@ class BarChartWriter:
             classes.append("bar-label-outside-bar")
         else:
             classes.append("bar-label-inside-bar")
+            if not label_fits_in_bar:
+                if small_label_fits_in_bar:
+                    classes.append("bar-label-small")
+                else:
+                    classes.append("bar-label-very-small")
 
         self.svg.write(
             f"""
@@ -1381,6 +1401,12 @@ class BarChartWriter:
         .bar-label,
         .bar-value {{
             font-size: {self.bar_height*0.8}px;
+        }}
+        .bar-label.bar-label-small {{
+            font-size: {self.bar_height*0.7}px;
+        }}
+        .bar-label.bar-label-very-small {{
+            font-size: {self.bar_height*0.55}px;
         }}
         .bar-value.emphasize-bar,
         .bar-label.emphasize-bar {{
