@@ -439,7 +439,7 @@ class RustLayoutsCharter(Charter):
                         }[self._projects[run.project]]
                         + (
                             ["bar-label-very-small"]
-                            if "test_utf_8" in run.benchmark_name
+                            if "diagnostic_types.rs" in run.benchmark_name
                             else []
                         ),
                     ),
@@ -449,6 +449,7 @@ class RustLayoutsCharter(Charter):
                 if is_incremental_chart
                 else "Rust full builds: <tspan class='color-1-of-3'>workspace layout</tspan> is fastest",
                 subtitle="tested on Linux. lower is better.",
+                force_maximum_value=3100000000 if is_incremental_chart else None,
                 groups=[
                     BarChartGroup(
                         name=group_name,
@@ -846,7 +847,7 @@ class CPPVSRustCharter(Charter):
                     ),
                 )
             chart = BarChart(
-                name="Linux: <tspan class='color-1-of-2'>Rust</tspan> usually builds faster than <tspan class='color-2-of-2'>C++</tspan>"
+                name="Linux: <tspan class='color-1-of-2'>Rust</tspan> sometimes builds faster than <tspan class='color-2-of-2'>C++</tspan>"
                 if hostname == "strapurp"
                 else "macOS: <tspan class='color-2-of-2'>C++</tspan> usually builds faster than <tspan class='color-1-of-2'>Rust</tspan>",
                 subtitle=f"lower is better.",
