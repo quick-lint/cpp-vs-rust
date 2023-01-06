@@ -214,7 +214,13 @@ def find_cpp_configs(root: pathlib.Path) -> typing.List[CPPConfig]:
                             label=f"{label}{label_suffix} Mold",
                             cxx_compiler=cxx_compiler,
                             cxx_flags=f"{cxx_flags} {g}",
-                            link_flags=f"{link_flags} -fuse-ld={MOLD_LINKER_EXE}",
+                            # NOTE(strager): We can't write MOLD_LINKER_EXE here
+                            # because GCC only accepts exactly 'fuse-ld=mold'
+                            # (not a path to mold).
+                            # NOTE(strager): This only works if an executable
+                            # called 'ld.mold' is in PATH. It can't be called
+                            # just 'mold'.
+                            link_flags=f"{link_flags} -fuse-ld=mold",
                             pch=pch,
                         )
                     )
