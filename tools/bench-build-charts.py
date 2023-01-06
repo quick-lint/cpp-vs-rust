@@ -173,7 +173,7 @@ class RustLinuxLinkerCharter(Charter):
                 ),
             )
         chart = BarChart(
-            name="Linux: <tspan class='color-1-of-2'>Mold</tspan> barely beats <tspan class='color-default'>GNU ld (default)</tspan>",
+            name="Linux: linkers perform about the same",
             subtitle="lower is better.",
             groups=[
                 BarChartGroup(name=group_name, bars=group_bars)
@@ -284,7 +284,7 @@ class CraneliftVSLLVMCharter(Charter):
             )
         chart = BarChart(
             name="Rust backend: <tspan class='color-default'>LLVM (default)</tspan> beats <tspan class='color-1-of-2'>Cranelift</tspan>",
-            subtitle="lower is better.",
+            subtitle="tested on Linux. lower is better.",
             groups=[
                 BarChartGroup(
                     name=group_name,
@@ -630,7 +630,7 @@ class RustToolchainsCharter(Charter):
                 ),
             )
         chart = BarChart(
-            name="Rust toolchains: Nightly is fastest",
+            name="Rust toolchains: <tspan class='color-2-of-2'>custom toolchain</tspan> is fastest",
             subtitle="tested on Linux. lower is better.",
             groups=[
                 BarChartGroup(
