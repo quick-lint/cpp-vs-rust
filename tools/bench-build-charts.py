@@ -116,12 +116,13 @@ class Charter:
     def make_chart_filtering_runs(
         self, all_runs: typing.List[DB.Run], output_dir: pathlib.Path
     ) -> None:
-        runs = []
-        for spec in self.get_benchmark_specs():
+        def get_run(spec: BenchmarkSpec) -> DB.Run:
             for run in all_runs:
                 if spec.matches_run(run):
-                    runs.append(run)
-                    break
+                    return run
+            raise ValueError(f"Chart {self.name} is missing data for benchmark: {spec}")
+
+        runs = [get_run(spec) for spec in self.get_benchmark_specs()]
         self.make_chart_with_runs(runs=runs, output_dir=output_dir)
 
     def get_benchmark_specs(self) -> typing.Iterable[BenchmarkSpec]:
