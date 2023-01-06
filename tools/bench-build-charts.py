@@ -785,6 +785,10 @@ class CPPVSRustCharter(Charter):
 
             for project in ("rust", "cpp"):
                 for toolchain_label in toolchains.keys():
+                    if project == "rust" and "Rust" not in toolchain_label:
+                        continue
+                    if project == "cpp" and "Clang" not in toolchain_label:
+                        continue
                     for benchmark_name in (
                         "build and test only my code",
                         "incremental build and test (diagnostic_types.rs)"
